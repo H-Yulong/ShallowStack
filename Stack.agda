@@ -136,29 +136,30 @@ _[_]s :
 --          ITER P Z S computes iter P z s x.
 data Is {i : Level}{Γ : Con i} : ∀{m n} → Stack Γ m → Stack Γ n → Setω where
   POP : 
-    ∀{j}{A : Ty Γ j}
-     {n}{σ : Stack Γ n}
-     {t : Tm Γ A} → Is (σ ∷ t) σ
+    ∀{n}{σ : Stack Γ n}
+     {j}{A : Ty Γ j}{t : Tm Γ A} → 
+     Is (σ ∷ t) σ
   ----
   TPOP : 
-    ∀{j}{n}{σ : Stack Γ n}
-     {A : Ty Γ j} → Is (σ ∷ A) σ
+    ∀{n}{σ : Stack Γ n}
+     {j}{A : Ty Γ j} → 
+     Is (σ ∷ A) σ
   ----
   APP : 
-    ∀{j}{A : Ty Γ j}
+    ∀{n}{σ : Stack Γ n}
+     {j}{A : Ty Γ j}
      {k}{B : Ty (Γ ▹ A) k}
-     {n}{σ : Stack Γ n}
      {f : Tm Γ (Π A B)}
      {a : Tm Γ A} → 
      Is (σ ∷ f ∷ a) (σ ∷ f $ a)
   ----
   CLO : 
-    ∀{j}{Δ : Con j}
+    ∀(n : lib.ℕ)
+     {m}{σ : Stack Γ (n lib.+ m)}
+     {j}{Δ : Con j}
      {k}{A : Ty Δ k}
      {l}{B : Ty (Δ ▹ A) l}
-     (n : lib.ℕ)
-     {m}{σ : Stack Γ (n lib.+ m)}
-     {x}(L : Pi x Δ A B) →
+     {x}(L : Pi x Δ A B)
      {{pf : Γ ⊢ (take n σ) of Δ}} → 
      Is σ ((drop n σ) ∷ L ⟦ ⟦ pf ⟧s ⟧)
   ----
@@ -171,22 +172,21 @@ data Is {i : Level}{Γ : Con i} : ∀{m n} → Stack Γ m → Stack Γ n → Set
      (A : Ty Γ j) → Is σ (σ ∷ A)
   ----
   _>>_ : 
-    ∀{l m n}
-     {σ : Stack Γ l}
-     {σ' : Stack Γ m}
-     {σ'' : Stack Γ n} → 
+    ∀{l}{σ : Stack Γ l}
+     {m}{σ' : Stack Γ m}
+     {n}{σ'' : Stack Γ n} → 
      Is σ σ' → Is σ' σ'' → Is σ σ''
   ----
   SWP :
-    ∀{j}{A : Ty Γ j}
+    ∀{n}{σ : Stack Γ n}
+     {j}{A : Ty Γ j}
      {k}{A' : Ty Γ k}
-     {n}{σ : Stack Γ n}
      {t : Tm Γ A}{t' : Tm Γ A'} → 
      Is (σ ∷ t ∷ t') (σ ∷ t' ∷ t)
   ----
   ST : 
-    ∀{j}{A : Ty Γ j}
-     {n}{σ : Stack Γ n} → 
+    ∀{n}{σ : Stack Γ n}
+     {j}{A : Ty Γ j}
      (x : SVar σ A) → 
      Is σ (σ ∷ find σ x)
   ----
@@ -202,3 +202,23 @@ data Is {i : Level}{Γ : Con i} : ∀{m n} → Stack Γ m → Stack Γ n → Set
      (S : Is {Γ = Γ ▹ Nat ▹ P} (σ [ p² ]s ∷ 𝟘 ∷ 𝟙) (σ [ p² ]s ∷ s))
      {x : Tm Γ Nat} → 
      Is (σ ∷ x) (σ ∷ iter P z s x)
+  ----
+  IF : 
+    ∀{n}{σ : Stack Γ n}
+     {j}(P : Ty (Γ ▹ Bool) j)
+     {t : Tm Γ (P [ ✧ ▻ true ]T)}(T : Is σ (σ ∷ t))
+     {f : Tm Γ (P [ ✧ ▻ false ]T)}(T : Is σ (σ ∷ f))
+     {b : Tm Γ Bool} → 
+     Is (σ ∷ b) (σ ∷ if P t f b) 
+  ----
+  TRUE : 
+    ∀{n}{σ : Stack Γ n} → 
+    Is σ (σ ∷ true)
+  ----
+  FALSE : 
+    ∀{n}{σ : Stack Γ n} → 
+    Is σ (σ ∷ false)
+  ----
+  UNIT : 
+    ∀{n}{σ : Stack Γ n} → 
+    Is σ (σ ∷ tt)
