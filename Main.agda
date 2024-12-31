@@ -14,6 +14,7 @@ import Performance
 
 -- Examples of the source language,
 -- shallow-embedded Martin-Löf type theory
+{-
 module SourceExamples where
 
   open import Agda.Primitive
@@ -45,14 +46,15 @@ module SourceExamples where
 
   test5 : Tm · (λ _ → Set → Set)
   test5 = lam 𝟘
+-}
 
 module StackExamples where
 
   open lib using (ℕ; _+'_)
-
+  
   -- Adding numbers
-  t1 : Is {Γ = ·} ◆ (◆ ∷ (nat 5))
-  t1 = 
+  test1 : Is {Γ = ·} ◆ (◆ ∷ (nat 5))
+  test1 = 
       CLO 0 Add
     >> LIT 2 
     >> APP
@@ -60,8 +62,8 @@ module StackExamples where
     >> APP
 
   -- Identity
-  t2 : Is {Γ = · ▹ U0 ▹ 𝟘} (◆ ∷ 𝟘) (◆ ∷ 𝟘)
-  t2 = 
+  test2 : Is {Γ = · ▹ U0 ▹ 𝟘} (◆ ∷ 𝟘) (◆ ∷ 𝟘)
+  test2 = 
       CLO 0 Id
     >> TLIT 𝟙
     >> APP
@@ -69,16 +71,16 @@ module StackExamples where
     >> APP
 
   -- Using Id0
-  t3 : Is {Γ = · ▹ U0 ▹ 𝟘} (◆ ∷ 𝟘) (◆ ∷ 𝟘)
-  t3 =
+  test3 : Is {Γ = · ▹ U0 ▹ 𝟘} (◆ ∷ 𝟘) (◆ ∷ 𝟘)
+  test3 =
       TLIT 𝟙
     >> CLO 1 Id0
     >> SWP 
     >> APP
 
   -- Adding numbers via App
-  t4 : ∀{x y : ℕ} → Is {Γ = ·} ◆ (◆ ∷ nat (x +' y))
-  t4 {x} {y} = 
+  test4 : ∀{x y : ℕ} → Is {Γ = ·} ◆ (◆ ∷ nat (x +' y))
+  test4 {x} {y} = 
       CLO 0 App
     >> TLIT Nat
     >> APP
@@ -92,8 +94,8 @@ module StackExamples where
     >> APP
 
   -- Adding numbers, via App, using the most-curried version only
-  t5 : ∀{x y : ℕ} → Is {Γ = ·} ◆ (◆ ∷ nat (x +' y))
-  t5 {x} {y} = 
+  test5 : ∀{x y : ℕ} → Is {Γ = ·} ◆ (◆ ∷ nat (x +' y))
+  test5 {x} {y} = 
       TLIT Nat 
     >> CLO 0 LNat 
     >> LIT x 
@@ -101,4 +103,11 @@ module StackExamples where
     >> CLO 3 App0 
     >> LIT y 
     >> APP
- 
+
+  -- Adding via iterator
+  test6 : ∀{x y : ℕ} → Is {Γ = ·} ◆ (◆ ∷ nat (x +' y))
+  --(◆ ∷ nat (x +' y))
+  test6 {x} {y} = 
+       LIT x 
+    >> ITER Nat (LIT y) (POP >> INC)
+

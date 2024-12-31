@@ -108,6 +108,14 @@ find (σ ∷ t) (vs x) = find σ x
 nat : ∀{i}{Γ : Con i} → lib.ℕ → Tm Γ Nat
 nat n γ = n
 
+-- Substitution on stacks
+_[_]s : 
+  ∀{i}{Γ : Con i}
+   {j}{Δ : Con j}{n} →
+   Stack Δ n → Sub Γ Δ → Stack Γ n
+◆ [ ρ ]s = ◆
+(σ ∷ t) [ ρ ]s = (σ [ ρ ]s) ∷ t [ ρ ]
+
 -- Instruction sequences, everything is straightforward in its type.
 -- E.g. POP is a sequence that goes from (σ ∷ t) to σ.
 -- The most notable one is CLO:
@@ -118,6 +126,14 @@ nat n γ = n
 --   showing that the first n items on the stack satisfies the closure's requirement.
 --   Such instance can always be uniquely inferred if there exists one -- 
 --   it has to be nil if Δ = · and has to be cons if Δ = Δ' ▹ A (and it will keep looking).
+-- Another notable one is ITER:
+--   Usage: ITER P Z S
+--          Exactly the same as the one would expect.
+--          P : the return type (a.k.a. major premise).
+--          Z : instruction sequence for the zero case, with computation z.
+--          S : instruction sequence for the succesor case, with composition s.
+--          Given some x : Nat on top of the stack, and the above arguments,
+--          ITER P Z S computes iter P z s x.
 data Is {i : Level}{Γ : Con i} : ∀{m n} → Stack Γ m → Stack Γ n → Setω where
   POP : 
     ∀{j}{A : Ty Γ j}
@@ -173,4 +189,16 @@ data Is {i : Level}{Γ : Con i} : ∀{m n} → Stack Γ m → Stack Γ n → Set
      {n}{σ : Stack Γ n} → 
      (x : SVar σ A) → 
      Is σ (σ ∷ find σ x)
- 
+  ----
+  INC : 
+    ∀{n}{σ : Stack Γ n}{x : Tm Γ Nat} → 
+    Is (σ ∷ x) (σ ∷ suc x)
+  ----
+  ITER : 
+    ∀{n}{σ : Stack Γ n}
+     {j}(P : Ty (Γ ▹ Nat) j)
+     {z : Tm Γ (P [ ✧ ▻ zero ]T)}(Z : Is σ (σ ∷ z)) 
+     {s : Tm (Γ ▹ Nat ▹ P) (P [ p² , (suc 𝟙) ]T)}
+     (S : Is {Γ = Γ ▹ Nat ▹ P} (σ [ p² ]s ∷ 𝟘 ∷ 𝟙) (σ [ p² ]s ∷ s))
+     {x : Tm Γ Nat} → 
+     Is (σ ∷ x) (σ ∷ iter P z s x)
