@@ -47,8 +47,8 @@ data Pi :
   Add0 : Pi 0 (· ▹ Nat) Nat Nat
   Add : Pi 1 · Nat (Π Nat Nat)
   ----
-  Id0 : Pi 0 (· ▹ U0) (El 𝟘) (El 𝟙)
-  Id : Pi 1 · U0 (Π (El 𝟘) (El 𝟙))
+  Iden0 : Pi 0 (· ▹ U0) (El 𝟘) (El 𝟙)
+  Iden : Pi 1 · U0 (Π (El 𝟘) (El 𝟙))
   ----
   App0 : Pi 0 App.C0 𝟚 (𝟚 $ 𝟘)
   App1 : Pi 1 App.C1 App.Tf (Π 𝟚 (𝟚 $ 𝟘))
@@ -75,8 +75,8 @@ mutual
   interp Add0 = iter Nat 𝟘 (suc 𝟘) 𝟙
   interp Add = Add0 ⟦ ✧ ⟧
   --
-  interp Id0 = 𝟘
-  interp Id = Id0 ⟦ ✧ ⟧
+  interp Iden0 = 𝟘
+  interp Iden = Iden0 ⟦ ✧ ⟧
   --
   interp App0 = 𝟙 $ 𝟘
   interp App1 = App0 ⟦ ✧ ⟧

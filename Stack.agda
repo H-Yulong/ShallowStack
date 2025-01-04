@@ -222,3 +222,43 @@ data Is {i : Level}{Γ : Con i} : ∀{m n} → Stack Γ m → Stack Γ n → Set
   UNIT : 
     ∀{n}{σ : Stack Γ n} → 
     Is σ (σ ∷ tt)
+  ----
+  PAIR : 
+    ∀{n}{σ : Stack Γ n} 
+     {j}{A : Ty Γ j}
+     {k}{B : Ty (Γ ▹ A) k}
+     {a : Tm Γ A}{b : Tm Γ (B [ ✧ ▻ a ]T)} → 
+     Is (σ ∷ a ∷ b) (σ ∷ (_,_ {B = B} a b))
+  ----
+  FST : 
+    ∀{n}{σ : Stack Γ n} 
+     {j}{A : Ty Γ j}
+     {k}{B : Ty (Γ ▹ A) k}
+     {p : Tm Γ (Σ A B)} → 
+     Is (σ ∷ p) (σ ∷ fst p) 
+  ----
+  SND : 
+    ∀{n}{σ : Stack Γ n} 
+     {j}{A : Ty Γ j}
+     {k}{B : Ty (Γ ▹ A) k}
+     {p : Tm Γ (Σ A B)} → 
+     Is (σ ∷ p) (σ ∷ snd p) 
+  ----
+  REFL : 
+    ∀{n}{σ : Stack Γ n}
+     {j}{A : Ty Γ j}
+     (u : Tm Γ A) →
+     Is σ (σ ∷ refl u) 
+  -- Proofs are erasable at runtime, so we can 
+  -- freely create refl as we want
+  ----
+  JRULE : 
+    ∀{n}{σ : Stack Γ n}
+     {j}{A : Ty Γ j}{u v : Tm Γ A}
+     {k}(C : Ty (Γ ▹ A ▹ Id (A [ p ]T) (u [ p ]) 𝟘) k)
+     (pf : Tm Γ (Id A u v))
+     {w : Tm Γ (C [ ✧ , u , refl u ]T)}
+     (W : Is σ (σ ∷ w)) → 
+     Is (σ ∷ pf) (σ ∷ J C w pf) 
+  -- Note that we don't allow "extensional equality", like
+  -- ∀{σ A u v} → (pf : Id A u v) → Is (σ ∷ u) (σ ∷ v)

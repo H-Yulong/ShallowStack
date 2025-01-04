@@ -366,28 +366,28 @@ if[] = lib.refl
 
 -- Identity
 
-id : ∀{i}{Γ : Con i}{j}(A : Ty Γ j)(u v : Tm Γ A) → Ty Γ j
-id A u v = λ γ → u γ lib.≡ v γ
+Id : ∀{i}{Γ : Con i}{j}(A : Ty Γ j)(u v : Tm Γ A) → Ty Γ j
+Id A u v = λ γ → u γ lib.≡ v γ
 
-refl : ∀{i}{Γ : Con i}{j}{A : Ty Γ j}(u : Tm Γ A) → Tm Γ (id A u u)
+refl : ∀{i}{Γ : Con i}{j}{A : Ty Γ j}(u : Tm Γ A) → Tm Γ (Id A u u)
 refl u = λ γ → lib.refl
 
 J :
   ∀{i}{Γ : Con i}{j}{A : Ty Γ j}{u : Tm Γ A}
-   {k}(C : Ty (Γ ▹ A ▹ id (A [ p ]T) (u [ p ]) 𝟘) k)
+   {k}(C : Ty (Γ ▹ A ▹ Id (A [ p ]T) (u [ p ]) 𝟘) k)
    (w : Tm Γ (C [ ✧ , u , refl u ]T))
-   {v : Tm Γ A}(t : Tm Γ (id A u v)) → Tm Γ (C [ ✧ , v , t ]T)
+   {v : Tm Γ A}(t : Tm Γ (Id A u v)) → Tm Γ (C [ ✧ , v , t ]T)
 J C w t = λ γ → lib.J (λ e → C (γ lib., _ lib., e)) (w γ) (t γ)
 
 Idβ :
   ∀{i}{Γ : Con i}{j}{A : Ty Γ j}{u : Tm Γ A}
-   {k}{C : Ty (Γ ▹ A ▹ id (A [ p ]T) (u [ p ]) 𝟘) k}
+   {k}{C : Ty (Γ ▹ A ▹ Id (A [ p ]T) (u [ p ]) 𝟘) k}
    {w : Tm Γ (C [ ✧ , u , refl u ]T)} →
    J C w (refl u) lib.≡ w
 Idβ = lib.refl
 
 Id[] : ∀{i}{Γ : Con i}{j}{A : Ty Γ j}{u v : Tm Γ A}{k}{Θ : Con k}{σ : Sub Θ Γ} →
-  id A u v [ σ ]T lib.≡ id (A [ σ ]T) (u [ σ ]) (v [ σ ])
+  Id A u v [ σ ]T lib.≡ Id (A [ σ ]T) (u [ σ ]) (v [ σ ])
 Id[] = lib.refl
 
 refl[] : ∀{i}{Γ : Con i}{j}{A : Ty Γ j}{u : Tm Γ A}{k}{Θ : Con k}{σ : Sub Θ Γ} →
@@ -396,10 +396,10 @@ refl[] = lib.refl
 
 J[] :
   ∀{i}{Γ : Con i}{j}{A : Ty Γ j}{u : Tm Γ A}
-   {k}{C : Ty (Γ ▹ A ▹ id (A [ p ]T) (u [ p ]) 𝟘) k}
+   {k}{C : Ty (Γ ▹ A ▹ Id (A [ p ]T) (u [ p ]) 𝟘) k}
    {w : Tm Γ (C [ ✧ , u , refl u ]T)}
-   {v : Tm Γ A}{t : Tm Γ (id A u v)}{l}{Θ : Con l}{σ : Sub Θ Γ} →
-   J C w t [ σ ] lib.≡ J (C [ σ ^ A ^ id (A [ p ]T) (u [ p ]) 𝟘 ]T) (w [ σ ]) (t [ σ ])
+   {v : Tm Γ A}{t : Tm Γ (Id A u v)}{l}{Θ : Con l}{σ : Sub Θ Γ} →
+   J C w t [ σ ] lib.≡ J (C [ σ ^ A ^ Id (A [ p ]T) (u [ p ]) 𝟘 ]T) (w [ σ ]) (t [ σ ])
 J[] = lib.refl
 
 module hasFunext 
@@ -407,7 +407,7 @@ module hasFunext
            → ((x : A) → f x lib.≡ g x) → f lib.≡ g)
   where
 
-  Reflect : ∀{i}{Γ : Con i}{j}{A : Ty Γ j}(t u : Tm Γ A) → Tm Γ (id A t u)
+  Reflect : ∀{i}{Γ : Con i}{j}{A : Ty Γ j}(t u : Tm Γ A) → Tm Γ (Id A t u)
             → t lib.≡ u
   Reflect {i}{Γ}{j}{A} t u p = funext p
 
@@ -416,7 +416,7 @@ module hasFunext
 tr :
   ∀{i}{Γ : Con i}{j}{A : Ty Γ j}
    {k}(C : Ty (Γ ▹ A) k)
-   {u v : Tm Γ A}(t : Tm Γ (id A u v))
+   {u v : Tm Γ A}(t : Tm Γ (Id A u v))
    (w : Tm Γ (C [ ✧ , u ]T)) → Tm Γ (C [ ✧ , v ]T)
 tr C t w = J (C [ p ]T) w t
 

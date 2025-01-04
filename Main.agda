@@ -1,5 +1,6 @@
 module Main where
 
+open import Agda.Primitive
 import Basic as lib
 
 -- Main agda files
@@ -8,16 +9,14 @@ open import ShallowDFC
 open import Stack
 
 -- Tests and notes
-import App
-import Compose
-import Performance
+-- import App
+-- import Compose
+-- import Performance
 
 -- Examples of the source language,
 -- shallow-embedded Martin-Löf type theory
-{-
-module SourceExamples where
 
-  open import Agda.Primitive
+module SourceExamples where
   
   -- Identity
   test1 : Tm · (Π (U lzero) (Π 𝟘 𝟙))
@@ -46,7 +45,6 @@ module SourceExamples where
 
   test5 : Tm · (λ _ → Set → Set)
   test5 = lam 𝟘
--}
 
 module StackExamples where
 
@@ -64,17 +62,17 @@ module StackExamples where
   -- Identity
   test2 : Is {Γ = · ▹ U0 ▹ 𝟘} (◆ ∷ 𝟘) (◆ ∷ 𝟘)
   test2 = 
-      CLO 0 Id
+      CLO 0 Iden
     >> TLIT 𝟙
     >> APP
     >> SWP
     >> APP
 
-  -- Using Id0
+  -- Using Iden0
   test3 : Is {Γ = · ▹ U0 ▹ 𝟘} (◆ ∷ 𝟘) (◆ ∷ 𝟘)
   test3 =
       TLIT 𝟙
-    >> CLO 1 Id0
+    >> CLO 1 Iden0
     >> SWP 
     >> APP
 
@@ -110,4 +108,3 @@ module StackExamples where
   test6 {x} {y} = 
        LIT x 
     >> ITER Nat (LIT y) (POP >> INC)
-
