@@ -5,7 +5,9 @@ module Stack where
 open import Agda.Primitive
 import Basic as lib
 open import Shallow
-open import ShallowDFC
+open import Labels
+
+open LCon
 
 infixl 5 _∷_
 infixl 20 _>>_
@@ -134,24 +136,25 @@ _[_]s :
 --          S : instruction sequence for the succesor case, with composition s.
 --          Given some x : Nat on top of the stack, and the above arguments,
 --          ITER P Z S computes iter P z s x.
-data Is {i : Level}{Γ : Con i} : ∀{m n} → Stack Γ m → Stack Γ n → Setω where
+data Is (D : LCon){i : Level}{Γ : Con i} : 
+        ∀{m n} → Stack Γ m → Stack Γ n → Setω where
   POP : 
     ∀{n}{σ : Stack Γ n}
      {j}{A : Ty Γ j}{t : Tm Γ A} → 
-     Is (σ ∷ t) σ
+     Is D (σ ∷ t) σ
   ----
   TPOP : 
     ∀{n}{σ : Stack Γ n}
      {j}{A : Ty Γ j} → 
-     Is (σ ∷ A) σ
-  ----
+     Is D (σ ∷ A) σ
+  ---- 
   APP : 
     ∀{n}{σ : Stack Γ n}
      {j}{A : Ty Γ j}
      {k}{B : Ty (Γ ▹ A) k}
      {f : Tm Γ (Π A B)}
      {a : Tm Γ A} → 
-     Is (σ ∷ f ∷ a) (σ ∷ f $ a)
+     Is D (σ ∷ f ∷ a) (σ ∷ f $ a)
   ----
   CLO : 
     ∀(n : lib.ℕ)
@@ -159,96 +162,96 @@ data Is {i : Level}{Γ : Con i} : ∀{m n} → Stack Γ m → Stack Γ n → Set
      {j}{Δ : Con j}
      {k}{A : Ty Δ k}
      {l}{B : Ty (Δ ▹ A) l}
-     {x}(L : Pi x Δ A B)
+     {x}(L : Pi D x Δ A B)
      {{pf : Γ ⊢ (take n σ) of Δ}} → 
-     Is σ ((drop n σ) ∷ L ⟦ ⟦ pf ⟧s ⟧)
+     Is D σ (drop n σ ∷ _⟦_⟧ D L ⟦ pf ⟧s)
   ----
   LIT : 
     ∀{n}{σ : Stack Γ n} → 
-     (n : lib.ℕ) → Is σ (σ ∷ (nat n))
+     (n : lib.ℕ) → Is D σ (σ ∷ (nat n))
   ----
   TLIT : 
     ∀{n}{j}{σ : Stack Γ n} →
-     (A : Ty Γ j) → Is σ (σ ∷ A)
+     (A : Ty Γ j) → Is D σ (σ ∷ A)
   ----
   _>>_ : 
     ∀{l}{σ : Stack Γ l}
      {m}{σ' : Stack Γ m}
      {n}{σ'' : Stack Γ n} → 
-     Is σ σ' → Is σ' σ'' → Is σ σ''
+     Is D σ σ' → Is D σ' σ'' → Is D σ σ''
   ----
   SWP :
     ∀{n}{σ : Stack Γ n}
      {j}{A : Ty Γ j}
      {k}{A' : Ty Γ k}
      {t : Tm Γ A}{t' : Tm Γ A'} → 
-     Is (σ ∷ t ∷ t') (σ ∷ t' ∷ t)
+     Is D (σ ∷ t ∷ t') (σ ∷ t' ∷ t)
   ----
   ST : 
     ∀{n}{σ : Stack Γ n}
      {j}{A : Ty Γ j}
      (x : SVar σ A) → 
-     Is σ (σ ∷ find σ x)
+     Is D σ (σ ∷ find σ x)
   ----
   INC : 
     ∀{n}{σ : Stack Γ n}{x : Tm Γ Nat} → 
-    Is (σ ∷ x) (σ ∷ suc x)
+    Is D (σ ∷ x) (σ ∷ suc x)
   ----
   ITER : 
     ∀{n}{σ : Stack Γ n}
      {j}(P : Ty (Γ ▹ Nat) j)
-     {z : Tm Γ (P [ ✧ ▻ zero ]T)}(Z : Is σ (σ ∷ z)) 
+     {z : Tm Γ (P [ ✧ ▻ zero ]T)}(Z : Is D σ (σ ∷ z)) 
      {s : Tm (Γ ▹ Nat ▹ P) (P [ p² , (suc 𝟙) ]T)}
-     (S : Is {Γ = Γ ▹ Nat ▹ P} (σ [ p² ]s ∷ 𝟘 ∷ 𝟙) (σ [ p² ]s ∷ s))
+     (S : Is D {Γ = Γ ▹ Nat ▹ P} (σ [ p² ]s ∷ 𝟘 ∷ 𝟙) (σ [ p² ]s ∷ s))
      {x : Tm Γ Nat} → 
-     Is (σ ∷ x) (σ ∷ iter P z s x)
+     Is D (σ ∷ x) (σ ∷ iter P z s x)
   ----
   IF : 
     ∀{n}{σ : Stack Γ n}
      {j}(P : Ty (Γ ▹ Bool) j)
-     {t : Tm Γ (P [ ✧ ▻ true ]T)}(T : Is σ (σ ∷ t))
-     {f : Tm Γ (P [ ✧ ▻ false ]T)}(T : Is σ (σ ∷ f))
+     {t : Tm Γ (P [ ✧ ▻ true ]T)}(T : Is D σ (σ ∷ t))
+     {f : Tm Γ (P [ ✧ ▻ false ]T)}(T : Is D σ (σ ∷ f))
      {b : Tm Γ Bool} → 
-     Is (σ ∷ b) (σ ∷ if P t f b) 
+     Is D (σ ∷ b) (σ ∷ if P t f b) 
   ----
   TRUE : 
     ∀{n}{σ : Stack Γ n} → 
-    Is σ (σ ∷ true)
+    Is D σ (σ ∷ true)
   ----
   FALSE : 
     ∀{n}{σ : Stack Γ n} → 
-    Is σ (σ ∷ false)
+    Is D σ (σ ∷ false)
   ----
   UNIT : 
     ∀{n}{σ : Stack Γ n} → 
-    Is σ (σ ∷ tt)
+    Is D σ (σ ∷ tt)
   ----
   PAIR : 
     ∀{n}{σ : Stack Γ n} 
      {j}{A : Ty Γ j}
      {k}{B : Ty (Γ ▹ A) k}
      {a : Tm Γ A}{b : Tm Γ (B [ ✧ ▻ a ]T)} → 
-     Is (σ ∷ a ∷ b) (σ ∷ (_,_ {B = B} a b))
+     Is D (σ ∷ a ∷ b) (σ ∷ (_,_ {B = B} a b))
   ----
   FST : 
     ∀{n}{σ : Stack Γ n} 
      {j}{A : Ty Γ j}
      {k}{B : Ty (Γ ▹ A) k}
      {p : Tm Γ (Σ A B)} → 
-     Is (σ ∷ p) (σ ∷ fst p) 
+     Is D (σ ∷ p) (σ ∷ fst p) 
   ----
   SND : 
     ∀{n}{σ : Stack Γ n} 
      {j}{A : Ty Γ j}
      {k}{B : Ty (Γ ▹ A) k}
      {p : Tm Γ (Σ A B)} → 
-     Is (σ ∷ p) (σ ∷ snd p) 
+     Is D (σ ∷ p) (σ ∷ snd p) 
   ----
   REFL : 
     ∀{n}{σ : Stack Γ n}
      {j}{A : Ty Γ j}
      (u : Tm Γ A) →
-     Is σ (σ ∷ refl u) 
+     Is D σ (σ ∷ refl u) 
   -- Proofs are erasable at runtime, so we can 
   -- freely create refl as we want
   ----
@@ -258,7 +261,7 @@ data Is {i : Level}{Γ : Con i} : ∀{m n} → Stack Γ m → Stack Γ n → Set
      {k}(C : Ty (Γ ▹ A ▹ Id (A [ p ]T) (u [ p ]) 𝟘) k)
      (pf : Tm Γ (Id A u v))
      {w : Tm Γ (C [ ✧ , u , refl u ]T)}
-     (W : Is σ (σ ∷ w)) → 
-     Is (σ ∷ pf) (σ ∷ J C w pf) 
+     (W : Is D σ (σ ∷ w)) → 
+     Is D (σ ∷ pf) (σ ∷ J C w pf) 
   -- Note that we don't allow "extensional equality", like
-  -- ∀{σ A u v} → (pf : Id A u v) → Is (σ ∷ u) (σ ∷ v)
+  -- ∀{σ A u v} → (pf : Id A u v) → Is D (σ ∷ u) (σ ∷ v)

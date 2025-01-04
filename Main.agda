@@ -3,9 +3,14 @@ module Main where
 open import Agda.Primitive
 import Basic as lib
 
--- Main agda files
+-- Shallow embedded syntax
 open import Shallow
-open import ShallowDFC
+
+-- Defunctionalized label contexts
+import ShallowDFC
+open import Labels
+
+-- Stack machine 
 open import Stack
 
 -- Tests and notes
@@ -49,9 +54,10 @@ module SourceExamples where
 module StackExamples where
 
   open lib using (ℕ; _+'_)
+  open ShallowDFC
   
   -- Adding numbers
-  test1 : Is {Γ = ·} ◆ (◆ ∷ (nat 5))
+  test1 : Is D1 {Γ = ·} ◆ (◆ ∷ (nat 5))
   test1 = 
       CLO 0 Add
     >> LIT 2 
@@ -60,7 +66,7 @@ module StackExamples where
     >> APP
 
   -- Identity
-  test2 : Is {Γ = · ▹ U0 ▹ 𝟘} (◆ ∷ 𝟘) (◆ ∷ 𝟘)
+  test2 : Is D1 {Γ = · ▹ U0 ▹ 𝟘} (◆ ∷ 𝟘) (◆ ∷ 𝟘)
   test2 = 
       CLO 0 Iden
     >> TLIT 𝟙
@@ -69,7 +75,7 @@ module StackExamples where
     >> APP
 
   -- Using Iden0
-  test3 : Is {Γ = · ▹ U0 ▹ 𝟘} (◆ ∷ 𝟘) (◆ ∷ 𝟘)
+  test3 : Is D1 {Γ = · ▹ U0 ▹ 𝟘} (◆ ∷ 𝟘) (◆ ∷ 𝟘)
   test3 =
       TLIT 𝟙
     >> CLO 1 Iden0
@@ -77,7 +83,7 @@ module StackExamples where
     >> APP
 
   -- Adding numbers via App
-  test4 : ∀{x y : ℕ} → Is {Γ = ·} ◆ (◆ ∷ nat (x +' y))
+  test4 : ∀{x y : ℕ} → Is D1 {Γ = ·} ◆ (◆ ∷ nat (x +' y))
   test4 {x} {y} = 
       CLO 0 App
     >> TLIT Nat
@@ -92,7 +98,7 @@ module StackExamples where
     >> APP
 
   -- Adding numbers, via App, using the most-curried version only
-  test5 : ∀{x y : ℕ} → Is {Γ = ·} ◆ (◆ ∷ nat (x +' y))
+  test5 : ∀{x y : ℕ} → Is D1 {Γ = ·} ◆ (◆ ∷ nat (x +' y))
   test5 {x} {y} = 
       TLIT Nat 
     >> CLO 0 LNat 
@@ -103,7 +109,7 @@ module StackExamples where
     >> APP
 
   -- Adding via iterator
-  test6 : ∀{x y : ℕ} → Is {Γ = ·} ◆ (◆ ∷ nat (x +' y))
+  test6 : ∀{x y : ℕ} → Is D1 {Γ = ·} ◆ (◆ ∷ nat (x +' y))
   --(◆ ∷ nat (x +' y))
   test6 {x} {y} = 
        LIT x 

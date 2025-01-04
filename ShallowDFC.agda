@@ -17,7 +17,7 @@ import App
 --    using some encoding of types as indices, in this case the shallow
 --    embedding.
 -- 2. Universe levels, i.e. there're always free variables larger than
---    the universe of Pi A B. Solved with Setω.
+--    the universe of Pi A B. Solved by encoding the free-vars as an index.
 -- 3. Termination, i.e. interp Add1 involves interp Add0, but nothing is
 --    decreasing. Solved by adding index (n : ℕ), such that a label of
 --    (Pi n) can only refer to labels of (Pi m) where m ≤ n, which is a 
@@ -42,7 +42,7 @@ data Pi :
   ∀(n : lib.ℕ)
    {i}(Γ : Con i)
    {j}(A : Ty Γ j)
-   {k}(B : Ty (Γ ▹ A) k) → Setω where
+   {k}(B : Ty (Γ ▹ A) k) → Set where
   ----
   Add0 : Pi 0 (· ▹ Nat) Nat Nat
   Add : Pi 1 · Nat (Π Nat Nat)
@@ -101,7 +101,3 @@ mutual
      Pi n Γ A B → (σ : Sub Δ Γ) → 
      Tm Δ (Π (A [ σ ]T) (B [ σ ^ A ]T))
   (L ⟦ σ ⟧) γ α = (interp L) (σ γ lib., α)
-
--- data SS : Set where
---   instance sss : SS
---   instance ss1 : SS
