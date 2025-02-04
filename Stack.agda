@@ -12,8 +12,8 @@ open LCon
 infixl 5 _∷_
 infixl 20 _>>_
 
--- Now, we express a dependendropy typed assembly-like stack-machine language,
--- following the idea oudropined in "QTAL: A quantitatively and dependendropy typed assembly language".
+-- Now, we express a dependendly typed assembly-like stack-machine language,
+-- following the idea outlined in "QTAL: A quantitatively and dependendly typed assembly language".
 -- Types of instruction sequences carry the whole content of the stack
 -- before and after the transition.
 
@@ -37,6 +37,11 @@ infixl 20 _>>_
 --       The type equality is in terms of extnesionality
 --       since types in Γ are functions from Γ to Set
 --       in the model.
+
+-- Better, since the proof of Γ ⊢ σ of Δ is unique if it exists,
+-- I can make the two constructors instances, and fire Agda's
+-- instance search to automatically find the proof.
+-- The trouble of conversion checking is avoided by shallow embedding.
 
 data Stack {i}(Γ : Con i) : lib.ℕ → Setω where
   ◆ : Stack Γ 0
@@ -210,7 +215,7 @@ data Is (D : LCon){i : Level}{Γ : Con i} :
     ∀{n}{σ : Stack Γ n}
      {j}(P : Ty (Γ ▹ Bool) j)
      {t : Tm Γ (P [ ✧ ▻ true ]T)}(T : Is D σ (σ ∷ t))
-     {f : Tm Γ (P [ ✧ ▻ false ]T)}(T : Is D σ (σ ∷ f))
+     {f : Tm Γ (P [ ✧ ▻ false ]T)}(F : Is D σ (σ ∷ f))
      {b : Tm Γ Bool} → 
      Is D (σ ∷ b) (σ ∷ if P t f b) 
   ----

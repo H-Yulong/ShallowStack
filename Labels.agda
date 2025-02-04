@@ -25,7 +25,3 @@ record LCon : Setω where
       Pi n Γ A B → (σ : Sub Δ Γ) → 
       Tm Δ (Π (A [ σ ]T) (B [ σ ^ A ]T))
 open LCon
-
-instance
-  D1 : LCon
-  D1 = record { Pi = D.Pi ; _⟦_⟧ = D._⟦_⟧ } 

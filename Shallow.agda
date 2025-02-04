@@ -378,6 +378,13 @@ J :
    (w : Tm Γ (C [ ✧ , u , refl u ]T))
    {v : Tm Γ A}(t : Tm Γ (Id A u v)) → Tm Γ (C [ ✧ , v , t ]T)
 J C w t = λ γ → lib.J (λ e → C (γ lib., _ lib., e)) (w γ) (t γ)
+{-
+Γ , (y : A) , p : u ≡A y ⊢ C : Type
+Γ ⊢ w : C [ u / y, refl u / p ]
+Γ ⊢ t : u ≡A v
+-----------------------
+Γ ⊢ J C w t : C [ v / y, t / p ]
+-}
 
 Idβ :
   ∀{i}{Γ : Con i}{j}{A : Ty Γ j}{u : Tm Γ A}

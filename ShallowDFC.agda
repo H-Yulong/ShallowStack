@@ -26,7 +26,7 @@ import App
 -- That said, being theoretically capable of expressing DFC is not enough ─
 -- the code should be type-checked in reasonable amount of time.
 -- If written naively, Agda's type checker spends exponential time on elaboration,
--- and type-checking definitions like composition just cannot to terminate soon.
+-- and type-checking definitions like composition just cannot terminate soon.
 -- The solution, as shown in Compose.agda, is to build many intermediate values
 -- to be re-used by Agda during type-checking.
 

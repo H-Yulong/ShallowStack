@@ -56,10 +56,13 @@ module StackExamples where
   open lib using (ℕ; _+'_)
   open ShallowDFC
   
+  D1 : LCon
+  D1 = record { Pi = Pi ; _⟦_⟧ = _⟦_⟧ } 
+
   -- Adding numbers
   test1 : Is D1 {Γ = ·} ◆ (◆ ∷ (nat 5))
   test1 = 
-      CLO 0 Add
+       CLO 0 Add
     >> LIT 2 
     >> APP
     >> LIT 3
@@ -68,7 +71,7 @@ module StackExamples where
   -- Identity
   test2 : Is D1 {Γ = · ▹ U0 ▹ 𝟘} (◆ ∷ 𝟘) (◆ ∷ 𝟘)
   test2 = 
-      CLO 0 Iden
+       CLO 0 Iden
     >> TLIT 𝟙
     >> APP
     >> SWP
@@ -77,7 +80,7 @@ module StackExamples where
   -- Using Iden0
   test3 : Is D1 {Γ = · ▹ U0 ▹ 𝟘} (◆ ∷ 𝟘) (◆ ∷ 𝟘)
   test3 =
-      TLIT 𝟙
+       TLIT 𝟙
     >> CLO 1 Iden0
     >> SWP 
     >> APP
@@ -85,7 +88,7 @@ module StackExamples where
   -- Adding numbers via App
   test4 : ∀{x y : ℕ} → Is D1 {Γ = ·} ◆ (◆ ∷ nat (x +' y))
   test4 {x} {y} = 
-      CLO 0 App
+       CLO 0 App
     >> TLIT Nat
     >> APP
     >> CLO 0 LNat
@@ -100,7 +103,7 @@ module StackExamples where
   -- Adding numbers, via App, using the most-curried version only
   test5 : ∀{x y : ℕ} → Is D1 {Γ = ·} ◆ (◆ ∷ nat (x +' y))
   test5 {x} {y} = 
-      TLIT Nat 
+       TLIT Nat 
     >> CLO 0 LNat 
     >> LIT x 
     >> CLO 1 Add0 
