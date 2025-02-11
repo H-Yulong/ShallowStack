@@ -5,6 +5,7 @@ import Basic as lib
 
 -- Shallow embedded syntax
 open import Shallow
+open import Context
 
 -- Defunctionalized label contexts
 import ShallowDFC
@@ -56,37 +57,37 @@ module StackExamples where
   open lib using (ℕ; _+'_)
   open ShallowDFC
   
-  D1 : LCon
-  D1 = record { Pi = Pi ; _⟦_⟧ = _⟦_⟧ } 
-
   -- Adding numbers
-  test1 : Is D1 {Γ = ·} ◆ (◆ ∷ (nat 5))
+  test1 : Is D ◆ ◆ (◆ ∷ (nat 5))
   test1 = 
        CLO 0 Add
     >> LIT 2 
     >> APP
     >> LIT 3
     >> APP
+    >> RET
 
   -- Identity
-  test2 : Is D1 {Γ = · ▹ U0 ▹ 𝟘} (◆ ∷ 𝟘) (◆ ∷ 𝟘)
+  test2 : Is D (◆ ∷ U0 ∷ 𝟘) (◆ ∷ 𝟘) (◆ ∷ 𝟘)
   test2 = 
        CLO 0 Iden
     >> TLIT 𝟙
     >> APP
     >> SWP
     >> APP
+    >> RET
 
   -- Using Iden0
-  test3 : Is D1 {Γ = · ▹ U0 ▹ 𝟘} (◆ ∷ 𝟘) (◆ ∷ 𝟘)
+  test3 : Is D (◆ ∷ U0 ∷ 𝟘) ◆ (◆ ∷ 𝟘)
   test3 =
        TLIT 𝟙
     >> CLO 1 Iden0
-    >> SWP 
+    >> VAR V₀
     >> APP
+    >> RET
 
   -- Adding numbers via App
-  test4 : ∀{x y : ℕ} → Is D1 {Γ = ·} ◆ (◆ ∷ nat (x +' y))
+  test4 : ∀{x y : ℕ} → Is D ◆ ◆ (◆ ∷ nat (x +' y))
   test4 {x} {y} = 
        CLO 0 App
     >> TLIT Nat
@@ -99,9 +100,10 @@ module StackExamples where
     >> APP
     >> LIT y
     >> APP
+    >> RET
 
   -- Adding numbers, via App, using the most-curried version only
-  test5 : ∀{x y : ℕ} → Is D1 {Γ = ·} ◆ (◆ ∷ nat (x +' y))
+  test5 : ∀{x y : ℕ} → Is D ◆ ◆ (◆ ∷ nat (x +' y))
   test5 {x} {y} = 
        TLIT Nat 
     >> CLO 0 LNat 
@@ -110,10 +112,12 @@ module StackExamples where
     >> CLO 3 App0 
     >> LIT y 
     >> APP
+    >> RET
 
   -- Adding via iterator
-  test6 : ∀{x y : ℕ} → Is D1 {Γ = ·} ◆ (◆ ∷ nat (x +' y))
+  test6 : ∀{x y : ℕ} → Is D ◆ ◆ (◆ ∷ nat (x +' y))
   --(◆ ∷ nat (x +' y))
   test6 {x} {y} = 
        LIT x 
-    >> ITER Nat (LIT y) (POP >> INC)
+    >> ITER Nat (LIT y >> RET) (POP >> INC >> RET)
+    >> RET
