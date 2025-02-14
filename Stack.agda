@@ -116,6 +116,9 @@ find (σ ∷ t) (vs x) = find σ x
 nat : ∀{i}{Γ : Con i} → lib.ℕ → Tm Γ Nat
 nat n γ = n
 
+bool : ∀{i}{Γ : Con i} → lib.Bool → Tm Γ Bool
+bool b γ = b
+
 -- Substitution on stacks
 _[_]s : 
   ∀{i}{Γ : Con i}
