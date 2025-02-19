@@ -43,7 +43,7 @@ mutual
     _∷_ : {A : Ty · i}{t : Tm · A} → Env D n → Val D t → Env D (lib.suc n)
 
   -- Env that implements context
-  data _⊨_ {D : LCon} : ∀{i n}{Γ : Con i} → Ctx Γ n → Env D n → Setω where
+  data _⊨_ {D : LCon} : {Γ : Con i} → Ctx Γ n → Env D n → Setω where
     instance
       nil : ◆ ⊨ ◆
       --
@@ -90,3 +90,17 @@ dropᵉ : (n : lib.ℕ) → Env D (n lib.+ m) → Env D m
 dropᵉ lib.zero env = env
 dropᵉ (lib.suc n) (env ∷ v) = dropᵉ n env
 
+-- Judgement: a runtime stack implements a "virtural" stack
+data _⊢_⊨ˢ_ {D : LCon} {sΓ : Ctx Γ l} {env : Env D l} (wf : sΓ ⊨ env) : Stack Γ n → Env D n → Setω where
+  instance
+    nil : wf ⊢ ◆ {Γ = Γ} ⊨ˢ ◆
+    --
+    cons : 
+      {σ : Stack Γ n}{env : Env D n}
+      {t : Tm · (A [ ⟦ wf ⟧⊨ ])}{v : Val D t}
+      {t' : Tm Γ A} → 
+      ⦃ pf : wf ⊢ σ ⊨ˢ env ⦄ → 
+      ⦃ eq : t lib.≡ t' [ ⟦ wf ⟧⊨ ] ⦄ → 
+      wf ⊢ (σ ∷ t') ⊨ˢ (env ∷ v)  
+
+ 

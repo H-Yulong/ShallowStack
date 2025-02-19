@@ -243,12 +243,12 @@ mutual
     -- ∀{σ A u v} → (pf : Id A u v) → Instr D sΓ (σ ∷ u) (σ ∷ v)
 
 -- Procedures
-record Proc (D : LCon) (sΓ : Ctx Γ l) (σ : Stack Γ m) (t : Tm Γ A) : Setω where
+record Proc (D : LCon) (sΓ : Ctx Γ l) (t : Tm Γ A) : Setω where
   constructor proc
   field
     {len} : lib.ℕ
     {σ'} : Stack Γ len
-    instr : Is D sΓ σ (σ' ∷ t)
+    instr : Is D sΓ ◆ (σ' ∷ t)
 
 -- Library provides a procedure for each label
 record Library : Setω₁ where
@@ -256,8 +256,6 @@ record Library : Setω₁ where
   field
     D : LCon
     --
-    impl : 
-      {σ : Stack (Γ ▹ A) m} (lab : Pi D id sΓ A B) → 
-      Proc D (sΓ ∷ A) σ (interp D lab)
+    impl : (lab : Pi D id sΓ A B) → Proc D (sΓ ∷ A) (interp D lab)
 
  

@@ -1,41 +1,65 @@
-{-# OPTIONS --safe #-}
-
-module Config where
+module Machine.Config where
 
 open import Agda.Primitive
-import Basic as lib
-open import Shallow
-open import Labels
-open import Context
-open import Stack
-open import Theory
+import Lib.Basic as lib
 
+open import Model.Shallow
+open import Model.Context
+open import Model.Labels
+open import Model.Stack
+
+open import Machine.Value
+
+open lib using (ℕ; _+_; _≤_)
 open LCon
 
 -- Machine configuration
-data Fr (D : LCon) : Setω where
-  fr<_,_> : ∀{n} → Env D n → lib.ℕ → Fr D
 
-data Frames (D : LCon) : lib.ℕ → Setω where
-  ◆ : Frames D 0
-  _∷_ : ∀{n} → Fr D → Frames D n → Frames D (lib.suc n)
-
--- Need to remake this...
--- Design: Config is just < stack, env, frames >
--- Then, have a datatype saying that "c is a valid config for running instr",
--- which has these conditions (where instr : Is D sΓ σ σ')
---    - stack, env, frames have the same D
---    - env implements sΓ
---    - stack implements σ (need new judgement for this)
--- That's saying we have a "well-formed config",
--- and the machine steps through well-formed configs only.
-
-record Config (D : LCon) : Setω where
-  constructor conf<_,_,_,_>
+-- Call frame
+record Frame (D : LCon) : Setω where
+  constructor fr
   field
-    k : lib.Bool
+    {i} : Level
+    {l m n} : ℕ
+    {Γ} : Con i
+    {sΓ} : Ctx Γ l
+    {σ} : Stack Γ m
+    {σ'} : Stack Γ n
+    ins : Is D sΓ σ σ'
+    env : Env D l
+    len : ℕ
 
-data _↝_ {D : LCon} : Config D → Config D → Setω where
+-- Stack of frames
+data Sf (D : LCon) : ℕ → Setω where
+  ◆ : Sf D 0
+  _∷_ : ∀{n} → Sf D n → Frame D → Sf D (lib.suc n)
+
+-- Machine state: env, stack, and frame stack
+record Config (D : LCon) : Setω where
+  constructor conf
+  field
+    {i} : Level
+    {l m n s lf} : ℕ
+    {Γ} : Con i
+    {sΓ} : Ctx Γ l
+    {σ} : Stack Γ m
+    {σ'} : Stack Γ n
+    ins : Is D sΓ σ σ'
+    env : Env D l
+    st : Env D (m + s)
+    sf : Sf D lf
+
+record VConfig (D : LCon) : Setω where
+  constructor vconf
+  field
+    -- Raw configuration
+    cf : Config D
+    -- Runtime environment env implements Γ
+    wf-env : Config.sΓ cf ⊨ Config.env cf
+    -- Runtime stack st implements σ, w.r.t. the runtime environment
+    wf-st : wf-env ⊢ Config.σ cf ⊨ˢ takeᵉ (Config.m cf) (Config.st cf)
+
+-- data _↝_ {D : LCon} : Config D → Config D → Setω where
 --   C-NOP : 
 --     ∀ {i}{Γ : Con i}
 --       {l}{sΓ : Ctx Γ l}
