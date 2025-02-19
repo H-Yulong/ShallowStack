@@ -1,5 +1,3 @@
-{-# OPTIONS --safe #-}
-
 module App where
 
 open import Agda.Primitive

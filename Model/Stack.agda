@@ -1,12 +1,10 @@
-{-# OPTIONS --safe #-}
-
-module Stack where
+module Model.Stack where
 
 open import Agda.Primitive
-import Basic as lib
-open import Shallow
-open import Labels
-open import Context
+import Lib.Basic as lib
+open import Model.Shallow
+open import Model.Labels
+open import Model.Context
 
 open LCon
 
@@ -47,6 +45,8 @@ infixr 20 _>>_
 data Stack {i}(Γ : Con i) : lib.ℕ → Setω where
   ◆ : Stack Γ 0
   _∷_ : ∀{j}{A : Ty Γ j}{n} → Stack Γ n → Tm Γ A → Stack Γ (lib.suc n)
+
+-- i.e. Stack Γ n = Vecω (∀{j}{A : Ty Γ j} → Tm Γ A) n
 
 -- Extensionality transport
 Tm-subst : 

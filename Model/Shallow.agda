@@ -1,12 +1,10 @@
-{-# OPTIONS --safe #-}
-
-module Shallow where
+module Model.Shallow where
 
 {- Shallow embedding for CwF, the standard model -}
 {- Copied from "Shallow embedding of type theory is morally correct" (Kaposi et al., 2019) -}
 
 open import Agda.Primitive
-import Basic as lib
+import Lib.Basic as lib
  
 infixl 5 _▹_
 infixl 7 _[_]T

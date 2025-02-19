@@ -1,6 +1,4 @@
-{-# OPTIONS --safe #-}
-
-module Basic where
+module Lib.Basic where
 
 open import Agda.Primitive
 
@@ -133,8 +131,8 @@ data Fin : ℕ → Set where
 
 {- Vector -}
 data Vec (X : Set) : ℕ → Set where
-    <> : Vec X zero
-    _,_ : {n : ℕ} → X → Vec X n → Vec X (suc n)
+  <> : Vec X zero
+  _,_ : {n : ℕ} → X → Vec X n → Vec X (suc n)
 
 record Lift {ℓ ℓ'} (A : Set ℓ) : Set (ℓ ⊔ ℓ') where
   constructor lift

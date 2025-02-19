@@ -1,0 +1,6 @@
+name: Shallow
+depend: standard-library
+include: .
+flags:
+  --without-K
+  --safe

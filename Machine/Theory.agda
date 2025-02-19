@@ -76,15 +76,33 @@ Val-subst :
     (v : Val D t) → 
     (pf : A lib.≡ A') → Val D (Tm-subst t (lib.cong-app pf))
 Val-subst v lib.refl = v
-
+  
 findᵉ : 
   ∀ {D : LCon}
     {i}{Γ : Con i}
     {j}{A : Ty Γ j}
-    {n}{sΓ : Ctx Γ n}{σ : Env D n} → 
-    (x : V sΓ A) → ⦃ pf : sΓ ⊨ σ ⦄ → Val D (x [ pf ]V)
-findᵉ {D} {σ = σ ∷ v} vz ⦃ cons ⦃ eq = eq ⦄ ⦄ = Val-subst v eq
-findᵉ (vs x) ⦃ cons ⦃ pf = pf ⦄ ⦄ = findᵉ x ⦃ pf ⦄
+    {n}{sΓ : Ctx Γ n}
+    (σ : Env D n)(x : V sΓ A) → 
+    ⦃ pf : sΓ ⊨ σ ⦄ → Val D (x [ pf ]V)
+findᵉ {D} (σ ∷ v) vz ⦃ cons ⦃ eq = eq ⦄ ⦄ = Val-subst v eq
+findᵉ (σ ∷ v) (vs x) ⦃ cons ⦃ pf = pf ⦄ ⦄ = findᵉ σ x ⦃ pf ⦄
+
+takeᵉ : ∀{D : LCon}{m} → (n : lib.ℕ) → Env D (n lib.+ m) → Env D n
+takeᵉ lib.zero env = ◆
+takeᵉ (lib.suc n) (env ∷ v) = (takeᵉ n env) ∷ v
+
+dropᵉ : ∀{D : LCon}{m} → (n : lib.ℕ) → Env D (n lib.+ m) → Env D m
+dropᵉ lib.zero env = env
+dropᵉ (lib.suc n) (env ∷ v) = dropᵉ n env
+
+-- dup : 
+--   ∀ {D : LCon}
+--     {i}{Γ : Con i}
+--     {n}{σ : Stack Γ n}
+--     {j}{A : Ty Γ j} → 
+--     Env D n → SVar σ A → Env D (lib.suc n)
+-- dup (env ∷ t) vz = env ∷ t ∷ t
+-- dup (env ∷ t) (vs x) = (dup env x) ∷ t
 
 -- Procedures
 data Proc  
@@ -105,8 +123,7 @@ record Library : Setω where
        {j}{A : Ty Γ j}
        {k}{B : Ty (Γ ▹ A) k}
        {l}{sΓ : Ctx Γ l}
-       {n}(lab : Pi D n sΓ A B) → 
-       Proc D (sΓ ∷ A) ◆ (interp D lab)
-
+       {id}(lab : Pi D id sΓ A B)
+       {m}{σ : Stack (Γ ▹ A) m} → 
+       Proc D (sΓ ∷ A) σ (interp D lab)
  
-  

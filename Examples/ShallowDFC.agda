@@ -118,8 +118,9 @@ impl :
     {j}{A : Ty Γ j}
     {k}{B : Ty (Γ ▹ A) k}
     {l}{sΓ : Ctx Γ l}
-    {n}(lab : Pi n sΓ A B) → 
-    Proc D (sΓ ∷ A) ◆ (interp lab)
+    {id}(lab : Pi id sΓ A B)
+    {m}{σ : Stack (Γ ▹ A) m} → 
+    Proc D (sΓ ∷ A) σ (interp lab)
 impl Add0 = proc 
   (  VAR V₁ 
   >> ITER Nat (VAR V₀ >> RET) (POP >> INC >> RET) 
