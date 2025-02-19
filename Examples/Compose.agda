@@ -1,10 +1,8 @@
-{-# OPTIONS --safe #-}
-
-module Compose where
+module Examples.Compose where
 
 open import Agda.Primitive
-import Basic as lib
-open import Shallow
+import Lib.Basic as lib
+open import Model.Shallow
 
 A : Ty · _
 A = U0

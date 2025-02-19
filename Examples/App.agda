@@ -1,8 +1,8 @@
-module App where
+module Examples.App where
 
 open import Agda.Primitive
-import Basic as lib
-open import Shallow
+import Lib.Basic as lib
+open import Model.Shallow
 
 A : Ty · _
 A = U0

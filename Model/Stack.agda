@@ -177,6 +177,7 @@ mutual
     CLO : 
       {Δ : Con i'}{sΔ : Ctx Δ l'}
       {A : Ty Δ j'}{B : Ty (Δ ▹ A) k'}
+      (n : lib.ℕ)
       {σ : Stack Γ (n + m)} 
       (L : Pi D id sΔ A B)
       ⦃ pf : Γ ⊢ (take n σ) of Δ ⦄ → 

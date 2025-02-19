@@ -1,18 +1,25 @@
-{-# OPTIONS --safe #-}
-
-module ShallowDFC where
+module Examples.ShallowDFC where
 
 open import Agda.Primitive
-import Basic as lib
-open import Shallow
+import Lib.Basic as lib
+open import Model.Shallow
 
-import Compose as Com
-import App
+import Examples.Compose as Com
+import Examples.App as App
 
-open import Labels
-open import Context
-open import Stack
-open import Theory
+open import Model.Labels
+open import Model.Context
+open import Model.Stack
+
+private variable
+  i j k i' j' k' : Level
+  Γ : Con i
+  A : Ty Γ j
+  B : Ty (Γ ▹ A) k
+  l m n l' m' n' id : lib.ℕ
+  sΓ : Ctx Γ l
+
+-- open import Theory
 
 -- This definition resolves the three problems with defunctionalization,
 -- which are outlined in "Defunctionalization with dependent types":
@@ -43,41 +50,30 @@ open import Theory
 
 -- With everything resolved, this file type-checks fast enough.
 
-data Pi :
-  ∀(id : lib.ℕ)
-   {i}{Γ : Con i}
-   {n}(sΓ : Ctx Γ n)
-   {j}(A : Ty Γ j)
-   {k}(B : Ty (Γ ▹ A) k) → Set where
-  ----
+data Pi : (id : lib.ℕ) (sΓ : Ctx Γ n) (A : Ty Γ j) (B : Ty (Γ ▹ A) k) → Setω where
+  --
   Add0 : Pi 0 (◆ ∷ Nat) Nat Nat
   Add : Pi 1 ◆ Nat (Π Nat Nat)
-  ----
+  --
   Iden0 : Pi 0 (◆ ∷ U0) (El 𝟘) (El 𝟙)
   Iden : Pi 1 ◆ U0 (Π (El 𝟘) (El 𝟙))
-  -- ----
+  --
   App0 : Pi 0 (◆ ∷ App.A ∷ App.B ∷ App.Tf) 𝟚 (𝟚 $ 𝟘)
   App1 : Pi 1 (◆ ∷ App.A ∷ App.B) App.Tf (Π 𝟚 (𝟚 $ 𝟘))
   App2 : Pi 2 (◆ ∷ App.A) App.B (Π App.Tf (Π 𝟚 (𝟚 $ 𝟘)))
   App : Pi 3  ◆ App.A (Π App.B (Π App.Tf (Π 𝟚 (𝟚 $ 𝟘))))
-  -- ----
+  --
   Com0 : Pi 0 (◆ ∷ Com.A ∷ Com.B ∷ Com.C ∷ Com.Tg ∷ Com.Tf) Com.Tx Com.Cxfx
   Com1 : Pi 1 (◆ ∷ Com.A ∷ Com.B ∷ Com.C ∷ Com.Tg) Com.Tf (Π Com.Tx Com.Cxfx)
   Com2 : Pi 2 (◆ ∷ Com.A ∷ Com.B ∷ Com.C) Com.Tg (Π Com.Tf (Π Com.Tx Com.Cxfx))
   Com3 : Pi 3 (◆ ∷ Com.A ∷ Com.B) Com.C (Π Com.Tg (Π Com.Tf (Π Com.Tx Com.Cxfx)))
   Com4 : Pi 4 (◆ ∷ Com.A) Com.B (Π Com.C (Π Com.Tg (Π Com.Tf (Π Com.Tx Com.Cxfx))))
   Com : Pi 5 ◆ Com.A (Π Com.B (Π Com.C (Π Com.Tg (Π Com.Tf (Π Com.Tx Com.Cxfx)))))
-  -- ----
+  --
   LNat : Pi 0 ◆ Nat U0
 
 mutual
-  interp : 
-    ∀{id : lib.ℕ}
-     {i}{Γ : Con i}
-     {n}{sΓ : Ctx Γ n}
-     {j}{A : Ty Γ j}
-     {k}{B : Ty (Γ ▹ A) k} →
-     Pi id sΓ A B → Tm (Γ ▹ A) B
+  interp : Pi id sΓ A B → Tm (Γ ▹ A) B
   ----
   interp Add0 = iter Nat 𝟘 (suc 𝟘) 𝟙
   interp Add = Add0 ⟦ ✧ ⟧
@@ -100,19 +96,14 @@ mutual
   interp LNat = Nat
 
   _⟦_⟧ : 
-    ∀{id : lib.ℕ}
-     {i}{Γ : Con i}
-     {n}{sΓ : Ctx Γ n}
-     {j}{A : Ty Γ j}
-     {k}{B : Ty (Γ ▹ A) k}
-     {l}{Δ : Con l} → 
-     Pi id sΓ A B → (σ : Sub Δ Γ) → 
-     Tm Δ (Π (A [ σ ]T) (B [ σ ^ A ]T))
+    {Δ : Con i'} (lab : Pi id sΓ A B) (σ : Sub Δ Γ) → 
+    Tm Δ (Π (A [ σ ]T) (B [ σ ^ A ]T))
   (L ⟦ σ ⟧) γ α = (interp L) (σ γ lib., α)
 
 D : LCon
 D = record { Pi = Pi ; interp = interp; _⟦_⟧ = _⟦_⟧ } 
 
+{-
 impl : 
   ∀ {i}{Γ : Con i}
     {j}{A : Ty Γ j}
@@ -201,6 +192,6 @@ impl LNat = proc
 
 Lib : Library
 Lib = record { D = D ; impl = impl }
-
+-}
 
      

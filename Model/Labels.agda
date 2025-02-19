@@ -13,9 +13,9 @@ private variable
   l m n id : ℕ
   sΓ : Ctx Γ l
 
-record LCon : Setω where
+record LCon : Setω₁ where
   field
-    Pi : (id : ℕ) (sΓ : Ctx Γ l) (A : Ty Γ j) (B : Ty (Γ ▹ A) k) → Set
+    Pi : (id : ℕ) (sΓ : Ctx Γ l) (A : Ty Γ j) (B : Ty (Γ ▹ A) k) → Setω
   --
     interp : (lab : Pi id sΓ A B) → Tm (Γ ▹ A) B
   --

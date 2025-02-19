@@ -1,23 +1,25 @@
 module Main where
 
 open import Agda.Primitive
-import Basic as lib
+
+-- Library
+import Lib.Basic as lib
 
 -- Shallow embedded syntax
-open import Shallow
-open import Context
+open import Model.Shallow
+open import Model.Context
 
 -- Defunctionalized label contexts
-import ShallowDFC
-open import Labels
+open import Model.Labels
 
 -- Stack machine 
-open import Stack
+open import Model.Stack
 
 -- Tests and notes
--- import App
--- import Compose
--- import Performance
+-- import Examples.App
+-- import Examples.Compose
+-- import Examples.Performance
+import Examples.ShallowDFC
 
 -- Examples of the source language,
 -- shallow-embedded Martin-Löf type theory
@@ -55,7 +57,7 @@ module SourceExamples where
 module StackExamples where
 
   open lib using (ℕ; _+'_)
-  open ShallowDFC
+  open Examples.ShallowDFC
   
   -- Adding numbers
   test1 : Is D ◆ ◆ (◆ ∷ (nat 5))
