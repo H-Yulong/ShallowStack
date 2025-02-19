@@ -68,7 +68,7 @@ mutual
   data _⊢_of_ (Γ : Con i) : Stack Γ n → Con j → Setω where
     instance 
       nil : Γ ⊢ ◆ of ·
-    instance 
+      -- 
       cons : 
         {Δ : Con i'}{A' : Ty Δ j}
         {σ : Stack Γ n}{t : Tm Γ A} → 
@@ -171,16 +171,16 @@ mutual
     TPOP : Instr D sΓ (σ ∷ A) σ
     --
     APP : 
-      {f : Tm Γ (Π A B)} {a : Tm Γ A} → 
+        {f : Tm Γ (Π A B)} {a : Tm Γ A} → 
       Instr D sΓ (σ ∷ f ∷ a) (σ ∷ f $ a)
     --
     CLO : 
-      {Δ : Con i'}{sΔ : Ctx Δ l'}
-      {A : Ty Δ j'}{B : Ty (Δ ▹ A) k'}
+        {Δ : Con i'}{sΔ : Ctx Δ l'}
+        {A : Ty Δ j'}{B : Ty (Δ ▹ A) k'}
       (n : lib.ℕ)
-      {σ : Stack Γ (n + m)} 
+        {σ : Stack Γ (n + m)} 
       (L : Pi D id sΔ A B)
-      ⦃ pf : Γ ⊢ (take n σ) of Δ ⦄ → 
+        ⦃ pf : Γ ⊢ (take n σ) of Δ ⦄ → 
       Instr D sΓ σ (drop n σ ∷ _⟦_⟧ D L ⟦ pf ⟧s)
     --
     LIT : (n : lib.ℕ) → Instr D sΓ σ (σ ∷ (nat n))
@@ -188,8 +188,8 @@ mutual
     TLIT : (A : Ty Γ j) → Instr D sΓ σ (σ ∷ A)
     --
     SWP :
-      {A : Ty Γ j}{A' : Ty Γ k}
-      {t : Tm Γ A}{t' : Tm Γ A'} → 
+        {A : Ty Γ j}{A' : Ty Γ k}
+        {t : Tm Γ A}{t' : Tm Γ A'} → 
       Instr D sΓ (σ ∷ t ∷ t') (σ ∷ t' ∷ t)
     --
     ST : (x : SVar σ A) → Instr D sΓ σ (σ ∷ find σ x)
@@ -198,20 +198,20 @@ mutual
     --
     ITER : 
       (P : Ty (Γ ▹ Nat) j)
-      {z : Tm Γ (P [ ✧ ▻ zero ]T)}
+        {z : Tm Γ (P [ ✧ ▻ zero ]T)}
       (Z : Is D sΓ σ (σ ∷ z))
-      {s : Tm (Γ ▹ Nat ▹ P) (P [ p² , (suc 𝟙) ]T)}
+        {s : Tm (Γ ▹ Nat ▹ P) (P [ p² , (suc 𝟙) ]T)}
       (S : Is D (sΓ ∷ Nat ∷ P) (σ [ p² ]st ∷ 𝟘 ∷ 𝟙) (σ [ p² ]st ∷ s))
-      {x : Tm Γ Nat} → 
+        {x : Tm Γ Nat} → 
       Instr D sΓ (σ ∷ x) (σ ∷ iter P z s x)
     --
     IF : 
       (P : Ty (Γ ▹ Bool) j)
-      {t : Tm Γ (P [ ✧ ▻ true ]T)}
+        {t : Tm Γ (P [ ✧ ▻ true ]T)}
       (T : Is D sΓ σ (σ ∷ t))
-      {f : Tm Γ (P [ ✧ ▻ false ]T)}
+        {f : Tm Γ (P [ ✧ ▻ false ]T)}
       (F : Is D sΓ σ (σ ∷ f))
-      {b : Tm Γ Bool} → 
+        {b : Tm Γ Bool} → 
       Instr D sΓ (σ ∷ b) (σ ∷ if P t f b) 
     --
     TRUE : Instr D sΓ σ (σ ∷ true)
@@ -221,7 +221,7 @@ mutual
     UNIT : Instr D sΓ σ (σ ∷ tt)
     --
     PAIR : 
-      {a : Tm Γ A}{b : Tm Γ (B [ ✧ ▻ a ]T)} → 
+        {a : Tm Γ A}{b : Tm Γ (B [ ✧ ▻ a ]T)} → 
       Instr D sΓ (σ ∷ a ∷ b) (σ ∷ (_,_ {B = B} a b))
     --
     FST : {p : Tm Γ (Σ A B)} → Instr D sΓ (σ ∷ p) (σ ∷ fst p) 
@@ -233,12 +233,31 @@ mutual
     -- freely create refl as we want
     ----
     JRULE : 
-      {u v : Tm Γ A}
+        {u v : Tm Γ A}
       (C : Ty (Γ ▹ A ▹ Id (A [ p ]T) (u [ p ]) 𝟘) k)
       (pf : Tm Γ (Id A u v))
-      {w : Tm Γ (C [ ✧ , u , refl u ]T)}
+        {w : Tm Γ (C [ ✧ , u , refl u ]T)}
       (W : Is D sΓ σ (σ ∷ w)) → 
       Instr D sΓ (σ ∷ pf) (σ ∷ J C w pf) 
     -- Note that we don't allow "extensional equality", like
     -- ∀{σ A u v} → (pf : Id A u v) → Instr D sΓ (σ ∷ u) (σ ∷ v)
+
+-- Procedures
+record Proc (D : LCon) (sΓ : Ctx Γ l) (σ : Stack Γ m) (t : Tm Γ A) : Setω where
+  constructor proc
+  field
+    {len} : lib.ℕ
+    {σ'} : Stack Γ len
+    instr : Is D sΓ σ (σ' ∷ t)
+
+-- Library provides a procedure for each label
+record Library : Setω₁ where
+  constructor library
+  field
+    D : LCon
+    --
+    impl : 
+      {σ : Stack (Γ ▹ A) m} (lab : Pi D id sΓ A B) → 
+      Proc D (sΓ ∷ A) σ (interp D lab)
+
  

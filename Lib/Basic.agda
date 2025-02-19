@@ -117,8 +117,9 @@ zero ⊔n y = y
 
 infixl 10 _≤_
 data _≤_ : ℕ → ℕ → Set where
-  refl : ∀{n} → n ≤ n
-  sucP  : ∀{m n} → m ≤ n → suc m ≤ suc n
+  instance
+    refl : ∀{n} → n ≤ n
+    sucP  : ∀{m n} → ⦃ m ≤ n ⦄ → suc m ≤ suc n
 
 iterN : ∀{i}(C : ℕ → Set i) → C zero → (∀{n} → C n → C (suc n)) → (n : ℕ) → C n
 iterN C z s zero = z

@@ -103,15 +103,9 @@ mutual
 D : LCon
 D = record { Pi = Pi ; interp = interp; _⟦_⟧ = _⟦_⟧ } 
 
-{-
 impl : 
-  ∀ {i}{Γ : Con i}
-    {j}{A : Ty Γ j}
-    {k}{B : Ty (Γ ▹ A) k}
-    {l}{sΓ : Ctx Γ l}
-    {id}(lab : Pi id sΓ A B)
-    {m}{σ : Stack (Γ ▹ A) m} → 
-    Proc D (sΓ ∷ A) σ (interp lab)
+  {σ : Stack (Γ ▹ A) n}
+  (lab : Pi id sΓ A B) → Proc D (sΓ ∷ A) σ (interp lab)
 impl Add0 = proc 
   (  VAR V₁ 
   >> ITER Nat (VAR V₀ >> RET) (POP >> INC >> RET) 
@@ -191,7 +185,4 @@ impl LNat = proc
   >> RET )
 
 Lib : Library
-Lib = record { D = D ; impl = impl }
--}
-
-     
+Lib = library D impl
