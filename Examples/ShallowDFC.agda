@@ -103,7 +103,7 @@ mutual
 D : LCon
 D = record { Pi = Pi ; interp = interp; _⟦_⟧ = _⟦_⟧ } 
 
-impl : (lab : Pi id sΓ A B) → Proc D (sΓ ∷ A) (interp lab)
+impl : (lab : Pi id sΓ A B) → Proc D (sΓ ∷ A) id (interp lab)
 impl Add0 = proc 
   (  VAR V₁ 
   >> ITER Nat (VAR V₀ >> RET) (POP >> INC >> RET) 

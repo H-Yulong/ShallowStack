@@ -153,26 +153,26 @@ private variable
 
 mutual
 
-  data Is (D : LCon)(sΓ : Ctx Γ l) : Stack Γ m → Stack Γ n → Setω where
+  data Is (D : LCon)(sΓ : Ctx Γ l)(d : lib.ℕ) : Stack Γ m → Stack Γ n → Setω where
     --
-    RET : Is D sΓ σ σ
+    RET : Is D sΓ d σ σ
     --
     _>>_ : 
       {σ' : Stack Γ m}{σ'' : Stack Γ n} → 
-      Instr D sΓ σ σ' → Is D sΓ σ' σ'' → Is D sΓ σ σ''
+      Instr D sΓ d σ σ' → Is D sΓ d σ' σ'' → Is D sΓ d σ σ''
 
-  data Instr (D : LCon)(sΓ : Ctx Γ l) : Stack Γ m → Stack Γ n → Setω where
-    NOP : Instr D sΓ σ σ
+  data Instr (D : LCon)(sΓ : Ctx Γ l)(d : lib.ℕ) : Stack Γ m → Stack Γ n → Setω where
+    NOP : Instr D sΓ d σ σ
     --
-    VAR : (x : V sΓ A) → Instr D sΓ σ (σ ∷ ⟦ x ⟧V)
+    VAR : (x : V sΓ A) → Instr D sΓ d σ (σ ∷ ⟦ x ⟧V)
     --
-    POP : {t : Tm Γ A} → Instr D sΓ (σ ∷ t) σ
+    POP : {t : Tm Γ A} → Instr D sΓ d (σ ∷ t) σ
     --
-    TPOP : Instr D sΓ (σ ∷ A) σ
+    TPOP : Instr D sΓ d (σ ∷ A) σ
     --
     APP : 
         {f : Tm Γ (Π A B)} {a : Tm Γ A} → 
-      Instr D sΓ (σ ∷ f ∷ a) (σ ∷ f $ a)
+      Instr D sΓ d (σ ∷ f ∷ a) (σ ∷ f $ a)
     --
     CLO : 
         {Δ : Con i'}{sΔ : Ctx Δ l'}
@@ -180,55 +180,56 @@ mutual
       (n : lib.ℕ)
         {σ : Stack Γ (n + m)} 
       (L : Pi D id sΔ A B)
-        ⦃ pf : Γ ⊢ (take n σ) of Δ ⦄ → 
-      Instr D sΓ σ (drop n σ ∷ _⟦_⟧ D L ⟦ pf ⟧s)
+        ⦃ pf : Γ ⊢ (take n σ) of Δ ⦄ →
+        ⦃ bound : id lib.< d ⦄ →  
+      Instr D sΓ d σ (drop n σ ∷ _⟦_⟧ D L ⟦ pf ⟧s)
     --
-    LIT : (n : lib.ℕ) → Instr D sΓ σ (σ ∷ (nat n))
+    LIT : (n : lib.ℕ) → Instr D sΓ d σ (σ ∷ (nat n))
     --
-    TLIT : (A : Ty Γ j) → Instr D sΓ σ (σ ∷ A)
+    TLIT : (A : Ty Γ j) → Instr D sΓ d σ (σ ∷ A)
     --
     SWP :
         {A : Ty Γ j}{A' : Ty Γ k}
         {t : Tm Γ A}{t' : Tm Γ A'} → 
-      Instr D sΓ (σ ∷ t ∷ t') (σ ∷ t' ∷ t)
+      Instr D sΓ d (σ ∷ t ∷ t') (σ ∷ t' ∷ t)
     --
-    ST : (x : SVar σ A) → Instr D sΓ σ (σ ∷ find σ x)
+    ST : (x : SVar σ A) → Instr D sΓ d σ (σ ∷ find σ x)
     --
-    INC : {x : Tm Γ Nat} → Instr D sΓ (σ ∷ x) (σ ∷ suc x)
+    INC : {x : Tm Γ Nat} → Instr D sΓ d (σ ∷ x) (σ ∷ suc x)
     --
     ITER : 
       (P : Ty (Γ ▹ Nat) j)
         {z : Tm Γ (P [ ✧ ▻ zero ]T)}
-      (Z : Is D sΓ σ (σ ∷ z))
+      (Z : Is D sΓ d σ (σ ∷ z))
         {s : Tm (Γ ▹ Nat ▹ P) (P [ p² , (suc 𝟙) ]T)}
-      (S : Is D (sΓ ∷ Nat ∷ P) (σ [ p² ]st ∷ 𝟘 ∷ 𝟙) (σ [ p² ]st ∷ s))
+      (S : Is D (sΓ ∷ Nat ∷ P) d (σ [ p² ]st ∷ 𝟘 ∷ 𝟙) (σ [ p² ]st ∷ s))
         {x : Tm Γ Nat} → 
-      Instr D sΓ (σ ∷ x) (σ ∷ iter P z s x)
+      Instr D sΓ d (σ ∷ x) (σ ∷ iter P z s x)
     --
     IF : 
       (P : Ty (Γ ▹ Bool) j)
         {t : Tm Γ (P [ ✧ ▻ true ]T)}
-      (T : Is D sΓ σ (σ ∷ t))
+      (T : Is D sΓ d σ (σ ∷ t))
         {f : Tm Γ (P [ ✧ ▻ false ]T)}
-      (F : Is D sΓ σ (σ ∷ f))
+      (F : Is D sΓ d σ (σ ∷ f))
         {b : Tm Γ Bool} → 
-      Instr D sΓ (σ ∷ b) (σ ∷ if P t f b) 
+      Instr D sΓ d (σ ∷ b) (σ ∷ if P t f b) 
     --
-    TRUE : Instr D sΓ σ (σ ∷ true)
+    TRUE : Instr D sΓ d σ (σ ∷ true)
     --
-    FALSE : Instr D sΓ σ (σ ∷ false)
+    FALSE : Instr D sΓ d σ (σ ∷ false)
     --
-    UNIT : Instr D sΓ σ (σ ∷ tt)
+    UNIT : Instr D sΓ d σ (σ ∷ tt)
     --
     PAIR : 
         {a : Tm Γ A}{b : Tm Γ (B [ ✧ ▻ a ]T)} → 
-      Instr D sΓ (σ ∷ a ∷ b) (σ ∷ (_,_ {B = B} a b))
+      Instr D sΓ d (σ ∷ a ∷ b) (σ ∷ (_,_ {B = B} a b))
     --
-    FST : {p : Tm Γ (Σ A B)} → Instr D sΓ (σ ∷ p) (σ ∷ fst p) 
+    FST : {p : Tm Γ (Σ A B)} → Instr D sΓ d (σ ∷ p) (σ ∷ fst p) 
     --
-    SND : {p : Tm Γ (Σ A B)} → Instr D sΓ (σ ∷ p) (σ ∷ snd p) 
+    SND : {p : Tm Γ (Σ A B)} → Instr D sΓ d (σ ∷ p) (σ ∷ snd p) 
     ----
-    REFL : (u : Tm Γ A) → Instr D sΓ σ (σ ∷ refl u) 
+    REFL : (u : Tm Γ A) → Instr D sΓ d σ (σ ∷ refl u) 
     -- Proofs are erasable at runtime, so we can 
     -- freely create refl as we want
     ----
@@ -237,18 +238,18 @@ mutual
       (C : Ty (Γ ▹ A ▹ Id (A [ p ]T) (u [ p ]) 𝟘) k)
       (pf : Tm Γ (Id A u v))
         {w : Tm Γ (C [ ✧ , u , refl u ]T)}
-      (W : Is D sΓ σ (σ ∷ w)) → 
-      Instr D sΓ (σ ∷ pf) (σ ∷ J C w pf) 
+      (W : Is D sΓ d σ (σ ∷ w)) → 
+      Instr D sΓ d (σ ∷ pf) (σ ∷ J C w pf) 
     -- Note that we don't allow "extensional equality", like
     -- ∀{σ A u v} → (pf : Id A u v) → Instr D sΓ (σ ∷ u) (σ ∷ v)
 
 -- Procedures
-record Proc (D : LCon) (sΓ : Ctx Γ l) (t : Tm Γ A) : Setω where
+record Proc (D : LCon) (sΓ : Ctx Γ l) (d : lib.ℕ) (t : Tm Γ A) : Setω where
   constructor proc
   field
     {len} : lib.ℕ
     {σ'} : Stack Γ len
-    instr : Is D sΓ ◆ (σ' ∷ t)
+    instr : Is D sΓ d ◆ (σ' ∷ t)
 
 -- Library provides a procedure for each label
 record Library : Setω₁ where
@@ -256,6 +257,6 @@ record Library : Setω₁ where
   field
     D : LCon
     --
-    impl : (lab : Pi D id sΓ A B) → Proc D (sΓ ∷ A) (interp D lab)
+    impl : (lab : Pi D id sΓ A B) → Proc D (sΓ ∷ A) id (interp D lab)
 
  
