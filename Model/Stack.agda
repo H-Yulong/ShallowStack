@@ -1,14 +1,13 @@
 module Model.Stack where
 
 open import Agda.Primitive
-
 import Lib.Basic as lib 
-open lib using (_+_)
 
 open import Model.Shallow
 open import Model.Labels
 open import Model.Context
 
+open lib using (_+_)
 open LCon
 
 infixl 5 _∷_

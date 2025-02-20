@@ -1,10 +1,18 @@
 module Machine.Theory where
 
--- dup : 
---   ∀ {D : LCon}
---     {i}{Γ : Con i}
---     {n}{σ : Stack Γ n}
---     {j}{A : Ty Γ j} → 
---     Env D n → SVar σ A → Env D (lib.suc n)
--- dup (env ∷ t) vz = env ∷ t ∷ t
--- dup (env ∷ t) (vs x) = (dup env x) ∷ t
+open import Agda.Primitive
+import Lib.Basic as lib
+
+open import Model.Shallow
+open import Model.Context
+open import Model.Labels
+open import Model.Stack
+
+open import Machine.Value
+open import Machine.Config
+open import Machine.Step
+
+open lib using (ℕ; _+_)
+open LCon
+
+-- Preservation: if cf ↝ cf', then have VConfig D cf → VConfig D cf'.
