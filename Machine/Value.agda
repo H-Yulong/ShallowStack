@@ -101,4 +101,14 @@ data _⊢_⊨ˢ_ {D : LCon} : {sΓ : Ctx Γ l} {env : Env D l} (wf : sΓ ⊨ env
     (eq : t lib.≡ t' [ ⟦ wf ⟧⊨ ]) → 
     wf ⊢ (σ ∷ t') ⊨ˢ (st ∷ v)  
 
+findˢ : 
+  {sΓ : Ctx Γ l}{env : Env D l}
+  {wf : sΓ ⊨ env}{σ : Stack Γ n}
+  (st : Env D n)(x : SVar σ A)
+  (pf : wf ⊢ σ ⊨ˢ st) → Val D ((find σ x) [ ⟦ wf ⟧⊨ ])  
+findˢ {σ = σ ∷ t} (st ∷ v) vz (cons pf lib.refl) = v
+findˢ (st ∷ t) (vs x) (cons pf eq) = findˢ st x pf
+
+
+ 
  

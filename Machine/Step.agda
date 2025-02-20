@@ -58,19 +58,19 @@ data _⊢_↝_ {D : LCon} (I : Impl D) : Config D → Config D → Setω where
     I ⊢ (conf (VAR x >> ins) env st sf wf-env wf-st) 
       ↝ (conf ins env (st ∷ findᵉ env x wf-env) sf wf-env (cons wf-st (lib.ext-⊤ lib.refl)))
   --
-  -- C-ST : 
-  --     {σ : Stack Γ m}
-  --     {σ' : Stack Γ n}
-  --     {x : SVar σ A}
-  --     {ins : Is D sΓ d (σ ∷ find σ x) σ'}
-  --     {env : Env D l}
-  --     {st : Env D (m + s)}
-  --     {sf : Sf D lf} → 
-  --     {wf-env : sΓ ⊨ env}
-  --     {wf-st : wf-env ⊢ σ ⊨ˢ takeᵉ m st} →  
-  --     --------------------------------------
-  --     I ⊢ (conf (ST x >> ins) env st sf wf-env wf-st) 
-  --       ↝ conf ins env ({! dup st   !}) sf wf-env (cons wf-st {!   !})
+  C-ST : 
+      {σ : Stack Γ m}
+      {σ' : Stack Γ n}
+      {x : SVar σ A}
+      {ins : Is D sΓ d (σ ∷ find σ x) σ'}
+      {env : Env D l}
+      {st : Env D (m + s)}
+      {sf : Sf D lf} → 
+      {wf-env : sΓ ⊨ env}
+      {wf-st : wf-env ⊢ σ ⊨ˢ takeᵉ m st} →  
+      --------------------------------------
+      I ⊢ (conf (ST x >> ins) env st sf wf-env wf-st) 
+        ↝ conf ins env (st ∷ findˢ (takeᵉ m st) x wf-st) sf wf-env (cons wf-st lib.refl)
 
 --   ----
 --   C-CLO : 
