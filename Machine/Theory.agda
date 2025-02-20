@@ -15,4 +15,4 @@ open import Machine.Step
 open lib using (ℕ; _+_)
 open LCon
 
--- Preservation: if cf ↝ cf', then have VConfig D cf → VConfig D cf'.
+

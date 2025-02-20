@@ -250,12 +250,21 @@ record Proc (D : LCon) (sΓ : Ctx Γ l) (d : lib.ℕ) (t : Tm Γ A) : Setω wher
     {σ'} : Stack Γ len
     instr : Is D sΓ d ◆ (σ' ∷ t)
 
+Impl : (D : LCon) → Setω
+Impl D = 
+  ∀ {id : lib.ℕ}
+    {i}{Γ : Con i}
+    {l}{sΓ : Ctx Γ l}
+    {j}{A : Ty Γ j}
+    {k}{B : Ty (Γ ▹ A) k} → 
+    (lab : Pi D id sΓ A B) → Proc D (sΓ ∷ A) id (interp D lab)
+
 -- Library provides a procedure for each label
 record Library : Setω₁ where
   constructor library
   field
     D : LCon
     --
-    impl : (lab : Pi D id sΓ A B) → Proc D (sΓ ∷ A) id (interp D lab)
+    impl : Impl D
 
  

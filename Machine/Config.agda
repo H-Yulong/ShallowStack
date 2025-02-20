@@ -10,7 +10,7 @@ open import Model.Stack
 
 open import Machine.Value
 
-open lib using (ℕ; _+_)
+open lib using (ℕ; _+_; _≤_)
 open LCon
 
 -- Machine configuration
@@ -48,13 +48,5 @@ record Config (D : LCon) : Setω where
     env : Env D l
     st : Env D (m + s)
     sf : Sf D lf
-
--- Well-formed configuration
-record VConfig (D : LCon) (cf : Config D): Setω where
-  constructor vconf
-  field
-    -- Runtime environment env implements Γ
-    wf-env : Config.sΓ cf ⊨ Config.env cf
-    -- Runtime stack st implements σ, w.r.t. the runtime environment
-    wf-st : wf-env ⊢ Config.σ cf ⊨ˢ takeᵉ (Config.m cf) (Config.st cf)
-
+    wf-env : sΓ ⊨ env
+    wf-st : wf-env ⊢ σ ⊨ˢ takeᵉ m st

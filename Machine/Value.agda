@@ -44,16 +44,15 @@ mutual
 
   -- Env that implements context
   data _⊨_ {D : LCon} : {Γ : Con i} → Ctx Γ n → Env D n → Setω where
-    instance
-      nil : ◆ ⊨ ◆
-      --
-      cons : 
-        {A : Ty · j}{A' : Ty Γ j}
-        {sΓ : Ctx Γ n}{σ : Env D n}
-        {t : Tm · A}{v : Val D t}
-        ⦃ pf : sΓ ⊨ σ ⦄ →
-        ⦃ eq : A lib.≡ (A' [ ⟦ pf ⟧⊨ ]T) ⦄ → 
-        ((sΓ ∷ A') ⊨ (σ ∷ v))
+    nil : ◆ ⊨ ◆
+    --
+    cons : 
+      {A : Ty · j}{A' : Ty Γ j}
+      {sΓ : Ctx Γ n}{σ : Env D n}
+      {t : Tm · A}{v : Val D t}
+      (pf : sΓ ⊨ σ) →
+      (eq : A lib.≡ (A' [ ⟦ pf ⟧⊨ ]T)) → 
+      ((sΓ ∷ A') ⊨ (σ ∷ v))
     -- Note the actual equality used here.
     -- Since we're only comparing closed types and terms,
     -- it's convinent to do so as we have ({t : ⊤} → f t ≡ g t) → f ≡ g.
@@ -62,7 +61,7 @@ mutual
   ⟦_⟧⊨ : 
     {sΓ : Ctx Γ n} {σ : Env D n} (pf : sΓ ⊨ σ) → Sub · Γ
   ⟦_⟧⊨ nil = ε
-  ⟦_⟧⊨ {σ = _∷_ {t = t} σ v} (cons ⦃ pf ⦄ ⦃ x ⦄) = ⟦ pf ⟧⊨ ▻ Tm-subst t (lib.cong-app x)
+  ⟦_⟧⊨ {σ = _∷_ {t = t} σ v} (cons pf eq) = ⟦ pf ⟧⊨ ▻ Tm-subst t (lib.cong-app eq)
 
 -- Find the term at position x in an env that implements Γ
 _[_]V : 
@@ -77,10 +76,10 @@ Val-subst v lib.refl = v
 
 findᵉ : 
   {sΓ : Ctx Γ n}
-  (σ : Env D n)(x : V sΓ A) → 
-  ⦃ pf : sΓ ⊨ σ ⦄ → Val D (x [ pf ]V)
-findᵉ (σ ∷ v) vz ⦃ cons ⦃ eq = eq ⦄ ⦄ = Val-subst v eq
-findᵉ (σ ∷ v) (vs x) ⦃ cons ⦃ pf = pf ⦄ ⦄ = findᵉ σ x ⦃ pf ⦄
+  (env : Env D n)(x : V sΓ A) → 
+  (pf : sΓ ⊨ env) → Val D (x [ pf ]V)
+findᵉ (env ∷ v) vz (cons pf eq) = Val-subst v eq
+findᵉ (env ∷ v) (vs x) (cons pf eq) = findᵉ env x pf
 
 takeᵉ : (n : lib.ℕ) → Env D (n lib.+ m) → Env D n
 takeᵉ lib.zero env = ◆
@@ -91,16 +90,15 @@ dropᵉ lib.zero env = env
 dropᵉ (lib.suc n) (env ∷ v) = dropᵉ n env
 
 -- Judgement: a runtime stack implements a "virtural" stack
-data _⊢_⊨ˢ_ {D : LCon} {sΓ : Ctx Γ l} {env : Env D l} (wf : sΓ ⊨ env) : Stack Γ n → Env D n → Setω where
-  instance
-    nil : wf ⊢ ◆ {Γ = Γ} ⊨ˢ ◆
-    --
-    cons : 
-      {σ : Stack Γ n}{env : Env D n}
-      {t : Tm · (A [ ⟦ wf ⟧⊨ ])}{v : Val D t}
-      {t' : Tm Γ A} → 
-      ⦃ pf : wf ⊢ σ ⊨ˢ env ⦄ → 
-      ⦃ eq : t lib.≡ t' [ ⟦ wf ⟧⊨ ] ⦄ → 
-      wf ⊢ (σ ∷ t') ⊨ˢ (env ∷ v)  
+data _⊢_⊨ˢ_ {D : LCon} : {sΓ : Ctx Γ l} {env : Env D l} (wf : sΓ ⊨ env) → Stack Γ n → Env D n → Setω where
+  nil : {env : Env D l}{wf : sΓ ⊨ env} → wf ⊢ ◆ {Γ = Γ} ⊨ˢ ◆
+  --
+  cons : 
+    {env : Env D l}{wf : sΓ ⊨ env}
+    {σ : Stack Γ n}{t' : Tm Γ A}
+    {st : Env D n}{t : Tm · (A [ ⟦ wf ⟧⊨ ]T)}{v : Val D t} → 
+    (pf : wf ⊢ σ ⊨ˢ st) → 
+    (eq : t lib.≡ t' [ ⟦ wf ⟧⊨ ]) → 
+    wf ⊢ (σ ∷ t') ⊨ˢ (st ∷ v)  
 
  
