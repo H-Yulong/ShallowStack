@@ -47,21 +47,18 @@ mutual
     nil : ◆ ⊨ ◆
     --
     cons : 
-      {A : Ty · j}{A' : Ty Γ j}
-      {sΓ : Ctx Γ n}{σ : Env D n}
-      {t : Tm · A}{v : Val D t}
-      (pf : sΓ ⊨ σ) →
-      (eq : A lib.≡ (A' [ ⟦ pf ⟧⊨ ]T)) → 
-      ((sΓ ∷ A') ⊨ (σ ∷ v))
-    -- Note the actual equality used here.
-    -- Since we're only comparing closed types and terms,
-    -- it's convinent to do so as we have ({t : ⊤} → f t ≡ g t) → f ≡ g.
-    -- Has nice computational behaviour.
+        {A : Ty Γ j}{A' : Ty · j}
+        {t : Tm Γ A}{t' : Tm · A'}{v : Val D t'}
+        {sΓ : Ctx Γ n}{σ : Env D n} → 
+      (pf : sΓ ⊨ σ) →  
+      (eqA : A' lib.≡ A [ ⟦ pf ⟧⊨ ]T) → 
+      (eqt : t' lib.≡ Tm-subst (t [ ⟦ pf ⟧⊨ ]) (lib.sym (lib.cong-app eqA))) → 
+      ((sΓ ∷ A) ⊨ (σ ∷ v))
 
   ⟦_⟧⊨ : 
     {sΓ : Ctx Γ n} {σ : Env D n} (pf : sΓ ⊨ σ) → Sub · Γ
   ⟦_⟧⊨ nil = ε
-  ⟦_⟧⊨ {σ = _∷_ {t = t} σ v} (cons pf eq) = ⟦ pf ⟧⊨ ▻ Tm-subst t (lib.cong-app eq)
+  ⟦_⟧⊨ {σ = _∷_ {t = t} σ v} (cons pf eqA eqt) rewrite eqA = ⟦ pf ⟧⊨ ▻ t
 
 -- Find the term at position x in an env that implements Γ
 _[_]V : 
@@ -78,8 +75,8 @@ findᵉ :
   {sΓ : Ctx Γ n}
   (env : Env D n)(x : V sΓ A) → 
   (pf : sΓ ⊨ env) → Val D (x [ pf ]V)
-findᵉ (env ∷ v) vz (cons pf eq) = Val-subst v eq
-findᵉ (env ∷ v) (vs x) (cons pf eq) = findᵉ env x pf
+findᵉ (env ∷ v) vz (cons pf eqA eqt) rewrite eqA = v
+findᵉ (env ∷ v) (vs x) (cons pf eqA eqt) rewrite eqA = findᵉ env x pf
 
 takeᵉ : (n : lib.ℕ) → Env D (n lib.+ m) → Env D n
 takeᵉ lib.zero env = ◆
@@ -95,20 +92,60 @@ data _⊢_⊨ˢ_ {D : LCon} : {sΓ : Ctx Γ l} {env : Env D l} (wf : sΓ ⊨ env
   --
   cons : 
     {env : Env D l}{wf : sΓ ⊨ env}
-    {σ : Stack Γ n}{t' : Tm Γ A}
-    {st : Env D n}{t : Tm · (A [ ⟦ wf ⟧⊨ ]T)}{v : Val D t} → 
+    {σ : Stack Γ n}{t : Tm Γ A}
+    {st : Env D n}{v : Val D (t [ ⟦ wf ⟧⊨ ])} → 
     (pf : wf ⊢ σ ⊨ˢ st) → 
-    (eq : t lib.≡ t' [ ⟦ wf ⟧⊨ ]) → 
-    wf ⊢ (σ ∷ t') ⊨ˢ (st ∷ v)  
+    wf ⊢ (σ ∷ t) ⊨ˢ (st ∷ v)  
 
 findˢ : 
   {sΓ : Ctx Γ l}{env : Env D l}
   {wf : sΓ ⊨ env}{σ : Stack Γ n}
   (st : Env D n)(x : SVar σ A)
   (pf : wf ⊢ σ ⊨ˢ st) → Val D ((find σ x) [ ⟦ wf ⟧⊨ ])  
-findˢ {σ = σ ∷ t} (st ∷ v) vz (cons pf lib.refl) = v
-findˢ (st ∷ t) (vs x) (cons pf eq) = findˢ st x pf
+findˢ {σ = σ ∷ t} (st ∷ v) vz (cons pf) = v
+findˢ (st ∷ t) (vs x) (cons pf) = findˢ st x pf
+
+-- [subst] : σ ≡ δ → A [ σ ]T ≡ A [ δ ]T
+
+tryy : {A B : Set}{f g : A → B}{x y : A} → x lib.≡ y → Set
+tryy lib.refl = {!   !}
+
+-- Given:
+-- 1. env that implements Γ
+-- 2. st that implements σ w.r.t. env
+-- 3. Δ such that Γ ⊢ σ of Δ,
+-- Have these mutual conclusions: (it has to be mutual, I think...)
+mutual
+  -- st implements Δ
+  clo⊨ : 
+    {env : Env D l}{Δ : Con i'}
+    {sΔ : Ctx Δ n}{st : Env D n}{σ : Stack Γ n} → 
+    (wf : sΓ ⊨ env) → wf ⊢ σ ⊨ˢ st → sΓ ⊢ σ of sΔ → sΔ ⊨ st 
+  clo⊨ {sΔ = ◆} {◆} {◆} wf wf-st pf = nil
+  clo⊨ {sΔ = sΔ ∷ A} {st ∷ v} {σ ∷ t} wf (cons wf-st) (cons ⦃ pf = pf ⦄) 
+    = cons 
+      (clo⊨ wf wf-st pf) 
+      (lib.ext-⊤ (lib.cong A (lib.sym (⟦clo⟧⊨ wf wf-st pf)))) 
+      {!   !}
+    -- = cons (clo⊨ wf wf-st pf) 
+    --   (lib.tran 
+    --     ([∘]T {σ = ⟦ pf ⟧s} {δ = ⟦ wf ⟧⊨} {A = A}) 
+    --     (lib.cong (λ x → A [ x ]T) (⟦clo⟧⊨ wf wf-st pf))
+    --   )
+
+--   -- When viewed as substitutions, s = σ ∘ env
+  ⟦clo⟧⊨ : 
+    {env : Env D l}{Δ : Con i}
+    {sΔ : Ctx Δ n}{st : Env D n}{σ : Stack Γ n}
+    (wf : sΓ ⊨ env)
+    (wf-st : wf ⊢ σ ⊨ˢ st)
+    (pf : sΓ ⊢ σ of sΔ) →
+    ∀ {γ} → ⟦ clo⊨ wf wf-st pf ⟧⊨ γ lib.≡ ⟦ pf ⟧s (⟦ wf ⟧⊨ γ)
+  ⟦clo⟧⊨ {sΔ = ◆} {◆} {◆} wf wf-st nil = lib.refl
+  ⟦clo⟧⊨ {sΔ = sΔ ∷ A} {st ∷ v} {σ ∷ t} wf (cons wf-st) (cons ⦃ pf = pf ⦄)
+    = {!  !}
 
 
- 
+
+
  

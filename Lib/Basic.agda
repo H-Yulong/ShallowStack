@@ -25,6 +25,9 @@ cong f refl = refl
 subst : ∀{ℓ ℓ'} {A : Set ℓ} (P : A → Set ℓ'){x y : A} (p : x ≡ y) → P x → P y
 subst P refl a = a
 
+substω : ∀{ℓ} {A : Set ℓ} (P : A → Setω) {x y : A} (p : x ≡ y) → P x → P y
+substω P refl a = a
+
 {- Type transport -}
 coerce : ∀{ℓ} {A B : Set ℓ}(p : A ≡ B) → A → B
 coerce refl a = a
@@ -66,6 +69,12 @@ record Σ {ℓ ℓ'} (A : Set ℓ) (B : A → Set ℓ') : Set (ℓ ⊔ ℓ') whe
     fst : A
     snd : B fst
 open Σ public
+
+{-# BUILTIN SIGMA Σ #-}
+
+ηΣ : ∀{ℓ ℓ'}{A : Set ℓ}{B : A → Set ℓ'}{x u : A}{y : B x}{v : B u} → 
+  (p1 : x ≡ u) → (p2 : y ≡ subst B (sym p1) v) → (_,_ {B = B} x y) ≡ (_,_ {B = B} u v)
+ηΣ refl refl = refl
 
 _×_ : ∀{ℓ ℓ'} → Set ℓ → Set ℓ' → Set (ℓ ⊔ ℓ')
 A × B = Σ A λ _ → B
@@ -179,7 +188,6 @@ cong-app : ∀{i j}{A : Set i}{B : A → Set j}{f g : (a : A) → B a} →
   (f ≡ g) → {a : A} → f a ≡ g a
 cong-app refl = refl
 
-eee : ∀{x y} → x + y ≡ x +' y
-eee {zero} {y} = refl
-eee {suc x} {y} = cong suc (eee {x} {y})
- 
+asso+ : ∀{x y z} → x + y + z ≡ x + (y + z)
+asso+ {zero} = refl 
+asso+ {suc x} = cong suc (asso+ {x = x})

@@ -71,6 +71,27 @@ data _⊢_↝_ {D : LCon} (I : Impl D) : Config D → Config D → Setω where
       --------------------------------------
       I ⊢ (conf (ST x >> ins) env st sf wf-env wf-st) 
         ↝ conf ins env (st ∷ findˢ (takeᵉ m st) x wf-st) sf wf-env (cons wf-st lib.refl)
+  --
+  C-CLO : 
+      {σ : Stack {i = i} Γ (n' + m)}
+      {σ' : Stack Γ n}
+      {Δ : Con i'}
+      {sΔ : Ctx Δ n'}
+      {A : Ty Δ j'}
+      {B : Ty (Δ ▹ A) k'}
+      {L : Pi D id sΔ A B}
+      {env : Env D l}
+      {st : Env D (n' + m + s)}
+      {sf : Sf D lf}
+      {wf-env : sΓ ⊨ env} 
+      {wf-st : wf-env ⊢ σ ⊨ˢ takeᵉ (n' + m) st} →  
+      ⦃ pf : sΓ ⊢ (take n' σ) of sΔ ⦄ →
+      ⦃ bound : id lib.< d ⦄ → 
+      {ins : Is D sΓ d (drop n' σ ∷ _⟦_⟧ D L ⟦ pf ⟧s) σ'} →  
+    ------------------------------
+    let st' = lib.substω (Env D) (lib.asso+ {n'} {m} {s}) st in
+    I ⊢ conf (CLO n' L >> ins) env st sf wf-env wf-st 
+      ↝ conf ins env (dropᵉ n' st' ∷ clo L (takeᵉ n' st') ⦃ {!   !} ⦄) sf wf-env (cons {!   !} {!   !})
 
 --   ----
 --   C-CLO : 
@@ -91,15 +112,4 @@ data _⊢_↝_ {D : LCon} (I : Impl D) : Config D → Config D → Setω where
 --       ⦃ pf : sΓ ⊨ env ⦄ →
 --         conf< CLO n L >> is , env , st , frames > ↝ conf< is , env , {!   !} ∷ {!   !} , frames >
 
-
--- {-
---     CLO : 
---       ∀(n : lib.ℕ)
---       {m}{σ : Stack Γ (n lib.+ m)}
---       {j}{Δ : Con j}{sΔ : Ctx Δ n}
---       {k}{A : Ty Δ k}
---       {l}{B : Ty (Δ ▹ A) l}
---       {x}(L : Pi D x sΔ A B)
---       {{pf : Γ ⊢ (take n σ) of Δ}} → 
---       Instr D sΓ σ (drop n σ ∷ _⟦_⟧ D L ⟦ pf ⟧s)
--- -}
+  
