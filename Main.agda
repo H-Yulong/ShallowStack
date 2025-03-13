@@ -60,7 +60,7 @@ module StackExamples where
   open Examples.ShallowDFC
   
   -- Adding numbers
-  test1 : Is D ◆ ◆ (◆ ∷ (nat 5))
+  test1 : Is D ◆ 3 ◆ (◆ ∷ (nat 5))
   test1 = 
        CLO 0 Add
     >> LIT 2 
@@ -70,7 +70,7 @@ module StackExamples where
     >> RET
 
   -- Identity
-  test2 : Is D (◆ ∷ U0 ∷ 𝟘) (◆ ∷ 𝟘) (◆ ∷ 𝟘)
+  test2 : Is D (◆ ∷ U0 ∷ 𝟘) 3 (◆ ∷ 𝟘) (◆ ∷ 𝟘)
   test2 = 
        CLO 0 Iden
     >> TLIT 𝟙
@@ -80,7 +80,7 @@ module StackExamples where
     >> RET
 
   -- Using Iden0
-  test3 : Is D (◆ ∷ U0 ∷ 𝟘) ◆ (◆ ∷ 𝟘)
+  test3 : Is D (◆ ∷ U0 ∷ 𝟘) 3 ◆ (◆ ∷ 𝟘)
   test3 =
        TLIT 𝟙
     >> CLO 1 Iden0
@@ -89,7 +89,7 @@ module StackExamples where
     >> RET
 
   -- Adding numbers via App
-  test4 : ∀{x y : ℕ} → Is D ◆ ◆ (◆ ∷ nat (x +' y))
+  test4 : ∀{x y : ℕ} → Is D ◆ 4 ◆ (◆ ∷ nat (x +' y))
   test4 {x} {y} = 
        CLO 0 App
     >> TLIT Nat
@@ -105,7 +105,7 @@ module StackExamples where
     >> RET
 
   -- Adding numbers, via App, using the most-curried version only
-  test5 : ∀{x y : ℕ} → Is D ◆ ◆ (◆ ∷ nat (x +' y))
+  test5 : ∀{x y : ℕ} → Is D ◆ 3 ◆ (◆ ∷ nat (x +' y))
   test5 {x} {y} = 
        TLIT Nat 
     >> CLO 0 LNat 
@@ -117,7 +117,7 @@ module StackExamples where
     >> RET
 
   -- Adding via iterator
-  test6 : ∀{x y : ℕ} → Is D ◆ ◆ (◆ ∷ nat (x +' y))
+  test6 : ∀{x y : ℕ} → Is D ◆ 3 ◆ (◆ ∷ nat (x +' y))
   --(◆ ∷ nat (x +' y))
   test6 {x} {y} = 
        LIT x 

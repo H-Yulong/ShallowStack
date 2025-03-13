@@ -100,8 +100,10 @@ mutual
     Tm Δ (Π (A [ σ ]T) (B [ σ ^ A ]T))
   (L ⟦ σ ⟧) γ α = (interp L) (σ γ lib., α)
 
+-- The equational theory is just refl
+
 D : LCon
-D = record { Pi = Pi ; interp = interp; _⟦_⟧ = _⟦_⟧ } 
+D = record { Pi = Pi ; interp = interp; lapp = _⟦_⟧; lapp[] = lib.refl } 
 
 impl : (lab : Pi id sΓ A B) → Proc D (sΓ ∷ A) id (interp lab)
 impl Add0 = proc 
@@ -184,3 +186,4 @@ impl LNat = proc
 
 Lib : Library
 Lib = library D impl
+
