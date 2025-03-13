@@ -64,29 +64,14 @@ Tm-subst t pf γ = lib.coerce pf (t γ)
 
 -- Stack typing & interpretation of stacks into substitutions
 mutual
-  data _⊢_of_ (Γ : Con i) : Stack Γ n → Con j → Setω where
-    instance 
-      nil : Γ ⊢ ◆ of ·
-      -- 
+  data _⊢_of_as_ {Γ : Con i} (sΓ : Ctx Γ l) : {Δ : Con i'} → Stack Γ n → Ctx Δ l' → Sub Γ Δ → Setω where
+    instance
+      nil : sΓ ⊢ ◆ of ◆ as ε
       cons : 
-        {Δ : Con i'}{A' : Ty Δ j}
-        {σ : Stack Γ n}{t : Tm Γ A} → 
-        ⦃ pf : Γ ⊢ σ of Δ ⦄ → 
-        ⦃ eq : ∀{γ} → A γ lib.≡ (A' [ ⟦ pf ⟧s ]T) γ ⦄ → 
-        Γ ⊢ (σ ∷ t) of (Δ ▹ A')
-
-  ⟦_⟧s : {Δ : Con i'} {σ : Stack Γ n} → Γ ⊢ σ of Δ → Sub Γ Δ
-  ⟦_⟧s {σ = σ} nil = ε
-  ⟦_⟧s {σ = σ ∷ t} (cons {{pf}} {{x}}) = ⟦ pf ⟧s ▻ Tm-subst t x
-
--- Useful abbreviations
-_[_]Ts : {Δ : Con i'} {σ : Stack Γ n} (A : Ty Δ j) (pf : Γ ⊢ σ of Δ) → Ty Γ j
-A [ pf ]Ts = A [ ⟦ pf ⟧s ]T
-
-_[_]s : 
-  {Δ : Con i'} {σ : Stack Γ n} {A : Ty Δ j} 
-  (t : Tm Δ A) (pf : Γ ⊢ σ of Δ) → Tm Γ (A [ pf ]Ts)
-t [ pf ]s = t [ ⟦ pf ⟧s ]
+        {Δ : Con i'}{sΔ : Ctx Δ l'}{A : Ty Δ j}
+        {σ : Stack Γ n}{δ : Sub Γ Δ}{t : Tm Γ (A [ δ ]T)} → 
+        ⦃ pf : sΓ ⊢ σ of sΔ as δ ⦄ → 
+          sΓ ⊢ (σ ∷ t) of (sΔ ∷ A) as (δ ▻ t)
 
 -- Some stack operations: append, take, drop
 _++_ : Stack Γ m → Stack Γ n → Stack Γ (n + m)
@@ -178,10 +163,11 @@ mutual
         {A : Ty Δ j'}{B : Ty (Δ ▹ A) k'}
       (n : lib.ℕ)
         {σ : Stack Γ (n + m)} 
+        {δ : Sub Γ Δ}
       (L : Pi D id sΔ A B)
-        ⦃ pf : Γ ⊢ (take n σ) of Δ ⦄ →
+        ⦃ pf : sΓ ⊢ (take n σ) of sΔ as δ ⦄ →
         ⦃ bound : id lib.< d ⦄ →  
-      Instr D sΓ d σ (drop n σ ∷ _⟦_⟧ D L ⟦ pf ⟧s)
+      Instr D sΓ d σ (drop n σ ∷ lapp D L δ)
     --
     LIT : (n : lib.ℕ) → Instr D sΓ d σ (σ ∷ (nat n))
     --

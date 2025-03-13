@@ -44,9 +44,10 @@ record Config (D : LCon) : Setω where
     {sΓ} : Ctx Γ l
     {σ} : Stack Γ m
     {σ'} : Stack Γ n
+    {δ} : Sub · Γ
     ins : Is D sΓ d σ σ'
     env : Env D l
     st : Env D (m + s)
     sf : Sf D lf
-    wf-env : sΓ ⊨ env
+    wf-env : sΓ ⊨ env as δ
     wf-st : wf-env ⊢ σ ⊨ˢ takeᵉ m st
