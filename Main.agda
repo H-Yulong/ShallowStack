@@ -21,6 +21,11 @@ open import Model.Stack
 -- import Examples.Performance
 import Examples.ShallowDFC
 
+-- Runtime model and type safety
+import Machine.Value
+import Machine.Config
+import Machine.Step
+
 -- Examples of the source language,
 -- shallow-embedded Martin-Löf type theory
 
@@ -123,3 +128,16 @@ module StackExamples where
        LIT x 
     >> ITER Nat (LIT y >> RET) (POP >> INC >> RET)
     >> RET
+
+  -- Example included in TYPES2025 abstract
+  test-TYPES : Is D ◆ 1 ◆ (◆ ∷ nat 5)
+  test-TYPES = 
+       TLIT Nat 
+    >> CLO 0 LNat 
+    >> LIT 2 
+    >> CLO 1 Add0 
+    >> CLO 3 App0 
+    >> LIT 3 
+    >> APP 
+    >> RET
+
