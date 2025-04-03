@@ -29,7 +29,7 @@ private variable
 --    using some encoding of types as indices, in this case the shallow
 --    embedding.
 -- 2. Universe levels, i.e. there're always free variables larger than
---    the universe of Pi A B. Solved by encoding the free-vars as an index.
+--    the universe of Pi A B. Solved by using Setω.
 -- 3. Termination, i.e. interp Add1 involves interp Add0, but nothing is
 --    decreasing. Solved by adding index (n : ℕ), such that a label of
 --    (Pi n) can only refer to labels of (Pi m) where m ≤ n, which is a 
