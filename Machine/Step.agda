@@ -68,7 +68,7 @@ data _⊢_↝_ {D : LCon} (I : Impl D) : Config D → Config D → Setω where
       {wf-env : sΓ ⊨ env as δ}
       {wf-st : wf-env ⊢ σ ⊨ˢ takeᵉ m st} → 
     ---------------------------------------- 
-    I ⊢ (conf ins env st sf wf-env wf-st)
+    I ⊢ (conf (NOP >> ins) env st sf wf-env wf-st)
       ↝ (conf ins env st sf wf-env wf-st)
   --
   C-VAR : 
