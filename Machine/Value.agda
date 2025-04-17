@@ -14,7 +14,7 @@ open import Model.Stack
 open LCon
 
 private variable
-  id n nv len : b.ℕ
+  id n ns nv len : b.ℕ
   Γ : Con
   sΓ : Ctx Γ len
 
@@ -137,32 +137,27 @@ trysome : ∀{Γ}{A : Ty Γ n}{B : Ty (Γ ▹ A) n} →
   Set
 trysome {tA = `Π tA x} pf = b.⊤
 
--- Lemma2 : 
-
--- Lemma2 :
---     ∀ {D : LCon} 
---       -- env setup
---       {Γ : Con}{sΓ : Ctx Γ len}
---       {env : Env D len}{δ : Sub · Γ}
---       {wf : env ⊨ sΓ as δ}
---       -- abstract types and terms
---       {A : Ty Γ n}{B : Ty (Γ ▹ A) n}
---       {f : Tm Γ (Π A B)}
---       -- codes and values
---       {tA : Type (b.suc n)}
---       {tB : ⟦ tA ⟧ → Type (b.suc n)}
---       {t' : Tm · (λ _ → `Π tA tB)}
---       {v : Val D (`Π tA tB) t'} → 
-
---       {σ : Stack Γ n}
---       {st : Env D n}
---       {v : Val D (`Π tA tB) t'} → 
---       (pf : wf ⊢ st ⊨ˢ σ) →
---       (ptt : (A [ δ ]T) b.tt b.≡ `Π tA tB) →  
---       (eq : t [ δ ] b.≡ Tm-subst t' (b.sym ptt)) → 
---     wf ⊢ (st ∷ v) ⊨ˢ (σ ∷ t) →
---     Set
--- Lemma2 {σ = σ} {st} {clo L σ₁} pf ptt sf eq = b.ℕ
+Lemma2 :
+    ∀ {D : LCon} 
+      -- env setup
+      {Γ : Con}{sΓ : Ctx Γ len}
+      {env : Env D len}{δ : Sub · Γ}
+      {wf : env ⊨ sΓ as δ}
+      -- abstract types and terms
+      {A : Ty Γ n}{B : Ty (Γ ▹ A) n}
+      {f : Tm Γ (Π A B)}
+      -- codes and values
+      {T : Type (b.suc n)}
+      {t' : Tm · (λ _ → T)}
+      {v : Val D T t'}
+      -- stacks 
+      {σ : Stack Γ ns}
+      {st : Env D ns} → 
+      --
+    wf ⊢ (st ∷ v) ⊨ˢ (σ ∷ f) →
+    Set
+Lemma2 arg = {! arg !}
+-- Lemma2 {T = `Π tA tB} {v = clo L σ} (cons arg ptt eq) = {!   !}
 
 
 
