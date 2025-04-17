@@ -45,9 +45,7 @@ J P pr refl = pr
 
 {- True and false -}
 record ⊤ : Set where
-
-tt : ⊤
-tt = record {}
+  constructor tt
 
 data ⊥ : Set where
 

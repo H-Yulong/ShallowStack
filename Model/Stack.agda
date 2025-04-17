@@ -15,7 +15,7 @@ open LCon
 -- infixr 20 _>>_
 
 private variable
-  m n ms ns len id : ℕ  
+  m n ms ns len len' id : ℕ  
   Γ : Con
 --   i j k i' j' k' : Level
 --   Γ : Con i
@@ -63,18 +63,18 @@ data Stack (Γ : Con) : ℕ → Set₁ where
 -- Extensionality transport
 Tm-subst : {A A' : Ty Γ n}(t : Tm Γ A)(eq : {γ : Γ} → A γ b.≡ A' γ) → Tm Γ A'
 Tm-subst t pf = ~λ (λ γ → b.subst Model.Universe.⟦_⟧ pf (t ~$ γ))
-{-
+
 -- Stack typing & interpretation of stacks into substitutions
 mutual
-  data _⊢_of_as_ {Γ : Con i} (sΓ : Ctx Γ l) : {Δ : Con i'} → Stack Γ n → Ctx Δ l' → Sub Γ Δ → Setω where
-    instance
+  data _⊢_of_as_ {Γ : Con} (sΓ : Ctx Γ len) : ∀{Δ} → Stack Γ n → Ctx Δ len' → Sub Γ Δ → Set₁ where
+    -- instance
       nil : sΓ ⊢ ◆ of ◆ as ε
       cons : 
-        {Δ : Con i'}{sΔ : Ctx Δ l'}{A : Ty Δ j}
-        {σ : Stack Γ n}{δ : Sub Γ Δ}{t : Tm Γ (A [ δ ]T)} → 
-        ⦃ pf : sΓ ⊢ σ of sΔ as δ ⦄ → 
-          sΓ ⊢ (σ ∷ t) of (sΔ ∷ A) as (δ ▻ t)
-
+        ∀ {Δ}{sΔ : Ctx Δ len'}{A : Ty Δ n}
+          {σ : Stack Γ n}{δ : Sub Γ Δ}{t : Tm Γ (A [ δ ]T)} → 
+          ⦃ pf : sΓ ⊢ σ of sΔ as δ ⦄ → 
+        sΓ ⊢ (σ ∷ t) of (sΔ ∷ A) as (δ ▻ t)
+{-
 -- Some stack operations: append, take, drop
 _++_ : Stack Γ m → Stack Γ n → Stack Γ (n + m)
 σ ++ ◆ = σ

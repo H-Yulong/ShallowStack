@@ -39,26 +39,29 @@ record ClosedType : Set where
     t : Tm · (λ _ → A)
 
 mutual
-  data Val (D : LCon) : {A : Type (b.suc n)} → Tm · (λ _ → A) → Set₁ where
+  data Val (D : LCon) : (A : Type (b.suc n)) → Tm · (λ _ → A) → Set₁ where
     --
-    lit-b : (b : b.Bool) → Val D (bool b)
+    lit-b : (b : b.Bool) → Val D `B (bool b)
     --
-    lit-n : (n : b.ℕ) → Val D (nat n)
+    lit-n : (n : b.ℕ) → Val D `N (nat n)
     --
-    ty : (A : Ty · n) → Val D (c A)
+    ty : (A : Ty · n) → Val D `U (c A)
     --
     clo : 
       ∀ {A : Ty Γ n}{B : Ty (Γ ▹ A) n}{δ : Sub · Γ}
+        {tA : Type (b.suc n)}
+        {tB : ⟦ tA ⟧ → Type (b.suc n)}
+        {ptt : ((Π A B) [ δ ]T) b.tt b.≡ `Π tA tB}
         (L : Pi D id sΓ A B)
         (σ : Env D nv) → 
         ⦃ pf : σ ⊨ sΓ as δ ⦄ → 
       -------------------------
-      Val D (lapp D L δ)
+      Val D (`Π tA tB) (Tm-subst (lapp D L δ) ptt)
 
   -- Env, list of values, essentially runtime stacks
   data Env (D : LCon) : (nv : b.ℕ) → Set₁ where
     ◆ : Env D b.zero
-    _∷_ : {A : Type (b.suc n)}{t : Tm · (λ _ → A)} → Env D nv → Val D t → Env D (b.suc nv)
+    _∷_ : {A : Type (b.suc n)}{t : Tm · (λ _ → A)} → Env D nv → Val D A t → Env D (b.suc nv)
 
   -- Env that implements context
   data _⊨_as_ {D : LCon} : Env D nv → Ctx Γ len → Sub · Γ → Set₁ where
@@ -67,9 +70,19 @@ mutual
     cons : 
       {A : Ty Γ n}{sΓ : Ctx Γ len}
       {σ : Env D nv}{δ : Sub · Γ}
-      {t : Tm · (A [ δ ]T)}{v : Val D t}
+      {t : Tm · (A [ δ ]T)}{v : Val D ((A [ δ ]T) b.tt) t}
       (pf : σ ⊨ sΓ as δ) →
       ((σ ∷ v) ⊨ (sΓ ∷ A) as (δ ▻ t))
+
+Lemma1 : 
+  ∀ {D : LCon}{tA : Type (b.suc n)}
+    {tB : ⟦ tA ⟧ → Type (b.suc n)}
+    {f : Tm · (λ _ → `Π tA tB)} → 
+    Val D (`Π tA tB) f → 
+    Set
+Lemma1 (clo L σ) = b.ℕ
+
+
 {-
 -- Find the term at position x in an env that implements Γ
 _[_]V : 
@@ -96,23 +109,92 @@ takeᵉ (b.suc n) (env ∷ v) = (takeᵉ n env) ∷ v
 dropᵉ : (n : b.ℕ) → Env D (n b.+ m) → Env D m
 dropᵉ b.zero env = env
 dropᵉ (b.suc n) (env ∷ v) = dropᵉ n env
+-}
 
 -- Judgement: a runtime stack implements a "virtural" stack
-data _⊢_⊨ˢ_ {D : LCon} {sΓ : Ctx Γ l} {env : Env D l} {δ : Sub · Γ} 
-  (wf : sΓ ⊨ env as δ) : Stack Γ n → Env D n → Setω where
+data _⊢_⊨ˢ_ {D : LCon} {sΓ : Ctx Γ len} {env : Env D len} {δ : Sub · Γ} 
+  (wf : env ⊨ sΓ as δ) : Env D n → Stack Γ n → Set₁ where
 ----
-  nil : wf ⊢ ◆ {Γ = Γ} ⊨ˢ ◆
+  nil : wf ⊢ ◆ ⊨ˢ ◆
   --
   cons : 
-    {σ : Stack Γ n}{t : Tm Γ A}{t' : Tm · (A [ δ ]T)}
-    {st : Env D n}{v : Val D t'} → 
-    (pf : wf ⊢ σ ⊨ˢ st) → 
-    (eq : t' b.≡ t [ δ ]) → 
-    wf ⊢ (σ ∷ t) ⊨ˢ (st ∷ v)  
+    ∀ {A : Ty Γ n}{t : Tm Γ A}
+      {tA : Type (b.suc n)}
+      {σ : Stack Γ n}{t' : Tm · (λ _ → tA)}
+      {st : Env D n}
+      {v : Val D tA t'} → 
+      (pf : wf ⊢ st ⊨ˢ σ) →
+      (ptt : tA b.≡ (A [ δ ]T) b.tt) →  
+      (eq : t [ δ ] b.≡ Tm-subst t' ptt) → 
+    wf ⊢ (st ∷ v) ⊨ˢ (σ ∷ t)  
   -- I have to take the explicit equality here because function label's congruence
   -- under substitution is not refl, since label contexts are given as a signature.
   -- It doesn't hurt the development so far...
+trysome : ∀{Γ}{A : Ty Γ n}{B : Ty (Γ ▹ A) n} →
+  {δ : Sub · Γ} → 
+  {tA : Type (b.suc n)} → 
+  (pf : tA b.≡ ((Π A B) [ δ ]T) b.tt) → 
+  Set
+trysome {tA = `Π tA x} pf = b.⊤
 
+-- Lemma2 : 
+
+-- Lemma2 :
+--     ∀ {D : LCon} 
+--       -- env setup
+--       {Γ : Con}{sΓ : Ctx Γ len}
+--       {env : Env D len}{δ : Sub · Γ}
+--       {wf : env ⊨ sΓ as δ}
+--       -- abstract types and terms
+--       {A : Ty Γ n}{B : Ty (Γ ▹ A) n}
+--       {f : Tm Γ (Π A B)}
+--       -- codes and values
+--       {tA : Type (b.suc n)}
+--       {tB : ⟦ tA ⟧ → Type (b.suc n)}
+--       {t' : Tm · (λ _ → `Π tA tB)}
+--       {v : Val D (`Π tA tB) t'} → 
+
+--       {σ : Stack Γ n}
+--       {st : Env D n}
+--       {v : Val D (`Π tA tB) t'} → 
+--       (pf : wf ⊢ st ⊨ˢ σ) →
+--       (ptt : (A [ δ ]T) b.tt b.≡ `Π tA tB) →  
+--       (eq : t [ δ ] b.≡ Tm-subst t' (b.sym ptt)) → 
+--     wf ⊢ (st ∷ v) ⊨ˢ (σ ∷ t) →
+--     Set
+-- Lemma2 {σ = σ} {st} {clo L σ₁} pf ptt sf eq = b.ℕ
+
+
+
+-- Is this going to work?
+-- Lemma! :  
+--   ∀ {D : LCon}
+--     {Γ : Con}{sΓ : Ctx Γ len} 
+--     {env : Env D len}{δ : Sub · Γ}
+--     -- 
+--     {A : Ty Γ n}{B : Ty (Γ ▹ A) n}
+--     --
+--     {t : Tm Γ (Π A B)}
+--     {t' : Tm · ((Π A B) [ δ ]T)}
+--     (v : Val D (`Π ((A [ δ ]T) b.tt) (λ a → (B [ δ ^ A ]T) (b.tt ~, a))) t')
+--     (wf : env ⊨ sΓ as δ)
+--     (eq : t' b.≡ t [ δ ]) → 
+--   Set
+-- Lemma! {δ = δ} {A} {B} {t} {t'} v wf eq = {! v  !}
+
+{-
+v : Val D (`Π (A (δ (record {}))) (λ a → B (δ (record {}) ~, a))) t'
+
+      ∀ {A : Ty Γ n}{B : Ty (Γ ▹ A) n}{δ : Sub · Γ}
+        (L : Pi D id sΓ A B)
+        (σ : Env D nv) → 
+        ⦃ pf : σ ⊨ sΓ as δ ⦄ → 
+      Val D (`Π ((A [ δ ]T) b.tt) (λ a → (B [ δ ^ A ]T) (b.tt ~, a))) (lapp D L δ)
+
+-}
+
+
+{-
 findˢ : 
   {sΓ : Ctx Γ l}{env : Env D l}{δ : Sub · Γ}
   {wf : sΓ ⊨ env as δ}{σ : Stack Γ n}
@@ -143,4 +225,4 @@ clo⊨ {sΔ = sΔ ∷ A} {st ∷ v} {σ ∷ t} wf (cons wf-st eq) (cons ⦃ pf �
 -}
 
  
- 
+  
