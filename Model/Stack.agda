@@ -13,8 +13,8 @@ open import Model.Context
 open b using (ℕ; _+_)
 open LCon
 
--- infixl 5 _∷_
--- infixr 20 _>>_
+infixl 5 _∷_
+infixr 20 _>>_
 
 private variable
   m n ms ns len len' id : ℕ  
@@ -62,7 +62,7 @@ Tm-subst t pf = ~λ (λ γ → b.subst Model.Universe.⟦_⟧ pf (t ~$ γ))
 -- Stack typing & interpretation of stacks into substitutions
 mutual
   data _⊢_of_as_ {Γ : Con} (sΓ : Ctx Γ len) : ∀{Δ} → Stack Γ ns → Ctx Δ len' → Sub Γ Δ → Set₁ where
-    -- instance
+    instance
       nil : sΓ ⊢ ◆ of ◆ as ε
       cons : 
         ∀ {Δ}{sΔ : Ctx Δ len'}{A : Ty Δ n}
@@ -218,7 +218,7 @@ mutual
     REFL : {A : Ty Γ n}(u : Tm Γ A) → Instr D sΓ d σ (σ ∷ refl u) 
     -- Proofs are erasable at runtime, so we can 
     -- freely create refl as we want
-    ----
+    --
     JRULE : 
         {A : Ty Γ n}{u v : Tm Γ A}
       (C : Ty (Γ ▹ A ▹ Id (A [ p ]T) (u [ p ]) 𝟘) n)
@@ -228,6 +228,12 @@ mutual
       Instr D sΓ d (σ ∷ pf) (σ ∷ J {u = u} {v} C w pf) 
     -- Note that we don't allow "extensional equality", like
     -- ∀{σ A u v} → (pf : Id A u v) → Instr D sΓ (σ ∷ u) (σ ∷ v)
+    --
+    UP : {A : Ty Γ n}{t : Tm Γ A} → 
+      Instr D sΓ d (σ ∷ t) (σ ∷ ↑ t)
+    --
+    DOWN : {A : Ty Γ n}{t : Tm Γ (↑T A)} → 
+      Instr D sΓ d (σ ∷ t) (σ ∷ ↓ t)
 
 
 {- Procedures -}

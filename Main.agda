@@ -7,7 +7,7 @@ import Lib.Basic as b
 open import Lib.Order
 
 {- Model: shallow-embedded syntax -}
-open import Model.Universe
+open import Model.Universe hiding (⟦_⟧)
 open import Model.Shallow
 open import Model.Context
 
@@ -15,7 +15,7 @@ open import Model.Context
 open import Model.Labels
 
 -- Stack machine 
--- open import Model.Stack
+open import Model.Stack
 
 {- Examples -}
 import Examples.App
@@ -62,7 +62,7 @@ module SourceExamples where
   test5 : ∀{n}{A : Type (b.suc n)} → Tm · (λ _ → `Π A (λ _ → A))
   test5 = lam 𝟘
 
-{-
+
 module StackExamples where
 
   open b using (ℕ; _+'_)
@@ -79,17 +79,18 @@ module StackExamples where
     >> RET
 
   -- Identity
-  test2 : Is D (◆ ∷ U0 ∷ 𝟘) 3 (◆ ∷ 𝟘) (◆ ∷ 𝟘)
+  test2 : Is D (◆ ∷ U0 ∷ (El 𝟘)) 3 (◆ ∷ 𝟘) (◆ ∷ 𝟘)
   test2 = 
        CLO 0 Iden
     >> TLIT 𝟙
     >> APP
+    >> DOWN
     >> SWP
     >> APP
     >> RET
 
   -- Using Iden0
-  test3 : Is D (◆ ∷ U0 ∷ 𝟘) 3 ◆ (◆ ∷ 𝟘)
+  test3 : Is D (◆ ∷ U0 ∷ (El 𝟘)) 3 ◆ (◆ ∷ 𝟘)
   test3 =
        TLIT 𝟙
     >> CLO 1 Iden0
@@ -101,10 +102,11 @@ module StackExamples where
   test4 : ∀{x y : ℕ} → Is D ◆ 4 ◆ (◆ ∷ nat (x +' y))
   test4 {x} {y} = 
        CLO 0 App
-    >> TLIT Nat
+    >> TLIT (c Nat)
     >> APP
     >> CLO 0 LNat
     >> APP
+    >> DOWN
     >> CLO 0 Add
     >> LIT x
     >> APP
@@ -116,7 +118,7 @@ module StackExamples where
   -- Adding numbers, via App, using the most-curried version only
   test5 : ∀{x y : ℕ} → Is D ◆ 3 ◆ (◆ ∷ nat (x +' y))
   test5 {x} {y} = 
-       TLIT Nat 
+       TLIT (c Nat) 
     >> CLO 0 LNat 
     >> LIT x 
     >> CLO 1 Add0 
@@ -136,7 +138,7 @@ module StackExamples where
   -- Example included in TYPES2025 abstract
   test-TYPES : Is D ◆ 1 ◆ (◆ ∷ nat 5)
   test-TYPES = 
-       TLIT Nat 
+       TLIT (c Nat) 
     >> CLO 0 LNat 
     >> LIT 2 
     >> CLO 1 Add0 
@@ -144,4 +146,4 @@ module StackExamples where
     >> LIT 3 
     >> APP 
     >> RET
--}
+ 

@@ -11,9 +11,9 @@ open import Model.Shallow
 import Examples.Compose as Com
 import Examples.App as App
 
--- open import Model.Labels
+open import Model.Labels
 open import Model.Context
--- open import Model.Stack
+open import Model.Stack
 
 private variable
   Γ : Con
@@ -112,11 +112,12 @@ mutual
   L ⟦ σ ⟧ = ~λ (λ γ α → (interp L) ~$ (σ γ ~, α))
 
 -- The equational theory is just refl
-{-
-D : LCon
-D = record { Pi = Pi ; interp = interp; lapp = _⟦_⟧; lapp[] = lib.refl } 
 
-impl : (lab : Pi id sΓ A B) → Proc D (sΓ ∷ A) id (interp lab)
+D : LCon
+D = record { Pi = Pi ; interp = interp; lapp = _⟦_⟧; lapp[] = b.refl } 
+{-
+impl : ∀{A : Ty Γ n}{B : Ty (Γ ▹ A) n}
+  (lab : Pi id sΓ A B) → Proc D (sΓ ∷ A) id (interp lab)
 impl Add0 = proc 
   (  VAR V₁ 
   >> ITER Nat (VAR V₀ >> RET) (POP >> INC >> RET) 

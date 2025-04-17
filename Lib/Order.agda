@@ -13,7 +13,7 @@ infixl 10 _<_
 data _<_ : ℕ → ℕ → Set where
   instance
     refl< : ∀{n} → 0 < suc n
-    incr<  : ∀{m n} → ⦃ m < n ⦄ → m < suc n
+    incr<  : ∀{m n} → ⦃ m < n ⦄ → suc m < suc n
 
 {- Sum types -}
 data Or {ℓ ℓ'} (A : Set ℓ) (B : Set ℓ') : Set (ℓ ⊔ ℓ') where
