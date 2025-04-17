@@ -3,6 +3,8 @@ module Model.Stack where
 open import Agda.Primitive
 import Lib.Basic as b 
 
+open import Lib.Order
+
 open import Model.Universe hiding (⟦_⟧)
 open import Model.Shallow
 open import Model.Labels
@@ -17,12 +19,6 @@ open LCon
 private variable
   m n ms ns len len' id : ℕ  
   Γ : Con
---   i j k i' j' k' : Level
---   Γ : Con i
---   A : Ty Γ j
---   B : Ty (Γ ▹ A) k
---   l m n l' m' n' id : b.ℕ
---   sΓ : Ctx Γ l
 
 -- Now, we express a dependendly typed assembly-like stack-machine language,
 -- following the idea outlined in "QTAL: A quantitatively and dependendly typed assembly language".
@@ -59,48 +55,46 @@ data Stack (Γ : Con) : ℕ → Set₁ where
   ◆ : Stack Γ 0
   _∷_ : ∀{A : Ty Γ n} → Stack Γ ns → Tm Γ A → Stack Γ (b.suc ns)
 
-
 -- Extensionality transport
 Tm-subst : {A A' : Ty Γ n}(t : Tm Γ A)(eq : {γ : Γ} → A γ b.≡ A' γ) → Tm Γ A'
 Tm-subst t pf = ~λ (λ γ → b.subst Model.Universe.⟦_⟧ pf (t ~$ γ))
 
 -- Stack typing & interpretation of stacks into substitutions
 mutual
-  data _⊢_of_as_ {Γ : Con} (sΓ : Ctx Γ len) : ∀{Δ} → Stack Γ n → Ctx Δ len' → Sub Γ Δ → Set₁ where
+  data _⊢_of_as_ {Γ : Con} (sΓ : Ctx Γ len) : ∀{Δ} → Stack Γ ns → Ctx Δ len' → Sub Γ Δ → Set₁ where
     -- instance
       nil : sΓ ⊢ ◆ of ◆ as ε
       cons : 
         ∀ {Δ}{sΔ : Ctx Δ len'}{A : Ty Δ n}
-          {σ : Stack Γ n}{δ : Sub Γ Δ}{t : Tm Γ (A [ δ ]T)} → 
+          {σ : Stack Γ ns}{δ : Sub Γ Δ}{t : Tm Γ (A [ δ ]T)} → 
           ⦃ pf : sΓ ⊢ σ of sΔ as δ ⦄ → 
         sΓ ⊢ (σ ∷ t) of (sΔ ∷ A) as (δ ▻ t)
-{-
+
 -- Some stack operations: append, take, drop
-_++_ : Stack Γ m → Stack Γ n → Stack Γ (n + m)
+_++_ : Stack Γ ms → Stack Γ ns → Stack Γ (ns + ms)
 σ ++ ◆ = σ
 σ ++ (σ' ∷ x) = (σ ++ σ') ∷ x
 
-take : (n : b.ℕ) (σ : Stack Γ (n + m)) → Stack Γ n
+take : (ns : b.ℕ) (σ : Stack Γ (ns + ms)) → Stack Γ ns
 take b.zero σ = ◆
-take (b.suc n) (σ ∷ x) = (take n σ) ∷ x
+take (b.suc ns) (σ ∷ x) = (take ns σ) ∷ x
 
-drop : (n : b.ℕ) (σ : Stack Γ (n + m)) → Stack Γ m
+drop : (ns : b.ℕ) (σ : Stack Γ (ns + ms)) → Stack Γ ms
 drop b.zero σ = σ
-drop (b.suc n) (σ ∷ x) = drop n σ
+drop (b.suc ns) (σ ∷ x) = drop ns σ
 
 -- Stack look-up, which is essentially Fin / de-Bruijn variables
-data SVar {Γ : Con i} : Stack Γ n → Ty Γ j → Setω where
+data SVar {Γ : Con} : Stack Γ ns → Ty Γ n → Set₁ where
   --
-  vz : {σ : Stack Γ n}{t : Tm Γ A} → SVar (σ ∷ t) A
+  vz : {A : Ty Γ n}{σ : Stack Γ ns}{t : Tm Γ A} → SVar (σ ∷ t) A
   --
   vs : 
-    {A' : Ty Γ k}{σ : Stack Γ n}{t : Tm Γ A'} →  
+    {A A' : Ty Γ n}{σ : Stack Γ ns}{t : Tm Γ A'} →  
     SVar σ A → SVar (σ ∷ t) A
 
-find : (σ : Stack Γ n) (t : SVar σ A) → Tm Γ A
+find : {A : Ty Γ n}(σ : Stack Γ ns) (t : SVar σ A) → Tm Γ A
 find (σ ∷ t) vz = t
 find (σ ∷ t) (vs x) = find σ x
--}
 
 -- Embedding of Nat literal
 nat : b.ℕ → Tm Γ Nat
@@ -109,9 +103,8 @@ nat n = ~λ (λ γ → n)
 bool : b.Bool → Tm Γ Bool
 bool b = ~λ (λ γ → b)
 
-{-
 -- Substitution on stacks
-_[_]st : {Δ : Con i'} → Stack Δ n → Sub Γ Δ → Stack Γ n
+_[_]st : ∀{Δ} → Stack Δ ns → Sub Γ Δ → Stack Γ ns
 ◆ [ ρ ]st = ◆
 (σ ∷ t) [ ρ ]st = (σ [ ρ ]st) ∷ t [ ρ ]
 
@@ -137,66 +130,67 @@ _[_]st : {Δ : Con i'} → Stack Δ n → Sub Γ Δ → Stack Γ n
 -- Sequencing is made special for easier proofs later.
 
 private variable
-  σ : Stack Γ n
+  σ : Stack Γ ns
 
 mutual
 
-  data Is (D : LCon)(sΓ : Ctx Γ l)(d : b.ℕ) : Stack Γ m → Stack Γ n → Setω where
+  data Is (D : LCon)(sΓ : Ctx Γ len)(d : b.ℕ) : Stack Γ ms → Stack Γ ns → Set₁ where
     --
     RET : Is D sΓ d σ σ
     --
     _>>_ : 
-      {σ' : Stack Γ m}{σ'' : Stack Γ n} → 
+      {σ' : Stack Γ ms}{σ'' : Stack Γ ns} → 
       Instr D sΓ d σ σ' → Is D sΓ d σ' σ'' → Is D sΓ d σ σ''
 
-  data Instr (D : LCon)(sΓ : Ctx Γ l)(d : b.ℕ) : Stack Γ m → Stack Γ n → Setω where
+  data Instr (D : LCon)(sΓ : Ctx Γ len)(d : b.ℕ) : Stack Γ ms → Stack Γ ns → Set₁ where
     NOP : Instr D sΓ d σ σ
     --
-    VAR : (x : V sΓ A) → Instr D sΓ d σ (σ ∷ ⟦ x ⟧V)
+    VAR : {A : Ty Γ n}(x : V sΓ A) → Instr D sΓ d σ (σ ∷ ⟦ x ⟧V)
     --
-    POP : {t : Tm Γ A} → Instr D sΓ d (σ ∷ t) σ
+    POP : {A : Ty Γ n}{t : Tm Γ A} → Instr D sΓ d (σ ∷ t) σ
     --
-    TPOP : Instr D sΓ d (σ ∷ A) σ
+    TPOP : ∀{A : Tm Γ (U n)} → Instr D sΓ d (σ ∷ A) σ
     --
     APP : 
+        {A : Ty Γ n}{B : Ty (Γ ▹ A) n}
         {f : Tm Γ (Π A B)} {a : Tm Γ A} → 
       Instr D sΓ d (σ ∷ f ∷ a) (σ ∷ f $ a)
     --
     CLO : 
-        {Δ : Con i'}{sΔ : Ctx Δ l'}
-        {A : Ty Δ j'}{B : Ty (Δ ▹ A) k'}
-      (n : b.ℕ)
-        {σ : Stack Γ (n + m)} 
+      ∀ {Δ}{sΔ : Ctx Δ len'}
+        {A : Ty Δ n}{B : Ty (Δ ▹ A) n}
+      (ns : b.ℕ)
+        {σ : Stack Γ (ns + ms)} 
         {δ : Sub Γ Δ}
       (L : Pi D id sΔ A B)
-        ⦃ pf : sΓ ⊢ (take n σ) of sΔ as δ ⦄ →
-        ⦃ bound : id b.< d ⦄ →  
-      Instr D sΓ d σ (drop n σ ∷ lapp D L δ)
+        ⦃ pf : sΓ ⊢ (take ns σ) of sΔ as δ ⦄ →
+        ⦃ bound : id < d ⦄ →  
+      Instr D sΓ d σ (drop ns σ ∷ lapp D L δ)
     --
     LIT : (n : b.ℕ) → Instr D sΓ d σ (σ ∷ (nat n))
     --
-    TLIT : (A : Ty Γ j) → Instr D sΓ d σ (σ ∷ A)
+    TLIT : (A : Tm Γ (U n)) → Instr D sΓ d σ (σ ∷ A)
     --
     SWP :
-        {A : Ty Γ j}{A' : Ty Γ k}
+        {A : Ty Γ n}{A' : Ty Γ m}
         {t : Tm Γ A}{t' : Tm Γ A'} → 
       Instr D sΓ d (σ ∷ t ∷ t') (σ ∷ t' ∷ t)
     --
-    ST : (x : SVar σ A) → Instr D sΓ d σ (σ ∷ find σ x)
+    ST : {A : Ty Γ n}(x : SVar σ A) → Instr D sΓ d σ (σ ∷ find σ x)
     --
     INC : {x : Tm Γ Nat} → Instr D sΓ d (σ ∷ x) (σ ∷ suc x)
     --
     ITER : 
-      (P : Ty (Γ ▹ Nat) j)
+      (P : Ty (Γ ▹ Nat) n)
         {z : Tm Γ (P [ ✧ ▻ zero ]T)}
       (Z : Is D sΓ d σ (σ ∷ z))
-        {s : Tm (Γ ▹ Nat ▹ P) (P [ p² , (suc 𝟙) ]T)}
+        {s : Tm (Γ ▹ Nat ▹ P) (P [ p² ▻ (suc 𝟙) ]T)}
       (S : Is D (sΓ ∷ Nat ∷ P) d (σ [ p² ]st ∷ 𝟘 ∷ 𝟙) (σ [ p² ]st ∷ s))
         {x : Tm Γ Nat} → 
       Instr D sΓ d (σ ∷ x) (σ ∷ iter P z s x)
     --
     IF : 
-      (P : Ty (Γ ▹ Bool) j)
+      (P : Ty (Γ ▹ Bool) n)
         {t : Tm Γ (P [ ✧ ▻ true ]T)}
       (T : Is D sΓ d σ (σ ∷ t))
         {f : Tm Γ (P [ ✧ ▻ false ]T)}
@@ -211,50 +205,50 @@ mutual
     UNIT : Instr D sΓ d σ (σ ∷ tt)
     --
     PAIR : 
+        {A : Ty Γ n}{B : Ty (Γ ▹ A) n}
         {a : Tm Γ A}{b : Tm Γ (B [ ✧ ▻ a ]T)} → 
       Instr D sΓ d (σ ∷ a ∷ b) (σ ∷ (_,_ {B = B} a b))
     --
-    FST : {p : Tm Γ (Σ A B)} → Instr D sΓ d (σ ∷ p) (σ ∷ fst p) 
+    FST : {A : Ty Γ n}{B : Ty (Γ ▹ A) n}{p : Tm Γ (Σ A B)} → 
+      Instr D sΓ d (σ ∷ p) (σ ∷ fst p) 
     --
-    SND : {p : Tm Γ (Σ A B)} → Instr D sΓ d (σ ∷ p) (σ ∷ snd p) 
+    SND : {A : Ty Γ n}{B : Ty (Γ ▹ A) n}{p : Tm Γ (Σ A B)} → 
+      Instr D sΓ d (σ ∷ p) (σ ∷ snd p) 
     ----
-    REFL : (u : Tm Γ A) → Instr D sΓ d σ (σ ∷ refl u) 
+    REFL : {A : Ty Γ n}(u : Tm Γ A) → Instr D sΓ d σ (σ ∷ refl u) 
     -- Proofs are erasable at runtime, so we can 
     -- freely create refl as we want
     ----
     JRULE : 
-        {u v : Tm Γ A}
-      (C : Ty (Γ ▹ A ▹ Id (A [ p ]T) (u [ p ]) 𝟘) k)
+        {A : Ty Γ n}{u v : Tm Γ A}
+      (C : Ty (Γ ▹ A ▹ Id (A [ p ]T) (u [ p ]) 𝟘) n)
       (pf : Tm Γ (Id A u v))
-        {w : Tm Γ (C [ ✧ , u , refl u ]T)}
+        {w : Tm Γ (C [ ✧ ▻ u ▻ refl u ]T)}
       (W : Is D sΓ d σ (σ ∷ w)) → 
-      Instr D sΓ d (σ ∷ pf) (σ ∷ J C w pf) 
+      Instr D sΓ d (σ ∷ pf) (σ ∷ J {u = u} {v} C w pf) 
     -- Note that we don't allow "extensional equality", like
     -- ∀{σ A u v} → (pf : Id A u v) → Instr D sΓ (σ ∷ u) (σ ∷ v)
 
--- Procedures
-record Proc (D : LCon) (sΓ : Ctx Γ l) (d : b.ℕ) (t : Tm Γ A) : Setω where
+
+{- Procedures -}
+record Proc (D : LCon) (sΓ : Ctx Γ len) (d : b.ℕ) {A : Ty Γ n} (t : Tm Γ A) : Set₁ where
   constructor proc
   field
-    {len} : b.ℕ
-    {σ'} : Stack Γ len
+    {nr} : b.ℕ
+    {σ'} : Stack Γ nr
     instr : Is D sΓ d ◆ (σ' ∷ t)
 
-Impl : (D : LCon) → Setω
+Impl : (D : LCon) → Set₁
 Impl D = 
-  ∀ {id : b.ℕ}
-    {i}{Γ : Con i}
-    {l}{sΓ : Ctx Γ l}
-    {j}{A : Ty Γ j}
-    {k}{B : Ty (Γ ▹ A) k} → 
+  ∀ {id Γ len n}{sΓ : Ctx Γ len}
+    {A : Ty Γ n}{B : Ty (Γ ▹ A) n} → 
     (lab : Pi D id sΓ A B) → Proc D (sΓ ∷ A) id (interp D lab)
 
 -- Library provides a procedure for each label
-record Library : Setω₁ where
-  constructor brary
+record Library : Set₂ where
+  constructor library
   field
     D : LCon
     --
     impl : Impl D
--}
  

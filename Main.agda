@@ -2,27 +2,28 @@ module Main where
 
 open import Agda.Primitive
 
--- Library
+{- Lib -}
 import Lib.Basic as b
 open import Lib.Order
 
--- Shallow embedded syntax
+{- Model: shallow-embedded syntax -}
 open import Model.Universe
 open import Model.Shallow
--- open import Model.Context
+open import Model.Context
 
 -- Defunctionalized label contexts
--- open import Model.Labels
+open import Model.Labels
 
 -- Stack machine 
 -- open import Model.Stack
 
--- Tests and notes
--- import Examples.App
--- import Examples.Compose
+{- Examples -}
+import Examples.App
+import Examples.Compose
 -- import Examples.Performance
--- import Examples.ShallowDFC
+import Examples.ShallowDFC
 
+{- Machine: runtime model and type safety -}
 -- Runtime model and type safety
 -- import Machine.Value
 -- import Machine.Config
