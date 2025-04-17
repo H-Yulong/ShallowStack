@@ -7,9 +7,9 @@ open import Model.Shallow
 import Examples.Compose as Com
 import Examples.App as App
 
-open import Model.Labels
-open import Model.Context
-open import Model.Stack
+-- open import Model.Labels
+-- open import Model.Context
+-- open import Model.Stack
 
 private variable
   i j k i' j' k' : Level
@@ -101,7 +101,7 @@ mutual
   (L ⟦ σ ⟧) γ α = (interp L) (σ γ lib., α)
 
 -- The equational theory is just refl
-
+{-
 D : LCon
 D = record { Pi = Pi ; interp = interp; lapp = _⟦_⟧; lapp[] = lib.refl } 
 
@@ -186,4 +186,4 @@ impl LNat = proc
 
 Lib : Library
 Lib = library D impl
-
+-}
