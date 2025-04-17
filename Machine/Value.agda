@@ -147,16 +147,16 @@ Lemma2 :
       {A : Ty Γ n}{B : Ty (Γ ▹ A) n}
       {f : Tm Γ (Π A B)}
       -- codes and values
-      {T : Type (b.suc n)}
-      {t' : Tm · (λ _ → T)}
-      {v : Val D T t'}
+      -- {T : Type (b.suc n)}
+      -- {t' : Tm · (λ _ → T)}
+      -- {v : Val D T t'}
       -- stacks 
       {σ : Stack Γ ns}
-      {st : Env D ns} → 
+      {st : Env D (b.suc ns)} → 
       --
-    wf ⊢ (st ∷ v) ⊨ˢ (σ ∷ f) →
-    Set
-Lemma2 arg = {! arg !}
+    wf ⊢ st ⊨ˢ (σ ∷ f) →
+    b.Σ b.ℕ (λ nv → Env D nv)
+Lemma2 {σ = σ} {st = st ∷ clo {nv = nv} L σ'} (cons arg b.refl eq) = nv b., σ'
 -- Lemma2 {T = `Π tA tB} {v = clo L σ} (cons arg ptt eq) = {!   !}
 
 
