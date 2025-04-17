@@ -109,24 +109,6 @@ zero * y = zero
 (suc _) * zero = zero
 (suc x) * (suc y) = (suc y) + (x * (suc y))
 
-infixl 8 _⊔n_
-_⊔n_ : ℕ → ℕ → ℕ
-zero ⊔n y = y
-(suc x) ⊔n zero = suc x
-(suc x) ⊔n (suc y) = suc (x ⊔n y)
-
-infixl 10 _≤_
-data _≤_ : ℕ → ℕ → Set where
-  instance
-    refl≤ : ∀{n} → n ≤ n
-    suc≤  : ∀{m n} → ⦃ m ≤ n ⦄ → suc m ≤ suc n
-
-infixl 10 _<_
-data _<_ : ℕ → ℕ → Set where
-  instance
-    refl< : ∀{n} → 0 < suc n
-    suc<  : ∀{m n} → ⦃ m < n ⦄ → suc m < suc n
-
 iterN : ∀{i}(C : ℕ → Set i) → C zero → (∀{n} → C n → C (suc n)) → (n : ℕ) → C n
 iterN C z s zero = z
 iterN C z s (suc n) = s (iterN C z s n)
@@ -135,10 +117,6 @@ iterN C z s (suc n) = s (iterN C z s n)
 data Fin : ℕ → Set where
   zero : ∀{n} → Fin (suc n)
   suc  : ∀{n} → Fin n → Fin (suc n)
-
-toFin : ∀{m n} → m < n → Fin n
-toFin refl< = zero
-toFin (suc< ⦃ pf ⦄) = suc (toFin pf)
 
 {- Vector -}
 data Vec (X : Set) : ℕ → Set where
@@ -182,4 +160,4 @@ cong-app refl = refl
 eee : ∀{x y} → x + y ≡ x +' y
 eee {zero} {y} = refl
 eee {suc x} {y} = cong suc (eee {x} {y})
- 
+  

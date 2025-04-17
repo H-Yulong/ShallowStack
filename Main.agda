@@ -3,28 +3,30 @@ module Main where
 open import Agda.Primitive
 
 -- Library
-import Lib.Basic as lib
+import Lib.Basic as b
+open import Lib.Order
 
 -- Shallow embedded syntax
+open import Model.Universe
 open import Model.Shallow
-open import Model.Context
+-- open import Model.Context
 
 -- Defunctionalized label contexts
-open import Model.Labels
+-- open import Model.Labels
 
 -- Stack machine 
-open import Model.Stack
+-- open import Model.Stack
 
 -- Tests and notes
 -- import Examples.App
 -- import Examples.Compose
 -- import Examples.Performance
-import Examples.ShallowDFC
+-- import Examples.ShallowDFC
 
 -- Runtime model and type safety
-import Machine.Value
-import Machine.Config
-import Machine.Step
+-- import Machine.Value
+-- import Machine.Config
+-- import Machine.Step
 
 -- Examples of the source language,
 -- shallow-embedded Martin-Löf type theory
@@ -32,36 +34,37 @@ import Machine.Step
 module SourceExamples where
   
   -- Identity
-  test1 : Tm · (Π (U lzero) (Π 𝟘 𝟙))
-  test1 = lam (lam 𝟘) 
+  test1 : Tm · (Π U0 (Π (↑T (El 𝟘)) (↑T (El 𝟙))))
+  test1 = lam (lam 𝟘)
 
   -- Application
   -- It takes a while to check this
   -- Might take even longer to check full dependent composition
-  test2 : Tm · (Π (U lzero) (Π (Π 𝟘 (U lzero)) (Π (Π 𝟙 (𝟙 $ 𝟘)) (Π 𝟚 (𝟚 $ 𝟘)))))
-  test2 = lam (lam (lam (lam (𝟙 $ 𝟘))))
+  -- test2 : Tm · (Π (U lzero) (Π (Π 𝟘 (U lzero)) (Π (Π 𝟙 (𝟙 $ 𝟘)) (Π 𝟚 (𝟚 $ 𝟘)))))
+  -- test2 = lam (lam (lam (lam (𝟙 $ 𝟘))))
 
   -- Application, but write El explicitly
-  test3 : Tm · 
-    (Π (U lzero) 
-    (Π (Π (El 𝟘) (U lzero)) 
-    (Π (Π (El 𝟙) (((El (𝟙 $ 𝟘))))) 
-    (Π (El 𝟚) (El (𝟚 $ 𝟘))))))
-  test3 = lam (lam (lam (lam (𝟙 $ 𝟘))))
+  -- test3 : Tm · 
+  --   (Π (U 0) 
+  --   (Π (Π (El 𝟘) (U 0)) 
+  --   (Π (Π (El 𝟙) (((El (𝟙 $ 𝟘))))) 
+  --   (Π (El 𝟚) (El (𝟚 $ 𝟘))))))
+  -- test3 = lam (lam (lam (lam (𝟙 $ 𝟘))))
 
   -- Seeing untypeable things, Agda says it fails to solve some constraints,
   -- meaning that it is impossible to find a type for this thing.
   -- test4 = q $ q
 
-  test4 : Tm · (Π (U (lsuc lzero)) (Π 𝟘 𝟙))
-  test4 = lam (lam 𝟘) 
+  -- test4 : Tm · (Π (U (lsuc lzero)) (Π 𝟘 𝟙))
+  -- test4 = lam (lam 𝟘) 
 
-  test5 : Tm · (λ _ → Set → Set)
+  test5 : ∀{n}{A : Type (b.suc n)} → Tm · (λ _ → `Π A (λ _ → A))
   test5 = lam 𝟘
 
+{-
 module StackExamples where
 
-  open lib using (ℕ; _+'_)
+  open b using (ℕ; _+'_)
   open Examples.ShallowDFC
   
   -- Adding numbers
@@ -140,4 +143,4 @@ module StackExamples where
     >> LIT 3 
     >> APP 
     >> RET
-
+-}

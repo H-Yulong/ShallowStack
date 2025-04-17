@@ -2,10 +2,10 @@ module Model.Shallow where
 
 {- Shallow embedding for CwF, using inductive-recursive universe hierarchy -}
 
-import Lib.Basic as lib
-open lib using (ℕ; _≡_)
+import Lib.Basic as b
+open b using (ℕ; _≡_)
 
-open import Agda.Primitive
+open import Lib.Order
 open import Model.Universe 
 
 private variable
@@ -29,7 +29,7 @@ Con = Set
 
 -- Γ → Type (suc n) since Type 0 is ⊥
 Ty : Con → ℕ → Set
-Ty Γ n = Γ → Type (lib.suc n)
+Ty Γ n = Γ → Type (b.suc n)
 
 Tm : (Γ : Con) → Ty Γ n → Set
 Tm Γ A = ~Π Γ A
@@ -48,13 +48,13 @@ _∘_ : ∀{Θ Δ Γ} → Sub Θ Δ → Sub Γ Θ → Sub Γ Δ
 
 asso : ∀{Θ Δ Γ Ξ}{σ : Sub Θ Δ}{δ : Sub Γ Θ}{ν : Sub Ξ Γ} → 
   (σ ∘ δ) ∘ ν ≡ σ ∘ (δ ∘ ν)
-asso = lib.refl
+asso = b.refl
 
 idl : ∀{Γ Δ}{σ : Sub Γ Δ} → ✧ ∘ σ ≡ σ
-idl = lib.refl
+idl = b.refl
 
 idr : ∀{Γ Δ}{σ : Sub Γ Δ} → σ ∘ ✧ ≡ σ
-idr = lib.refl
+idr = b.refl
 
 
 {- Substitution action -}
@@ -66,18 +66,18 @@ _[_] : ∀{Γ Δ}{A : Ty Δ n} → Tm Δ A → (σ : Sub Γ Δ) → Tm Γ (A [ �
 t [ σ ] = ~λ (λ γ → t ~$ (σ γ))
 
 [id]T : ∀{Γ}{A : Ty Γ n} → A [ ✧ ]T ≡ A
-[id]T = lib.refl
+[id]T = b.refl
 
 [∘]T : ∀{Γ Δ Θ}{σ : Sub Θ Δ}{δ : Sub Γ Θ}{A : Ty Δ n} → 
   A [ σ ]T [ δ ]T ≡ A [ σ ∘ δ ]T
-[∘]T = lib.refl
+[∘]T = b.refl
 
 [id] : ∀{Γ}{A : Ty Γ n}{t : Tm Γ A} → t [ ✧ ] ≡ t
-[id] {t = ~λ f} = lib.refl
+[id] {t = ~λ f} = b.refl
 
 [∘] : ∀{Γ Δ Θ}{σ : Sub Θ Δ}{δ : Sub Γ Θ}{A : Ty Δ n}{t : Tm Δ A} → 
   t [ σ ] [ δ ] ≡ t [ σ ∘ δ ]
-[∘] = lib.refl
+[∘] = b.refl
 
 
 {- Contexts -}
@@ -85,16 +85,16 @@ t [ σ ] = ~λ (λ γ → t ~$ (σ γ))
 -- Empty context
 
 · : Con
-· = lib.⊤
+· = b.⊤
 
 ∅ : ·
-∅ = lib.tt
+∅ = b.tt
 
 ε : ∀{Γ} → Sub Γ ·
-ε = λ γ → lib.tt
+ε = λ γ → b.tt
 
 ·η : ∀{Γ}{σ : Sub Γ ·} → σ ≡ ε
-·η = lib.refl
+·η = b.refl
 
 -- Context extension
 
@@ -120,21 +120,21 @@ q = ~λ ~snd
 -- Supplying the implicit argument {A = A} is unavoidable
 ▻β₁ : ∀{Γ Δ}{σ : Sub Γ Δ}{A : Ty Δ n}{t : Tm Γ (A [ σ ]T)} → 
   p ∘ (_▻_ {A = A} σ t) ≡ σ
-▻β₁ = lib.refl
+▻β₁ = b.refl
 
 -- q [ σ ▻ t ] = t
 ▻β₂ : ∀{Γ Δ}{σ : Sub Γ Δ}{A : Ty Δ n}{t : Tm Γ (A [ σ ]T)} → 
   q [ (_▻_ {A = A} σ t) ] ≡ t
-▻β₂ {t = ~λ f} = lib.refl
+▻β₂ {t = ~λ f} = b.refl
 
 -- p ▻ q = ✧
 ▹η : ∀{Γ}{A : Ty Γ n} → (p ▻ q {A = A}) ≡ ✧
-▹η = lib.refl
+▹η = b.refl
 
 --   (σ ▻ t) ∘ δ ≡ (σ ∘ δ) ▻ (t [ δ ])
 ,∘ : ∀{Γ Δ Θ}{σ : Sub Γ Δ}{A : Ty Δ n}{t : Tm Γ (A [ σ ]T)}{δ : Sub Θ Γ} →
   (_▻_ {A = A} σ t) ∘ δ ≡ (σ ∘ δ) ▻ (t [ δ ])
-,∘ = lib.refl
+,∘ = b.refl
 
 -- Abbreviations
 
@@ -228,18 +228,18 @@ app : ∀{Γ}{A : Ty Γ n}{B : Ty (Γ ▹ A) n}(t : Tm Γ (Π A B)) → Tm (Γ �
 app t = ~λ (λ γ → (t ~$ (~fst γ)) (~snd γ))
 
 Πβ : ∀{Γ}{A : Ty Γ n}{B : Ty (Γ ▹ A) n}{t : Tm (Γ ▹ A) B} → app (lam t) ≡ t
-Πβ {t = ~λ f} = lib.refl
+Πβ {t = ~λ f} = b.refl
 
 Πη : ∀{Γ}{A : Ty Γ n}{B : Ty (Γ ▹ A) n}{t : Tm Γ (Π A B)} → lam (app t) ≡ t
-Πη {t = ~λ f} = lib.refl
+Πη {t = ~λ f} = b.refl
 
 Π[] : ∀{Γ Δ}{A : Ty Γ n}{B : Ty (Γ ▹ A) n}{σ : Sub Δ Γ} →
   Π A B [ σ ]T ≡ Π (A [ σ ]T) (B [ σ ^ A ]T)
-Π[] = lib.refl
+Π[] = b.refl
 
 lam[] : ∀{Γ Δ}{A : Ty Δ n}{B : Ty (Δ ▹ A) n}{t : Tm (Δ ▹ A) B}{σ : Sub Γ Δ} →
   lam t [ σ ] ≡ lam (t [ σ ^ A ])
-lam[] = lib.refl
+lam[] = b.refl
 
 -- Abbreviations
 
@@ -258,35 +258,35 @@ t $ u = app t [ ✧ ▻ u ]
 
 
 _,_ : ∀{Γ}{A : Ty Γ n}{B : Ty (Γ ▹ A) n} → (u : Tm Γ A) → Tm Γ (B [ ✧ ▻ u ]T) → Tm Γ (Σ A B)
-u , v = ~λ (λ γ → (u ~$ γ) lib., (v ~$ γ))
+u , v = ~λ (λ γ → (u ~$ γ) b., (v ~$ γ))
 
 fst : ∀{Γ}{A : Ty Γ n}{B : Ty (Γ ▹ A) n} → Tm Γ (Σ A B) → Tm Γ A
-fst t = ~λ (λ γ → lib.fst (t ~$ γ))
+fst t = ~λ (λ γ → b.fst (t ~$ γ))
 
 snd : ∀{Γ}{A : Ty Γ n}{B : Ty (Γ ▹ A) n} → (t : Tm Γ (Σ A B)) → Tm Γ (B [ ✧ ▻ (fst t) ]T)
-snd t = ~λ (λ γ → lib.snd (t ~$ γ))
+snd t = ~λ (λ γ → b.snd (t ~$ γ))
 
 Σβ₁ : ∀{Γ}{A : Ty Γ n}{B : Ty (Γ ▹ A) n}{u : Tm Γ A}{v : Tm Γ (B [ ✧ ▻ u ]T)} →
   fst {B = B} (u , v) ≡ u
-Σβ₁ {u = ~λ f} = lib.refl
+Σβ₁ {u = ~λ f} = b.refl
 
 Σβ₂ : ∀{Γ}{A : Ty Γ n}{B : Ty (Γ ▹ A) n}{u : Tm Γ A}{v : Tm Γ (B [ ✧ ▻ u ]T)} →
   snd {B = B} (u , v) ≡ v
-Σβ₂ {v = ~λ g} = lib.refl
+Σβ₂ {v = ~λ g} = b.refl
 
 Ση : ∀{Γ}{A : Ty Γ n}{B : Ty (Γ ▹ A) n}{t : Tm Γ (Σ A B)} →
   fst t , snd t ≡ t
-Ση {t = ~λ f} = lib.refl
+Ση {t = ~λ f} = b.refl
 
 Σ[] : ∀{Γ Δ}{σ : Sub Γ Δ}{A : Ty Δ n}{B : Ty (Δ ▹ A) n} →
   Σ A B [ σ ]T ≡ Σ (A [ σ ]T) (B [ σ ^ A ]T)
-Σ[] = lib.refl
+Σ[] = b.refl
 
 ,[] : 
   ∀ {Γ Δ}{σ : Sub Γ Δ}{A : Ty Δ n}{B : Ty (Δ ▹ A) n}
     {u : Tm Δ A}{v : Tm Δ (B [ ✧ ▻ u ]T)} →
   (_,_ {B = B} u v) [ σ ] ≡ (u [ σ ]) , (v [ σ ])
-,[] {u = ~λ f} {v = ~λ g} = lib.refl
+,[] {u = ~λ f} {v = ~λ g} = b.refl
 
 
 {- Empty and Unit -}
@@ -298,21 +298,21 @@ snd t = ~λ (λ γ → lib.snd (t ~$ γ))
 ⊤ = λ _ → `⊤
 
 tt : ∀{Γ} → Tm Γ ⊤
-tt = ~λ (λ γ → lib.tt)
+tt = ~λ (λ γ → b.tt)
 
 ⊤η : ∀{Γ}{t : Tm Γ ⊤} → t ≡ tt
-⊤η {t = ~λ f} = lib.refl
+⊤η {t = ~λ f} = b.refl
 
 T[] : ∀{Γ Δ}{σ : Sub Γ Δ} → ⊤ [ σ ]T ≡ ⊤ 
-T[] = lib.refl
+T[] = b.refl
 
 tt[] : ∀{Γ Δ}{σ : Sub Γ Δ} → tt [ σ ] ≡ tt
-tt[] = lib.refl
+tt[] = b.refl
 
 
 {- Universe -}
 
-U : ∀{Γ} → (n : ℕ) → Ty Γ (lib.suc n)
+U : ∀{Γ} → (n : ℕ) → Ty Γ (b.suc n)
 U n = λ γ → `U
 
 El : ∀{Γ} → Tm Γ (U n) → Ty Γ n
@@ -322,26 +322,26 @@ c : ∀{Γ}(A : Ty Γ n) → Tm Γ (U n)
 c A = ~λ A
 
 Uβ : ∀{Γ}{A : Ty Γ n} → El (c A) ≡ A
-Uβ = lib.refl
+Uβ = b.refl
 
 Uη : ∀{Γ}{a : Tm Γ (U n)} → c (El a) ≡ a
-Uη {a = ~λ f} = lib.refl
+Uη {a = ~λ f} = b.refl
 
 U[] : ∀{n Γ Δ}{σ : Sub Γ Δ} → (U n) [ σ ]T ≡ U n
-U[] = lib.refl
+U[] = b.refl
 
 El[] : ∀{Γ Δ}{σ : Sub Γ Δ}{a : Tm Δ (U n)}
        → El a [ σ ]T ≡ El (a [ σ ])
-El[] {a = ~λ f} = lib.refl
+El[] {a = ~λ f} = b.refl
 
+U0 : ∀{Γ} → Ty Γ 1
+U0 = U 0
 
-{- 
-  The extra equalities that hold for the Set model don't hold any more.
-  
-  Below not hold:
-    Russell : Tm Γ (U n) ≡ Ty Γ n
-    []Tt : A [ σ ]T ≡ A [ σ ]
--}
+↑T : ∀{Γ} → Ty Γ n → Ty Γ (b.suc n)
+↑T A = λ γ → `↑ (A γ)
+
+↑ : ∀{Γ}{A : Ty Γ n} → Tm Γ A → Tm Γ (↑T A)
+↑ t = ~λ (λ γ → t ~$ γ)
 
 
 {- Bool -}
@@ -350,10 +350,10 @@ Bool : ∀{Γ} → Ty Γ 0
 Bool = λ γ → `B
 
 true : ∀{Γ} → Tm Γ Bool
-true = ~λ (λ γ → lib.true)
+true = ~λ (λ γ → b.true)
 
 false : ∀{Γ} → Tm Γ Bool
-false = ~λ (λ γ → lib.false)
+false = ~λ (λ γ → b.false)
 
 if : 
   ∀   {Γ} →
@@ -363,30 +363,30 @@ if :
     (t : Tm Γ Bool) →
   -------------------------------
   Tm Γ (C [ ✧ ▻ t ]T)
-if C c1 c2 t = ~λ (λ γ → lib.if (λ b → ⟦ C (γ ~, b) ⟧) (c1 ~$ γ) (c2 ~$ γ) (t ~$ γ))
+if C c1 c2 t = ~λ (λ γ → b.if (λ b → ⟦ C (γ ~, b) ⟧) (c1 ~$ γ) (c2 ~$ γ) (t ~$ γ))
 
 Boolβ₁ : 
   ∀ {Γ : Con}{C : Ty (Γ ▹ Bool) n} → 
     {c1 : Tm Γ (C [ (✧ ▻ true) ]T)}
     {c2 : Tm Γ (C [ (✧ ▻ false) ]T)} →
     if C c1 c2 true ≡ c1
-Boolβ₁ {c1 = ~λ f1} = lib.refl
+Boolβ₁ {c1 = ~λ f1} = b.refl
 
 Boolβ₂ : 
   ∀ {Γ : Con}{C : Ty (Γ ▹ Bool) n} → 
     {c1 : Tm Γ (C [ (✧ ▻ true) ]T)}
     {c2 : Tm Γ (C [ (✧ ▻ false) ]T)} →
     if C c1 c2 false ≡ c2
-Boolβ₂ {c2 = ~λ f2} = lib.refl
+Boolβ₂ {c2 = ~λ f2} = b.refl
 
 Bool[] : ∀{Γ Δ}{σ : Sub Γ Δ} → Bool [ σ ]T ≡ Bool
-Bool[] = lib.refl
+Bool[] = b.refl
 
 true[] : ∀{Γ Δ}{σ : Sub Γ Δ} → true [ σ ] ≡ true
-true[] = lib.refl
+true[] = b.refl
 
 false[] : ∀{Γ Δ}{σ : Sub Γ Δ} → false [ σ ] ≡ false
-false[] = lib.refl
+false[] = b.refl
 
 if[] : 
   ∀   {Γ Δ}{σ : Sub Γ Δ}
@@ -396,7 +396,7 @@ if[] :
     {t : Tm Δ Bool} →
   -----------------------------------------
   (if C c1 c2 t) [ σ ] ≡ if (C [ σ ^ Bool ]T) (c1 [ σ ]) (c2 [ σ ]) (t [ σ ])
-if[] = lib.refl
+if[] = b.refl
 
 
 {- Identity -}
@@ -405,7 +405,7 @@ Id : ∀{Γ} → (A : Ty Γ n) → Tm Γ A → Tm Γ A → Ty Γ n
 Id A x y = λ γ → `Id (A γ) (x ~$ γ) (y ~$ γ) 
 
 refl : ∀{Γ}{A : Ty Γ n} → (t : Tm Γ A) → Tm Γ (Id A t t)
-refl t = ~λ (λ γ → lib.refl)
+refl t = ~λ (λ γ → b.refl)
 
 {-
   Γ , (y : A) , p : u ≡A y ⊢ C : Type
@@ -421,22 +421,22 @@ J :
     (pf : Tm Γ (Id A u v)) →
   ------------------------------------------------------
   Tm Γ (C [ ✧ ▻ v ▻ pf ]T)
-J C c pf = ~λ (λ γ → lib.J ((λ p → ⟦ C (γ ~, _ ~, p) ⟧)) (c ~$ γ) (pf ~$ γ))
+J C c pf = ~λ (λ γ → b.J ((λ p → ⟦ C (γ ~, _ ~, p) ⟧)) (c ~$ γ) (pf ~$ γ))
 
 Idβ :
   ∀   {Γ}{A : Ty Γ n}{u : Tm Γ A}
    {C : Ty (Γ ▹ A ▹ Id (A [ p ]T) (u [ p ]) 𝟘) m}
    {c : Tm Γ (C [ ✧ ▻ u ▻ refl u ]T)} →
    J {u = u} {v = u} C c (refl u) ≡ c
-Idβ {c = ~λ f} = lib.refl
+Idβ {c = ~λ f} = b.refl
 
 Id[] : ∀{Γ Δ}{A : Ty Δ n}{σ : Sub Γ Δ}{u v : Tm Δ A} →
   Id A u v [ σ ]T ≡ Id (A [ σ ]T) (u [ σ ]) (v [ σ ])
-Id[] = lib.refl
+Id[] = b.refl
 
 refl[] : ∀{Γ Δ}{A : Ty Δ n}{σ : Sub Γ Δ}{u : Tm Δ A} →
   refl u [ σ ] ≡ refl (u [ σ ])
-refl[] = lib.refl
+refl[] = b.refl
 
 J[] :
   ∀   {Γ Δ}{A : Ty Δ n}{σ : Sub Γ Δ}{A : Ty Δ n}{u v : Tm Δ A}
@@ -446,7 +446,7 @@ J[] :
   -----------------------------------------------------------------
     J {u = u} {v} C c t [ σ ] 
   ≡ J {u = u [ σ ]} {v = v [ σ ]} (C [ σ ^ A ^ Id (A [ p ]T) (u [ p ]) 𝟘 ]T) (c [ σ ]) (t [ σ ])
-J[] = lib.refl
+J[] = b.refl
 
 -- transport
 subst :
@@ -466,7 +466,7 @@ zero : ∀{Γ}  → Tm Γ Nat
 zero = ~λ (λ _ → 0)
 
 suc : ∀{Γ}  → Tm Γ Nat → Tm Γ Nat
-suc t = ~λ (λ γ → lib.suc (t ~$ γ))
+suc t = ~λ (λ γ → b.suc (t ~$ γ))
 
 iter : 
   ∀   {Γ} → 
@@ -477,14 +477,50 @@ iter :
   --------------------------------------------------
   Tm Γ (C [ (✧ ▻ t) ]T) 
 iter C z s t = ~λ 
-  (λ γ → lib.iterN 
+  (λ γ → b.iterN 
     (λ i → ⟦ C (γ ~, i) ⟧) 
     (z ~$ γ) 
     (λ {i} r → s ~$ (γ ~, i ~, r)) 
     (t ~$ γ)
   )
 
--- Bonus: supports functional extentionality if available
+
+{- Utility -}
+
+-- Smart lifting!
+
+↑T! : ∀{m n Γ} → ⦃ n ≤ m ⦄ → Ty Γ n → Ty Γ m
+↑T! ⦃ refl≤ ⦄ A = A
+↑T! ⦃ incr≤ ⦄ A = ↑T (↑T! A)
+
+↑! : ∀{m n Γ}{A : Ty Γ n} → ⦃ pf : n ≤ m ⦄ → Tm Γ A → Tm Γ (↑T! ⦃ pf ⦄ A)
+↑! ⦃ refl≤ ⦄ t  = t
+↑! ⦃ incr≤ ⦄ t = ↑ (↑! t)
+
+↓ : ∀{Γ}{A : Ty Γ n} → Tm Γ (↑T A) → Tm Γ A
+↓ t = ~λ (λ γ → t ~$ γ)
+
+↓! : ∀{m n Γ}{A : Ty Γ n} → ⦃ pf : n ≤ m ⦄ → Tm Γ (↑T! ⦃ pf ⦄ A) → Tm Γ A
+↓! ⦃ pf = refl≤ ⦄ t = t
+↓! ⦃ pf = incr≤ ⦄ t = ↓! (↓ t)
+
+-- Smart type constructors
+
+-- later!
+
+-- Π! : ∀{m n Γ} → (A : Tm Γ (U m)) → Tm (Γ ▹ El A) (U n) → Ty Γ (m ⊔n n)
+-- Π! {m} {n} A B with ⊔n-dicho {m} {n}
+-- ... | inl p rewrite p = Π (El A) (↑T! ⦃ b.subst (λ x → n ≤ x) p ≤⊔n-R ⦄ (El B))
+-- ... | inr p rewrite p = Π (↑T! ⦃ b.subst (λ x → m ≤ x) p ≤⊔n-L ⦄ (El A)) {!   !}
+
+-- Π! {m} {n} A B = Π (↑T! ⦃ ≤⊔n-L ⦄ (El A)) (↑T! ⦃ ≤⊔n-R ⦄ ((El B) [ σ {A = A} ]T))
+--   where
+--     σ : ∀{m n Γ}{A : Tm Γ (U m)} → Sub (Γ ▹ ↑T! {m ⊔n n} {m} ⦃ ≤⊔n-L ⦄ (El A)) (Γ ▹ El A)
+--     σ (γ ~, a) = γ ~, {!  a !}
+
+{- Bonus -} 
+
+-- Supports functional extentionality if available
 module hasFunext 
   (funext  : ∀{i j}{A : Set i}{B : A → Set j}{f g : (x : A) → B x}
            → ((x : A) → f x ≡ g x) → f ≡ g)
@@ -492,6 +528,14 @@ module hasFunext
 
   Reflect : ∀{Γ}{A : Ty Γ n}(t u : Tm Γ A) → Tm Γ (Id A t u)
             → t ≡ u
-  Reflect {Γ}{A} (~λ f) (~λ g) (~λ pf) rewrite funext pf = lib.refl
+  Reflect {Γ}{A} (~λ f) (~λ g) (~λ pf) rewrite funext pf = b.refl
 
+{- 
+  The extra equalities that hold for the Set model don't hold any more.
+  
+  Below not hold:
+    Russell : Tm Γ (U n) ≡ Ty Γ n
+    []Tt : A [ σ ]T ≡ A [ σ ]
+-}
+ 
  

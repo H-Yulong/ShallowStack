@@ -1,27 +1,27 @@
 module Examples.App where
 
-open import Agda.Primitive
-import Lib.Basic as lib
+open import Lib.Order
 open import Model.Shallow
 
-A : Ty · _
+A : Ty · 1
 A = U0
 
-C2 : Con _
+C2 : Con
 C2 = · ▹ A
 
 ----
 
-B : Ty C2 _
-B = (Π 𝟘 U0)
+B : Ty C2 1
+B = Π (↑T! (El 𝟘)) U0
 
-C1 : Con _
+C1 : Con
 C1 = C2 ▹ B
 
 ----
 
-Tf : Ty C1 _
-Tf = Π 𝟙 (𝟙 $ 𝟘)
+Tf : Ty C1 0
+Tf = Π (El 𝟙) (El (𝟙 $ ↑! 𝟘))
 
-C0 : Con _
+C0 : Con
 C0 = C1 ▹ Tf
+ 

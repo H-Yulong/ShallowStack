@@ -6,11 +6,10 @@ open import Model.Shallow
 open import Model.Context
 
 private variable
-  i j k i' j' k' : Level
-  Γ : Con i
-  A : Ty Γ j
-  B : Ty (Γ ▹ A) k
-  l m n id : ℕ
+  n m id : ℕ
+  Γ : Con
+  A : Ty Γ n
+  B : Ty (Γ ▹ A) m
   sΓ : Ctx Γ l
 
 record LCon : Setω₁ where
