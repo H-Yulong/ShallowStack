@@ -100,14 +100,16 @@ data SVar {Γ : Con i} : Stack Γ n → Ty Γ j → Setω where
 find : (σ : Stack Γ n) (t : SVar σ A) → Tm Γ A
 find (σ ∷ t) vz = t
 find (σ ∷ t) (vs x) = find σ x
+-}
 
 -- Embedding of Nat literal
 nat : b.ℕ → Tm Γ Nat
-nat n γ = n
+nat n = ~λ (λ γ → n)
 
 bool : b.Bool → Tm Γ Bool
-bool b γ = b
+bool b = ~λ (λ γ → b)
 
+{-
 -- Substitution on stacks
 _[_]st : {Δ : Con i'} → Stack Δ n → Sub Γ Δ → Stack Γ n
 ◆ [ ρ ]st = ◆
