@@ -1,23 +1,32 @@
 module Examples.ShallowDFC where
 
 open import Agda.Primitive
-import Lib.Basic as lib
+
+import Lib.Basic as b
+open import Lib.Order
+
+open import Model.Universe hiding (⟦_⟧)
 open import Model.Shallow
 
 import Examples.Compose as Com
 import Examples.App as App
 
 -- open import Model.Labels
--- open import Model.Context
+open import Model.Context
 -- open import Model.Stack
 
 private variable
-  i j k i' j' k' : Level
-  Γ : Con i
-  A : Ty Γ j
-  B : Ty (Γ ▹ A) k
-  l m n l' m' n' id : lib.ℕ
-  sΓ : Ctx Γ l
+  Γ : Con
+  len i j k l m n id : b.ℕ
+  sΓ : Ctx Γ len
+
+-- private variable
+  -- i j k i' j' k' : Level
+  -- Γ : Con i
+  -- A : Ty Γ j
+  -- B : Ty (Γ ▹ A) k
+  -- l m n l' m' n' id : lib.ℕ
+  -- sΓ : Ctx Γ l
 
 -- open import Theory
 
@@ -49,56 +58,58 @@ private variable
 -- so I can assign individual orders to them.
 
 -- With everything resolved, this file type-checks fast enough.
-
-data Pi : (id : lib.ℕ) (sΓ : Ctx Γ n) (A : Ty Γ j) (B : Ty (Γ ▹ A) k) → Setω where
+data Pi : (id : b.ℕ) (sΓ : Ctx Γ len) (A : Ty Γ n) (B : Ty (Γ ▹ A) n) → Set₁ where
   --
   Add0 : Pi 0 (◆ ∷ Nat) Nat Nat
   Add : Pi 1 ◆ Nat (Π Nat Nat)
   --
   Iden0 : Pi 0 (◆ ∷ U0) (El 𝟘) (El 𝟙)
-  Iden : Pi 1 ◆ U0 (Π (El 𝟘) (El 𝟙))
+  Iden : Pi 1 ◆ U0 (↑T (Π (El 𝟘) (El 𝟙)))
   --
-  App0 : Pi 0 (◆ ∷ App.A ∷ App.B ∷ App.Tf) 𝟚 (𝟚 $ 𝟘)
-  App1 : Pi 1 (◆ ∷ App.A ∷ App.B) App.Tf (Π 𝟚 (𝟚 $ 𝟘))
-  App2 : Pi 2 (◆ ∷ App.A) App.B (Π App.Tf (Π 𝟚 (𝟚 $ 𝟘)))
-  App : Pi 3  ◆ App.A (Π App.B (Π App.Tf (Π 𝟚 (𝟚 $ 𝟘))))
+  App0 : Pi 0 (◆ ∷ App.A ∷ App.B ∷ App.Tf) (El 𝟚) (El (𝟚 $ ↑ 𝟘))
+  App1 : Pi 1 (◆ ∷ App.A ∷ App.B) App.Tf (Π (El 𝟚) (El (𝟚 $ ↑ 𝟘)))
+  App2 : Pi 2 (◆ ∷ App.A) App.B (↑T (Π App.Tf (Π (El 𝟚) (El (𝟚 $ ↑ 𝟘)))))
+  App : Pi 3  ◆ App.A (Π App.B (↑T (Π App.Tf (Π (El 𝟚) (El (𝟚 $ ↑ 𝟘))))))
   --
   Com0 : Pi 0 (◆ ∷ Com.A ∷ Com.B ∷ Com.C ∷ Com.Tg ∷ Com.Tf) Com.Tx Com.Cxfx
   Com1 : Pi 1 (◆ ∷ Com.A ∷ Com.B ∷ Com.C ∷ Com.Tg) Com.Tf (Π Com.Tx Com.Cxfx)
   Com2 : Pi 2 (◆ ∷ Com.A ∷ Com.B ∷ Com.C) Com.Tg (Π Com.Tf (Π Com.Tx Com.Cxfx))
-  Com3 : Pi 3 (◆ ∷ Com.A ∷ Com.B) Com.C (Π Com.Tg (Π Com.Tf (Π Com.Tx Com.Cxfx)))
-  Com4 : Pi 4 (◆ ∷ Com.A) Com.B (Π Com.C (Π Com.Tg (Π Com.Tf (Π Com.Tx Com.Cxfx))))
-  Com : Pi 5 ◆ Com.A (Π Com.B (Π Com.C (Π Com.Tg (Π Com.Tf (Π Com.Tx Com.Cxfx)))))
+  Com3 : Pi 3 (◆ ∷ Com.A ∷ Com.B) Com.C (↑T (Π Com.Tg (Π Com.Tf (Π Com.Tx Com.Cxfx))))
+  Com4 : Pi 4 (◆ ∷ Com.A) Com.B (Π Com.C (↑T (Π Com.Tg (Π Com.Tf (Π Com.Tx Com.Cxfx)))))
+  Com : Pi 5 ◆ Com.A (Π Com.B (Π Com.C (↑T (Π Com.Tg (Π Com.Tf (Π Com.Tx Com.Cxfx))))))
   --
-  LNat : Pi 0 ◆ Nat U0
+  LNat : Pi 0 ◆ (↑T Nat) U0
 
 mutual
-  interp : Pi id sΓ A B → Tm (Γ ▹ A) B
-  ----
+  interp : ∀{A : Ty Γ n}{B : Ty (Γ ▹ A) n} → Pi id sΓ A B → Tm (Γ ▹ A) B
+  --
   interp Add0 = iter Nat 𝟘 (suc 𝟘) 𝟙
   interp Add = Add0 ⟦ ✧ ⟧
-  --
-  interp Iden0 = 𝟘
-  interp Iden = Iden0 ⟦ ✧ ⟧
   -- --
+  interp Iden0 = 𝟘
+  interp Iden = ↑ (Iden0 ⟦ ✧ ⟧)
+  -- -- --
   interp App0 = 𝟙 $ 𝟘
   interp App1 = App0 ⟦ ✧ ⟧
-  interp App2 = App1 ⟦ ✧ ⟧
+  interp App2 = ↑ (App1 ⟦ ✧ ⟧)
   interp App = App2 ⟦ ✧ ⟧
-  -- --
+  -- -- --
   interp Com0 = 𝟚 $ 𝟘 $ (𝟙 $ 𝟘)
   interp Com1 = Com0 ⟦ ✧ ⟧
   interp Com2 = Com1 ⟦ ✧ ⟧
-  interp Com3 = Com2 ⟦ ✧ ⟧
+  interp Com3 = ↑ (Com2 ⟦ ✧ ⟧)
   interp Com4 = Com3 ⟦ ✧ ⟧
   interp Com = Com4 ⟦ ✧ ⟧
-  -- --
-  interp LNat = Nat
+  -- -- --
+  interp LNat = c Nat
 
-  _⟦_⟧ : 
-    {Δ : Con i'} (lab : Pi id sΓ A B) (σ : Sub Δ Γ) → 
+  _⟦_⟧ : ∀{Δ : Con}{A : Ty Γ n}{B : Ty (Γ ▹ A) n} → 
+    ----
+      (lab : Pi id sΓ A B) → 
+      (σ : Sub Δ Γ) → 
+    -----------------------------------
     Tm Δ (Π (A [ σ ]T) (B [ σ ^ A ]T))
-  (L ⟦ σ ⟧) γ α = (interp L) (σ γ lib., α)
+  L ⟦ σ ⟧ = ~λ (λ γ α → (interp L) ~$ (σ γ ~, α))
 
 -- The equational theory is just refl
 {-
@@ -187,3 +198,4 @@ impl LNat = proc
 Lib : Library
 Lib = library D impl
 -}
+ 
