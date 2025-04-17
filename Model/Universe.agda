@@ -13,18 +13,22 @@ record Universe : Set₁ where
 
 mutual
   data Code (U : Universe) : Set where
-    `ℕ `⊤ `⊥ : Code U
-    `Π : (A : Code U) → (⟦ U ~~ A ⟧ → Code U) → Code U
-    `Type : Code U
-    `lift : Universe.Codes U → Code U
+    `N `B `⊤ `⊥ : Code U
+    `Π `Σ : (A : Code U) → (⟦ U ~~ A ⟧ → Code U) → Code U
+    `Id : (A : Code U) → ⟦ U ~~ A ⟧ → ⟦ U ~~ A ⟧ → Code U
+    `U : Code U
+    `↑ : Universe.Codes U → Code U
 
   ⟦_~~_⟧ : (U : Universe) → Code U → Set
-  ⟦ U ~~ `ℕ ⟧ = ℕ
+  ⟦ U ~~ `N ⟧ = ℕ
+  ⟦ U ~~ `B ⟧ = Bool
   ⟦ U ~~ `⊤ ⟧ = ⊤
   ⟦ U ~~ `⊥ ⟧ = ⊥
   ⟦ U ~~ `Π A B ⟧ = (a : ⟦ U ~~ A ⟧) → ⟦ U ~~ B a ⟧
-  ⟦ U ~~ `Type ⟧ = Universe.Codes U
-  ⟦ U ~~ `lift A ⟧ = Universe.Meaning U A
+  ⟦ U ~~ `Σ A B ⟧ = Σ ⟦ U ~~ A ⟧ (λ a → ⟦ U ~~ B a ⟧)
+  ⟦ U ~~ `Id A x y ⟧ = x ≡ y
+  ⟦ U ~~ `U ⟧ = Universe.Codes U
+  ⟦ U ~~ `↑ A ⟧ = Universe.Meaning U A
 
 Code₀ : Universe
 Code₀ = uni ⊥ (λ ())

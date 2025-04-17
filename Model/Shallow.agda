@@ -253,250 +253,245 @@ t $ u = app t [ ✧ ▻ u ]
 
 {- Σ types -}
 
+Σ : ∀{Γ} → (A : Ty Γ n) → (B : Ty (Γ ▹ A) n) → Ty Γ n
+Σ A B = λ γ → `Σ (A γ) (λ a → B (γ ~, a))
 
 
-{-
--- Σ
+_,_ : ∀{Γ}{A : Ty Γ n}{B : Ty (Γ ▹ A) n} → (u : Tm Γ A) → Tm Γ (B [ ✧ ▻ u ]T) → Tm Γ (Σ A B)
+u , v = ~λ (λ γ → (u ~$ γ) lib., (v ~$ γ))
 
-Σ : {i j k : Level}{Γ : Con i}(A : Ty Γ j)(B : Ty (Γ ▹ A) k) → Ty Γ (j ⊔ k)
-Σ A B = λ γ → lib.Σ (A γ) λ α → B (γ lib., α)
+fst : ∀{Γ}{A : Ty Γ n}{B : Ty (Γ ▹ A) n} → Tm Γ (Σ A B) → Tm Γ A
+fst t = ~λ (λ γ → lib.fst (t ~$ γ))
 
-_,_ : {i j k : Level}{Γ : Con i}{A : Ty Γ j}{B : Ty (Γ ▹ A) k}(u : Tm Γ A)(v : Tm Γ (B [ ✧ ▻ u ]T)) → Tm Γ (Σ A B)
-u , v = λ γ → u γ lib., v γ
+snd : ∀{Γ}{A : Ty Γ n}{B : Ty (Γ ▹ A) n} → (t : Tm Γ (Σ A B)) → Tm Γ (B [ ✧ ▻ (fst t) ]T)
+snd t = ~λ (λ γ → lib.snd (t ~$ γ))
 
-fst : {i j k : Level}{Γ : Con i}{A : Ty Γ j}{B : Ty (Γ ▹ A) k} → Tm Γ (Σ A B) → Tm Γ A
-fst t = λ γ → lib.fst (t γ)
+Σβ₁ : ∀{Γ}{A : Ty Γ n}{B : Ty (Γ ▹ A) n}{u : Tm Γ A}{v : Tm Γ (B [ ✧ ▻ u ]T)} →
+  fst {B = B} (u , v) ≡ u
+Σβ₁ {u = ~λ f} = lib.refl
 
-snd : {i j k : Level}{Γ : Con i}{A : Ty Γ j}{B : Ty (Γ ▹ A) k}(t : Tm Γ (Σ A B)) → Tm Γ (B [ ✧ , fst t ]T)
-snd t = λ γ → lib.snd (t γ)
+Σβ₂ : ∀{Γ}{A : Ty Γ n}{B : Ty (Γ ▹ A) n}{u : Tm Γ A}{v : Tm Γ (B [ ✧ ▻ u ]T)} →
+  snd {B = B} (u , v) ≡ v
+Σβ₂ {v = ~λ g} = lib.refl
 
-Σβ₁ : ∀{i j k : Level}{Γ : Con i}{A : Ty Γ j}{B : Ty (Γ ▹ A) k}{u : Tm Γ A}{v : Tm Γ (B [ ✧ , u ]T)} →
-  fst (_,_ {A = A}{B = B} u v) ≡ u
-Σβ₁ = lib.refl
-
-Σβ₂ : ∀{i j k : Level}{Γ : Con i}{A : Ty Γ j}{B : Ty (Γ ▹ A) k}{u : Tm Γ A}{v : Tm Γ (B [ ✧ , u ]T)} →
-  snd (_,_ {A = A}{B = B} u v) ≡ v
-Σβ₂ = lib.refl
-
-Ση : ∀{i j k : Level}{Γ : Con i}{A : Ty Γ j}{B : Ty (Γ ▹ A) k}{t : Tm Γ (Σ A B)} →
+Ση : ∀{Γ}{A : Ty Γ n}{B : Ty (Γ ▹ A) n}{t : Tm Γ (Σ A B)} →
   fst t , snd t ≡ t
-Ση = lib.refl
+Ση {t = ~λ f} = lib.refl
 
-Σ[] : ∀{i}{Γ : Con i}{j}{Δ : Con j}{σ : Sub Γ Δ}{k}{A : Ty Δ k}{l}{B : Ty (Δ ▹ A) l} →
+Σ[] : ∀{Γ Δ}{σ : Sub Γ Δ}{A : Ty Δ n}{B : Ty (Δ ▹ A) n} →
   Σ A B [ σ ]T ≡ Σ (A [ σ ]T) (B [ σ ^ A ]T)
 Σ[] = lib.refl
 
-,[] : ∀{i j k : Level}{Γ : Con i}{A : Ty Γ j}{B : Ty (Γ ▹ A) k}{u : Tm Γ A}{v : Tm Γ (B [ _▻_ ✧ {A = A} u ]T)}{l}{Ω : Con l}{ν : Sub Ω Γ} →
-  (_,_ {A = A}{B = B} u v) [ ν ] ≡ _,_ {A = A [ ν ]T}{B = B [ ν ^ A ]T} (u [ ν ]) (v [ ν ])
-,[] = lib.refl
+,[] : 
+  ∀ {Γ Δ}{σ : Sub Γ Δ}{A : Ty Δ n}{B : Ty (Δ ▹ A) n}
+    {u : Tm Δ A}{v : Tm Δ (B [ ✧ ▻ u ]T)} →
+  (_,_ {B = B} u v) [ σ ] ≡ (u [ σ ]) , (v [ σ ])
+,[] {u = ~λ f} {v = ~λ g} = lib.refl
 
--- unit
 
-⊥ : ∀{i}{Γ : Con i} → Ty Γ lzero
-⊥ = λ _ → lib.⊥
+{- Empty and Unit -}
 
-⊤ : ∀{i}{Γ : Con i} → Ty Γ lzero
-⊤ = λ _ → lib.⊤
+⊥ : ∀{Γ} → Ty Γ 0
+⊥ = λ _ → `⊥
 
-tt : ∀{i}{Γ : Con i} → Tm Γ ⊤
-tt = λ _ → lib.tt
+⊤ : ∀{Γ} → Ty Γ 0
+⊤ = λ _ → `⊤
 
-⊤η : ∀{i}{Γ : Con i}{t : Tm Γ ⊤} → t ≡ tt
-⊤η = lib.refl
+tt : ∀{Γ} → Tm Γ ⊤
+tt = ~λ (λ γ → lib.tt)
 
-⊤[] : ∀{i}{Γ : Con i}{j}{Δ : Con j}{σ : Sub Γ Δ} → ⊤ [ σ ]T ≡ ⊤
-⊤[] = lib.refl
+⊤η : ∀{Γ}{t : Tm Γ ⊤} → t ≡ tt
+⊤η {t = ~λ f} = lib.refl
 
-tt[] : ∀{i}{Γ : Con i}{j}{Δ : Con j}{σ : Sub Γ Δ} → tt [ σ ] ≡ tt
+T[] : ∀{Γ Δ}{σ : Sub Γ Δ} → ⊤ [ σ ]T ≡ ⊤ 
+T[] = lib.refl
+
+tt[] : ∀{Γ Δ}{σ : Sub Γ Δ} → tt [ σ ] ≡ tt
 tt[] = lib.refl
 
--- U
 
-U : ∀{i}{Γ : Con i} j → Ty Γ (lsuc j)
-U j = λ γ → Set j
+{- Universe -}
 
-El : ∀{i}{Γ : Con i}{j}(a : Tm Γ (U j)) → Ty Γ j
-El a = a
+U : ∀{Γ} → (n : ℕ) → Ty Γ (lib.suc n)
+U n = λ γ → `U
 
-c : ∀{i}{Γ : Con i}{j}(A : Ty Γ j) → Tm Γ (U j)
-c A = A
+El : ∀{Γ} → Tm Γ (U n) → Ty Γ n
+El (~λ f) = f
 
-Uβ : ∀{i}{Γ : Con i}{j}{A : Ty Γ j} → El (c A) ≡ A
+c : ∀{Γ}(A : Ty Γ n) → Tm Γ (U n)
+c A = ~λ A
+
+Uβ : ∀{Γ}{A : Ty Γ n} → El (c A) ≡ A
 Uβ = lib.refl
 
-Uη : ∀{i}{Γ : Con i}{j}{a : Tm Γ (U j)} → c (El a) ≡ a
-Uη = lib.refl
+Uη : ∀{Γ}{a : Tm Γ (U n)} → c (El a) ≡ a
+Uη {a = ~λ f} = lib.refl
 
-U[] : ∀{i}{Γ : Con i}{j}{Δ : Con j}{σ : Sub Γ Δ} {k} → U k [ σ ]T ≡ U k
+U[] : ∀{n Γ Δ}{σ : Sub Γ Δ} → (U n) [ σ ]T ≡ U n
 U[] = lib.refl
 
-El[] : ∀{i}{Γ : Con i}{j}{Δ : Con j}{σ : Sub Γ Δ}{k}{a : Tm Δ (U k)}
+El[] : ∀{Γ Δ}{σ : Sub Γ Δ}{a : Tm Δ (U n)}
        → El a [ σ ]T ≡ El (a [ σ ])
-El[] = lib.refl
+El[] {a = ~λ f} = lib.refl
 
-U0 : ∀{i}{Γ : Con i} → Ty Γ (lsuc lzero)
-U0 = U lzero
 
--- extra equalities
-
-Russell : ∀{i}{Γ : Con i}{j} → Tm Γ (U j) ≡ Ty Γ j
-Russell = lib.refl
-
-[]Tt : ∀{i}{Γ : Con i}{j}{A : Ty Γ j}{k}{Θ : Con k}{σ : Sub Θ Γ} → A [ σ ]T ≡ A [ σ ]
-[]Tt = lib.refl
-
--- Bool
-
-Bool    : ∀{i}{Γ : Con i} → Ty Γ lzero
-Bool = λ γ → lib.Bool
-
-true    : ∀{i}{Γ : Con i} → Tm Γ Bool
-true = λ γ → lib.true
-
-false   : ∀{i}{Γ : Con i} → Tm Γ Bool
-false = λ γ → lib.false
-
-if : ∀{i}{Γ : Con i}{j}(C : Ty (Γ ▹ Bool) j)
-  → Tm Γ (C [ (✧ , true) ]T)
-  → Tm Γ (C [ (✧ , false) ]T)
-  → (t : Tm Γ Bool)
-  → Tm Γ (C [ (✧ , t) ]T)
-if C u v t = λ γ → lib.if (λ b → C (γ lib., b)) (u γ) (v γ) (t γ)
-
-Boolβ₁ : ∀{i}{Γ : Con i}{j}{C : Ty (Γ ▹ Bool) j}
-  → {u : Tm Γ (C [ (✧ , true) ]T)}
-  → {v : Tm Γ (C [ (✧ , false) ]T)}
-  → if C u v true ≡ u
-Boolβ₁ = lib.refl
-
-Boolβ₂ : ∀{i}{Γ : Con i}{j}{C : Ty (Γ ▹ Bool) j}
-  → {u : Tm Γ (C [ (✧ , true) ]T)}
-  → {v : Tm Γ (C [ (✧ , false) ]T)}
-  → if C u v false ≡ v
-Boolβ₂ = lib.refl
-
-Bool[] : ∀{i}{Γ : Con i}{j}{Δ : Con j}{σ : Sub Γ Δ} → Bool [ σ ]T ≡ Bool
-Bool[] = lib.refl
-
-true[] : ∀{i}{Γ : Con i}{j}{Δ : Con j}{σ : Sub Γ Δ} → true [ σ ] ≡ true
-true[] = lib.refl
-
-false[] : ∀{i}{Γ : Con i}{j}{Δ : Con j}{σ : Sub Γ Δ} → false [ σ ] ≡ false
-false[] = lib.refl
-
-if[] : ∀{i}{Γ : Con i}{j}{Δ : Con j}{σ : Sub Γ Δ}
-  → {C  : Ty (Δ ▹ Bool) j}
-  → {u : Tm Δ (C [ (✧ , true) ]T)}
-  → {v : Tm Δ (C [ (✧ , false) ]T)}
-  → {t  : Tm Δ Bool}
-  → if C u v t [ σ ] ≡ if (C [ σ ^ Bool ]T) (u [ σ ]) (v [ σ ]) (t [ σ ])
-if[] = lib.refl
-
--- Identity
-
-Id : ∀{i}{Γ : Con i}{j}(A : Ty Γ j)(u v : Tm Γ A) → Ty Γ j
-Id A u v = λ γ → u γ ≡ v γ
-
-refl : ∀{i}{Γ : Con i}{j}{A : Ty Γ j}(u : Tm Γ A) → Tm Γ (Id A u u)
-refl u = λ γ → lib.refl
-
-J :
-  ∀{i}{Γ : Con i}{j}{A : Ty Γ j}{u : Tm Γ A}
-   {k}(C : Ty (Γ ▹ A ▹ Id (A [ p ]T) (u [ p ]) 𝟘) k)
-   (w : Tm Γ (C [ ✧ , u , refl u ]T))
-   {v : Tm Γ A}(t : Tm Γ (Id A u v)) → Tm Γ (C [ ✧ , v , t ]T)
-J C w t = λ γ → lib.J (λ e → C (γ lib., _ lib., e)) (w γ) (t γ)
-{-
-Γ , (y : A) , p : u ≡A y ⊢ C : Type
-Γ ⊢ w : C [ u / y, refl u / p ]
-Γ ⊢ t : u ≡A v
------------------------
-Γ ⊢ J C w t : C [ v / y, t / p ]
+{- 
+  The extra equalities that hold for the Set model don't hold any more.
+  
+  Below not hold:
+    Russell : Tm Γ (U n) ≡ Ty Γ n
+    []Tt : A [ σ ]T ≡ A [ σ ]
 -}
 
-Idβ :
-  ∀{i}{Γ : Con i}{j}{A : Ty Γ j}{u : Tm Γ A}
-   {k}{C : Ty (Γ ▹ A ▹ Id (A [ p ]T) (u [ p ]) 𝟘) k}
-   {w : Tm Γ (C [ ✧ , u , refl u ]T)} →
-   J C w (refl u) ≡ w
-Idβ = lib.refl
 
-Id[] : ∀{i}{Γ : Con i}{j}{A : Ty Γ j}{u v : Tm Γ A}{k}{Θ : Con k}{σ : Sub Θ Γ} →
+{- Bool -}
+
+Bool : ∀{Γ} → Ty Γ 0
+Bool = λ γ → `B
+
+true : ∀{Γ} → Tm Γ Bool
+true = ~λ (λ γ → lib.true)
+
+false : ∀{Γ} → Tm Γ Bool
+false = ~λ (λ γ → lib.false)
+
+if : 
+  ∀   {Γ} →
+    (C : Ty (Γ ▹ Bool) n) → 
+    (c1 : Tm Γ (C [ (✧ ▻ true) ]T)) →
+    (c2 : Tm Γ (C [ (✧ ▻ false) ]T)) → 
+    (t : Tm Γ Bool) →
+  -------------------------------
+  Tm Γ (C [ ✧ ▻ t ]T)
+if C c1 c2 t = ~λ (λ γ → lib.if (λ b → ⟦ C (γ ~, b) ⟧) (c1 ~$ γ) (c2 ~$ γ) (t ~$ γ))
+
+Boolβ₁ : 
+  ∀ {Γ : Con}{C : Ty (Γ ▹ Bool) n} → 
+    {c1 : Tm Γ (C [ (✧ ▻ true) ]T)}
+    {c2 : Tm Γ (C [ (✧ ▻ false) ]T)} →
+    if C c1 c2 true ≡ c1
+Boolβ₁ {c1 = ~λ f1} = lib.refl
+
+Boolβ₂ : 
+  ∀ {Γ : Con}{C : Ty (Γ ▹ Bool) n} → 
+    {c1 : Tm Γ (C [ (✧ ▻ true) ]T)}
+    {c2 : Tm Γ (C [ (✧ ▻ false) ]T)} →
+    if C c1 c2 false ≡ c2
+Boolβ₂ {c2 = ~λ f2} = lib.refl
+
+Bool[] : ∀{Γ Δ}{σ : Sub Γ Δ} → Bool [ σ ]T ≡ Bool
+Bool[] = lib.refl
+
+true[] : ∀{Γ Δ}{σ : Sub Γ Δ} → true [ σ ] ≡ true
+true[] = lib.refl
+
+false[] : ∀{Γ Δ}{σ : Sub Γ Δ} → false [ σ ] ≡ false
+false[] = lib.refl
+
+if[] : 
+  ∀   {Γ Δ}{σ : Sub Γ Δ}
+    {C : Ty (Δ ▹ Bool) n} → 
+    {c1 : Tm Δ (C [ (✧ ▻ true) ]T)} →
+    {c2 : Tm Δ (C [ (✧ ▻ false) ]T)} → 
+    {t : Tm Δ Bool} →
+  -----------------------------------------
+  (if C c1 c2 t) [ σ ] ≡ if (C [ σ ^ Bool ]T) (c1 [ σ ]) (c2 [ σ ]) (t [ σ ])
+if[] = lib.refl
+
+
+{- Identity -}
+
+Id : ∀{Γ} → (A : Ty Γ n) → Tm Γ A → Tm Γ A → Ty Γ n
+Id A x y = λ γ → `Id (A γ) (x ~$ γ) (y ~$ γ) 
+
+refl : ∀{Γ}{A : Ty Γ n} → (t : Tm Γ A) → Tm Γ (Id A t t)
+refl t = ~λ (λ γ → lib.refl)
+
+{-
+  Γ , (y : A) , p : u ≡A y ⊢ C : Type
+  Γ ⊢ w : C [ u / y, refl u / p ]
+  Γ ⊢ t : u ≡A v
+  -----------------------
+  Γ ⊢ J C w t : C [ v / y, t / p ]
+-}
+J : 
+  ∀   {Γ}{A : Ty Γ n}{u v : Tm Γ A} →
+    (C : Ty (Γ ▹ A ▹ Id (A [ p ]T) (u [ p ]) 𝟘) m) → 
+    (c : Tm Γ (C [ ✧ ▻ u ▻ refl u ]T)) → 
+    (pf : Tm Γ (Id A u v)) →
+  ------------------------------------------------------
+  Tm Γ (C [ ✧ ▻ v ▻ pf ]T)
+J C c pf = ~λ (λ γ → lib.J ((λ p → ⟦ C (γ ~, _ ~, p) ⟧)) (c ~$ γ) (pf ~$ γ))
+
+Idβ :
+  ∀   {Γ}{A : Ty Γ n}{u : Tm Γ A}
+   {C : Ty (Γ ▹ A ▹ Id (A [ p ]T) (u [ p ]) 𝟘) m}
+   {c : Tm Γ (C [ ✧ ▻ u ▻ refl u ]T)} →
+   J {u = u} {v = u} C c (refl u) ≡ c
+Idβ {c = ~λ f} = lib.refl
+
+Id[] : ∀{Γ Δ}{A : Ty Δ n}{σ : Sub Γ Δ}{u v : Tm Δ A} →
   Id A u v [ σ ]T ≡ Id (A [ σ ]T) (u [ σ ]) (v [ σ ])
 Id[] = lib.refl
 
-refl[] : ∀{i}{Γ : Con i}{j}{A : Ty Γ j}{u : Tm Γ A}{k}{Θ : Con k}{σ : Sub Θ Γ} →
+refl[] : ∀{Γ Δ}{A : Ty Δ n}{σ : Sub Γ Δ}{u : Tm Δ A} →
   refl u [ σ ] ≡ refl (u [ σ ])
 refl[] = lib.refl
 
 J[] :
-  ∀{i}{Γ : Con i}{j}{A : Ty Γ j}{u : Tm Γ A}
-   {k}{C : Ty (Γ ▹ A ▹ Id (A [ p ]T) (u [ p ]) 𝟘) k}
-   {w : Tm Γ (C [ ✧ , u , refl u ]T)}
-   {v : Tm Γ A}{t : Tm Γ (Id A u v)}{l}{Θ : Con l}{σ : Sub Θ Γ} →
-   J C w t [ σ ] ≡ J (C [ σ ^ A ^ Id (A [ p ]T) (u [ p ]) 𝟘 ]T) (w [ σ ]) (t [ σ ])
+  ∀   {Γ Δ}{A : Ty Δ n}{σ : Sub Γ Δ}{A : Ty Δ n}{u v : Tm Δ A}
+   {C : Ty (Δ ▹ A ▹ Id (A [ p ]T) (u [ p ]) 𝟘) m}
+   {c : Tm Δ (C [ ✧ ▻ u ▻ refl u ]T)}
+   {t : Tm Δ (Id A u v)} →
+  -----------------------------------------------------------------
+    J {u = u} {v} C c t [ σ ] 
+  ≡ J {u = u [ σ ]} {v = v [ σ ]} (C [ σ ^ A ^ Id (A [ p ]T) (u [ p ]) 𝟘 ]T) (c [ σ ]) (t [ σ ])
 J[] = lib.refl
 
+-- transport
+subst :
+  ∀   {Γ}{A : Ty Γ n}{u v : Tm Γ A}
+   (C : Ty (Γ ▹ A) m)
+   (t : Tm Γ (Id A u v))
+   (w : Tm Γ (C [ ✧ ▻ u ]T)) → Tm Γ (C [ ✧ ▻ v ]T)
+subst {u = u} {v} C t w = J {u = u} {v} (C [ p ]T) w t
+
+
+{- Natural numbers -}
+
+Nat : ∀{Γ} → Ty Γ 0
+Nat = λ _ → `N
+
+zero : ∀{Γ}  → Tm Γ Nat
+zero = ~λ (λ _ → 0)
+
+suc : ∀{Γ}  → Tm Γ Nat → Tm Γ Nat
+suc t = ~λ (λ γ → lib.suc (t ~$ γ))
+
+iter : 
+  ∀   {Γ} → 
+    (C : Ty (Γ ▹ Nat) n) → 
+    (z : Tm Γ (C [ ✧ ▻ zero ]T)) → 
+    (s : Tm (Γ ▹ Nat ▹ C) (C [ p² ▻ (suc 𝟙) ]T)) → 
+    (t : Tm Γ Nat) →
+  --------------------------------------------------
+  Tm Γ (C [ (✧ ▻ t) ]T) 
+iter C z s t = ~λ 
+  (λ γ → lib.iterN 
+    (λ i → ⟦ C (γ ~, i) ⟧) 
+    (z ~$ γ) 
+    (λ {i} r → s ~$ (γ ~, i ~, r)) 
+    (t ~$ γ)
+  )
+
+-- Bonus: supports functional extentionality if available
 module hasFunext 
   (funext  : ∀{i j}{A : Set i}{B : A → Set j}{f g : (x : A) → B x}
            → ((x : A) → f x ≡ g x) → f ≡ g)
   where
 
-  Reflect : ∀{i}{Γ : Con i}{j}{A : Ty Γ j}(t u : Tm Γ A) → Tm Γ (Id A t u)
+  Reflect : ∀{Γ}{A : Ty Γ n}(t u : Tm Γ A) → Tm Γ (Id A t u)
             → t ≡ u
-  Reflect {i}{Γ}{j}{A} t u p = funext p
+  Reflect {Γ}{A} (~λ f) (~λ g) (~λ pf) rewrite funext pf = lib.refl
 
--- abbreviations
-
-tr :
-  ∀{i}{Γ : Con i}{j}{A : Ty Γ j}
-   {k}(C : Ty (Γ ▹ A) k)
-   {u v : Tm Γ A}(t : Tm Γ (Id A u v))
-   (w : Tm Γ (C [ ✧ , u ]T)) → Tm Γ (C [ ✧ , v ]T)
-tr C t w = J (C [ p ]T) w t
-
--- constant types
-
-K : ∀{i}{Γ : Con i}{j} → Con j → Ty Γ j
-K Δ = λ γ → Δ
-
-K[] : ∀{i}{Γ : Con i}{j}{Δ : Con j}{k}{Θ : Con k}{σ : Sub Θ Γ} → K Δ [ σ ]T ≡ K Δ
-K[] = lib.refl
-
-mkK : ∀{i}{Γ : Con i}{j}{Δ : Con j}(σ : Sub Γ Δ) → Tm Γ (K Δ)
-mkK σ = σ
-
-mkK[] : ∀{i}{Γ : Con i}{j}{Δ : Con j}{σ : Sub Γ Δ}{k}{Θ : Con k}{ν : Sub Θ Γ} → mkK σ [ ν ] ≡ mkK (σ ∘ ν)
-mkK[] = lib.refl
-
-unK : ∀{i}{Γ : Con i}{j}{Δ : Con j}(t : Tm Γ (K Δ)) → Sub Γ Δ
-unK t = t
-
-unK∘ : ∀{i}{Γ : Con i}{j}{Δ : Con j}{t : Tm Γ (K Δ)}{k}{Θ : Con k}{ν : Sub Θ Γ} → unK t ∘ ν ≡ unK (t [ ν ])
-unK∘ = lib.refl
-
-Kβ : ∀{i}{Γ : Con i}{j}{Δ : Con j}{σ : Sub Γ Δ} → unK (mkK σ) ≡ σ
-Kβ = lib.refl
-
-Kη : ∀{i}{Γ : Con i}{j}{Δ : Con j}{t : Tm Γ (K Δ)} → mkK (unK t) ≡ t
-Kη = lib.refl
-
--- Natural numbers
-
-Nat : ∀{i}{Γ : Con i} → Ty Γ lzero
-Nat = λ _ → lib.ℕ
-
-zero : ∀{i}{Γ : Con i} → Tm Γ Nat
-zero = λ _ → lib.zero
-
-suc : ∀{i}{Γ : Con i} → Tm Γ Nat → Tm Γ Nat
-suc i = λ γ → lib.suc (i γ)
-
-iter : ∀{i}{Γ : Con i}{j} → (C : Ty (Γ ▹ Nat) j) → 
-       Tm Γ (C [ ✧ , zero ]T) → 
-       Tm (Γ ▹ Nat ▹ C) (C [ p² , (suc 𝟙) ]T) → 
-       (n : Tm Γ Nat) → 
-       Tm Γ (C [ (✧ , n) ]T) 
-iter {i} {Γ} C z s n = λ γ → lib.iterN (λ x → C (γ lib., x)) (z γ) (λ {x} i → s (γ lib., x lib., i)) (n γ)
--}
  
