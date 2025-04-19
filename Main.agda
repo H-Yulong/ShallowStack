@@ -20,7 +20,7 @@ open import Model.Stack
 {- Examples -}
 import Examples.App
 import Examples.Compose
--- import Examples.Performance
+import Examples.Performance
 import Examples.ShallowDFC
 
 {- Machine: runtime model and type safety -}
@@ -56,8 +56,8 @@ module SourceExamples where
   -- meaning that it is impossible to find a type for this thing.
   -- test4 = q $ q
 
-  -- test4 : Tm · (Π (U (lsuc lzero)) (Π 𝟘 𝟙))
-  -- test4 = lam (lam 𝟘) 
+  test4 : Tm · (Π (U 1) (Π (↑T (El 𝟘)) (↑T (El 𝟙))))
+  test4 = lam (lam 𝟘) 
 
   test5 : ∀{n}{A : Type (b.suc n)} → Tm · (λ _ → `Π A (λ _ → A))
   test5 = lam 𝟘

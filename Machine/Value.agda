@@ -14,29 +14,21 @@ open import Model.Stack
 open LCon
 
 private variable
-  id n ns nv len : b.ℕ
+  id n ms ns nv len : b.ℕ
   Γ : Con
   sΓ : Ctx Γ len
-
--- private variable
---   i j k i' j' k' : Level
---   Γ : Con i
---   A : Ty Γ j
---   B : Ty (Γ ▹ A) k
---   l m n l' m' n' id : b.ℕ
---   sΓ : Ctx Γ l
---   D : LCon
+  D : LCon
 
 -- Representation of runtime values,
 -- which knows what value in the syntax it implements.
 -- (Treat pairs later)
 
-record ClosedType : Set where
-  -- constructor 
-  field
-    {lv} : b.ℕ
-    {A} : Type (b.suc lv)
-    t : Tm · (λ _ → A)
+-- record ClosedType : Set where
+--   -- constructor 
+--   field
+--     {lv} : b.ℕ
+--     {A} : Type (b.suc lv)
+--     t : Tm · (λ _ → A)
 
 mutual
   data Val (D : LCon) : (A : Type (b.suc n)) → Tm · (λ _ → A) → Set₁ where
@@ -74,42 +66,34 @@ mutual
       (pf : σ ⊨ sΓ as δ) →
       ((σ ∷ v) ⊨ (sΓ ∷ A) as (δ ▻ t))
 
-Lemma1 : 
-  ∀ {D : LCon}{tA : Type (b.suc n)}
-    {tB : ⟦ tA ⟧ → Type (b.suc n)}
-    {f : Tm · (λ _ → `Π tA tB)} → 
-    Val D (`Π tA tB) f → 
-    Set
-Lemma1 (clo L σ) = b.ℕ
 
-
-{-
 -- Find the term at position x in an env that implements Γ
 _[_]V : 
-  {sΓ : Ctx Γ n}{σ : Env D n}{δ : Sub · Γ}
-  (x : V sΓ A) (pf : sΓ ⊨ σ as δ) → Tm · (A [ δ ]T)
+  {A : Ty Γ n}{sΓ : Ctx Γ len}{σ : Env D len}{δ : Sub · Γ}
+  (x : V sΓ A) (pf : σ ⊨ sΓ as δ) → Tm · (A [ δ ]T)
 _[_]V {δ = δ} x pf = ⟦ x ⟧V [ δ ]
 
-Val-subst : 
-  {A A' : Ty · i}{t : Tm · A}
-  (v : Val D t) (pf : A b.≡ A') → Val D (Tm-subst t (b.cong-app pf))
-Val-subst v b.refl = v
+-- Val-subst : 
+--   {A A' : Ty · n}{t : Tm · A}
+--   (v : Val D t) (pf : A b.≡ A') → Val D (Tm-subst t (b.cong-app pf))
+-- Val-subst v b.refl = v
 
-findᵉ : 
-  {sΓ : Ctx Γ n}{δ : Sub · Γ}
-  (env : Env D n)(x : V sΓ A) → 
-  (pf : sΓ ⊨ env as δ) → Val D (x [ pf ]V)
-findᵉ (env ∷ v) vz (cons pf) = v
-findᵉ (env ∷ v) (vs x) (cons pf) = findᵉ env x pf
+-- findᵉ : 
+--   {A : Ty Γ n}{sΓ : Ctx Γ len}{δ : Sub · Γ}
+--   (env : Env D len)(x : V sΓ A) → 
+--   (pf : env ⊨ sΓ as δ) → Val D (x [ pf ]V)
+-- findᵉ (env ∷ v) vz (cons pf) = v
+-- findᵉ (env ∷ v) (vs x) (cons pf) = findᵉ env x pf
 
-takeᵉ : (n : b.ℕ) → Env D (n b.+ m) → Env D n
+
+takeᵉ : (ns : b.ℕ) → Env D (ns b.+ ms) → Env D ns
 takeᵉ b.zero env = ◆
 takeᵉ (b.suc n) (env ∷ v) = (takeᵉ n env) ∷ v
 
-dropᵉ : (n : b.ℕ) → Env D (n b.+ m) → Env D m
+dropᵉ : (ns : b.ℕ) → Env D (ns b.+ ms) → Env D ms
 dropᵉ b.zero env = env
 dropᵉ (b.suc n) (env ∷ v) = dropᵉ n env
--}
+
 
 -- Judgement: a runtime stack implements a "virtural" stack
 data _⊢_⊨ˢ_ {D : LCon} {sΓ : Ctx Γ len} {env : Env D len} {δ : Sub · Γ} 
@@ -120,8 +104,8 @@ data _⊢_⊨ˢ_ {D : LCon} {sΓ : Ctx Γ len} {env : Env D len} {δ : Sub · Γ
   cons : 
     ∀ {A : Ty Γ n}{t : Tm Γ A}
       {tA : Type (b.suc n)}
-      {σ : Stack Γ n}{t' : Tm · (λ _ → tA)}
-      {st : Env D n}
+      {σ : Stack Γ ns}{t' : Tm · (λ _ → tA)}
+      {st : Env D ns}
       {v : Val D tA t'} → 
       (pf : wf ⊢ st ⊨ˢ σ) →
       (ptt : tA b.≡ (A [ δ ]T) b.tt) →  
@@ -136,6 +120,14 @@ trysome : ∀{Γ}{A : Ty Γ n}{B : Ty (Γ ▹ A) n} →
   (pf : tA b.≡ ((Π A B) [ δ ]T) b.tt) → 
   Set
 trysome {tA = `Π tA x} pf = b.⊤
+
+Lemma1 : 
+  ∀ {D : LCon}{tA : Type (b.suc n)}
+    {tB : ⟦ tA ⟧ → Type (b.suc n)}
+    {f : Tm · (λ _ → `Π tA tB)} → 
+    Val D (`Π tA tB) f → 
+    Set
+Lemma1 (clo L σ) = b.ℕ
 
 Lemma2 :
     ∀ {D : LCon} 
@@ -158,24 +150,6 @@ Lemma2 :
     b.Σ b.ℕ (λ nv → Env D nv)
 Lemma2 {σ = σ} {st = st ∷ clo {nv = nv} L σ'} (cons arg b.refl eq) = nv b., σ'
 -- Lemma2 {T = `Π tA tB} {v = clo L σ} (cons arg ptt eq) = {!   !}
-
-
-
--- Is this going to work?
--- Lemma! :  
---   ∀ {D : LCon}
---     {Γ : Con}{sΓ : Ctx Γ len} 
---     {env : Env D len}{δ : Sub · Γ}
---     -- 
---     {A : Ty Γ n}{B : Ty (Γ ▹ A) n}
---     --
---     {t : Tm Γ (Π A B)}
---     {t' : Tm · ((Π A B) [ δ ]T)}
---     (v : Val D (`Π ((A [ δ ]T) b.tt) (λ a → (B [ δ ^ A ]T) (b.tt ~, a))) t')
---     (wf : env ⊨ sΓ as δ)
---     (eq : t' b.≡ t [ δ ]) → 
---   Set
--- Lemma! {δ = δ} {A} {B} {t} {t'} v wf eq = {! v  !}
 
 {-
 v : Val D (`Π (A (δ (record {}))) (λ a → B (δ (record {}) ~, a))) t'
@@ -220,4 +194,4 @@ clo⊨ {sΔ = sΔ ∷ A} {st ∷ v} {σ ∷ t} wf (cons wf-st eq) (cons ⦃ pf �
 -}
 
  
-  
+   
