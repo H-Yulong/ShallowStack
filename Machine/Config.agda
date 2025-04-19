@@ -18,14 +18,20 @@ open lib using (ℕ; _+_)
 record Frame (D : LCon) : Set₁ where
   constructor fr
   field
-    {len ms ns d} : ℕ
-    {Γ} : Con
+    {len ms ns n d} : ℕ
+    {Γ Δ} : Con
     {sΓ} : Ctx Γ len
+    {A} : Ty Γ n
+    {t} : Tm Γ A
+    {δ} : Sub · Γ
     {σ} : Stack Γ ms
     {σ'} : Stack Γ ns
-    ins : Is D sΓ d σ σ'
+    ins : Is D sΓ d (σ ∷ t) σ'
     env : Env D len
-    st  : Stack Γ ms
+    st  : Env D ms
+    sub : Sub Γ Δ
+    wf-env : env ⊨ sΓ as δ
+    wf-st : wf-env ⊢ st ⊨ˢ σ
 
 -- Stack of frames
 data Sf (D : LCon) : ℕ → Set₁ where

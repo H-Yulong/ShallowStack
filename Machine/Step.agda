@@ -15,7 +15,7 @@ open lib using (ℕ; _+_)
 open LCon
 
 private variable
-  m n len len' ms ns ms' lf d id : ℕ
+  m n len len' ms ms' ns ns' lf d d' id : ℕ
   Γ : Con
   sΓ : Ctx Γ len
 
@@ -108,19 +108,51 @@ data _⊢_↝_ {D : LCon} (I : Impl D) : Config D → Config D → Set₁ where
     {sf : Sf D lf}
     {wf-env : env ⊨ sΓ as δ} 
     {wf-st : wf-env ⊢ st ⊨ˢ σ}
-    -- -- abstract values
+    -- abstract values
     {t : Tm Γ (A [ η ]T)}
-    -- -- concrete values
+    -- concrete values
     {env' : Env D len'}
     {v : Val D (t [ δ ])}
     ⦃ pf : env' ⊨ sΔ as (η ∘ δ) ⦄ → 
-    -- -- ⦃ pf : sΓ ⊢ σ of sΔ as η ⦄ →
+    -- instruction
     {ins : Is D sΓ d (σ ∷ (lapp D L η) $ t) σ'} →  
     -----------------
     let wf-st' = (cons (cons wf-st lib.refl (lapp[] D)) lib.refl lib.refl) in
+    let new-fr = fr ins env st η wf-env wf-st in
     I ⊢ conf (APP {f = lapp D L η} >> ins) env (st ∷ clo L env' ∷ v) sf wf-env wf-st'
-      ↝ conf (Proc.instr (I L)) (env' ∷ v) ◆ (sf ∷ fr ins env {!  st !}) (cons pf) nil
-    
-    
-    -- I ⊢ conf (APP {f = lapp D L η} >> ins) env (st ∷ clo L env' ∷ v) sf wf-env (cons (cons wf-st (lib.sym (lapp[] D))) lib.refl) 
-      -- ↝ conf (Proc.instr (I L)) (env' ∷ v) st (sf ∷ fr ins env (m + s)) (cons pf) nil
+      ↝ conf (Proc.instr (I L)) (env' ∷ v) ◆ (sf ∷ new-fr) (cons pf) nil
+  --
+  C-RET : 
+    -- callee frame context
+    {Γ Δ : Con}
+    {sΔ : Ctx Δ len'}
+    {env' : Env D len'}
+    {δ : Sub · Γ}
+    {η : Sub Γ Δ}
+    {wf-env' : env' ⊨ sΔ as (η ∘ δ)}
+    -- callee stack and stack frame
+    {σ'' : Stack Δ ms'}
+    {st' : Env D ms'}
+    {wf-st' : wf-env' ⊢ st' ⊨ˢ σ''}
+    {sf : Sf D lf}
+    -- caller frame context
+    {sΓ : Ctx Γ len}
+    {env : Env D len}
+    {wf-env : env ⊨ sΓ as δ}
+    -- return frame stack
+    {σ : Stack Γ ms}
+    {σ' : Stack Γ ns}
+    {st : Env D ms}
+    {wf-st : wf-env ⊢ st ⊨ˢ σ}
+    -- return value
+    {A : Ty Δ n}
+    {t : Tm Δ A}
+    {v : Val D (t [ η ∘ δ ])}
+    -- return frame instruction
+    {ins : Is D sΓ d (σ ∷ (t [ η ])) σ'} → 
+    -----------------
+    let ret-fr = fr ins env st η wf-env wf-st in
+    I ⊢ conf (RET {d = d'} {σ = σ'' ∷ t}) env' (st' ∷ v) (sf ∷ ret-fr) wf-env' (cons wf-st' lib.refl lib.refl)
+      ↝ conf ins env (st ∷ v) sf wf-env (cons wf-st lib.refl lib.refl)
+
+
