@@ -143,27 +143,15 @@ Lemma2 :
 Lemma2 {σ = σ} {st = st ∷ clo {nv = nv} L σ'} (cons arg k eq) = nv b., σ'
 -- Lemma2 {T = `Π tA tB} {v = clo L σ} (cons arg ptt eq) = {!   !}
 
-{-
-v : Val D (`Π (A (δ (record {}))) (λ a → B (δ (record {}) ~, a))) t'
-
-      ∀ {A : Ty Γ n}{B : Ty (Γ ▹ A) n}{δ : Sub · Γ}
-        (L : Pi D id sΓ A B)
-        (σ : Env D nv) → 
-        ⦃ pf : σ ⊨ sΓ as δ ⦄ → 
-      Val D (`Π ((A [ δ ]T) b.tt) (λ a → (B [ δ ^ A ]T) (b.tt ~, a))) (lapp D L δ)
-
--}
-
-
-{-
 findˢ : 
-  {sΓ : Ctx Γ l}{env : Env D l}{δ : Sub · Γ}
-  {wf : sΓ ⊨ env as δ}{σ : Stack Γ n}
-  (st : Env D n)(x : SVar σ A)
-  (pf : wf ⊢ σ ⊨ˢ st) → Val D ((find σ x) [ δ ])  
-findˢ {σ = σ ∷ t} (st ∷ v) vz (cons pf eq) rewrite eq = v
-findˢ (st ∷ t) (vs x) (cons pf _) = findˢ st x pf
+  {A : Ty Γ n}{sΓ : Ctx Γ len}{env : Env D len}{δ : Sub · Γ}
+  {wf : env ⊨ sΓ as δ}{σ : Stack Γ ns}
+  (st : Env D ns)(x : SVar σ A)
+  (pf : wf ⊢ st ⊨ˢ σ) → Val D ((find σ x) [ δ ])  
+findˢ {σ = σ ∷ t} (st ∷ v) vz (cons pf ptt eq) rewrite ptt | eq = v
+findˢ (st ∷ t) (vs x) (cons pf ptt eq) = findˢ st x pf
 
+{-
 -- Given:
 -- 1. env that implements Γ as δ
 -- 2. st that implements σ w.r.t. env

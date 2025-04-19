@@ -82,22 +82,23 @@ data _⊢_↝_ {D : LCon} (I : Impl D) : Config D → Config D → Set₁ where
     ----------------------------
     I ⊢ (conf (VAR x >> ins) env st sf wf-env wf-st) 
       ↝ (conf ins env (st ∷ findᵉ env x wf-env) sf wf-env (cons wf-st lib.refl lib.refl))
-  {--
+  --
   C-ST : 
+      {A : Ty Γ n}
       {σ : Stack Γ ms}
       {σ' : Stack Γ ns}
       {x : SVar σ A}
       {ins : Is D sΓ d (σ ∷ find σ x) σ'}
       {δ : Sub · Γ}
-      {env : Env D l}
-      {st : Env D (m + s)}
+      {env : Env D len}
+      {st : Env D ms}
       {sf : Sf D lf}
       {wf-env : env ⊨ sΓ as δ}
       {wf-st : wf-env ⊢ st ⊨ˢ σ} →  
       --------------------------------------
       I ⊢ (conf (ST x >> ins) env st sf wf-env wf-st) 
-        ↝ conf ins env (st ∷ findˢ (takeᵉ m st) x wf-st) sf wf-env (cons wf-st lib.refl)
-  --
+        ↝ conf ins env (st ∷ findˢ st x wf-st) sf wf-env (cons wf-st lib.refl lib.refl)
+  {--
   C-CLO : 
       {σ : Stack {i = i} Γ (n' + m)}
       {σ' : Stack Γ ns}
