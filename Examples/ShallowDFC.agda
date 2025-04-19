@@ -115,7 +115,7 @@ mutual
 
 D : LCon
 D = record { Pi = Pi ; interp = interp; lapp = _⟦_⟧; lapp[] = b.refl } 
-{-
+
 impl : ∀{A : Ty Γ n}{B : Ty (Γ ▹ A) n}
   (lab : Pi id sΓ A B) → Proc D (sΓ ∷ A) id (interp lab)
 impl Add0 = proc 
@@ -131,7 +131,8 @@ impl Iden0 = proc
   >> RET )
 impl Iden = proc 
   (  VAR V₀ 
-  >> CLO 1 Iden0 
+  >> CLO 1 Iden0
+  >> UP 
   >> RET )
 impl App0 = proc 
   (  VAR V₁ 
@@ -147,7 +148,8 @@ impl App1 = proc
 impl App2 = proc 
   (  VAR V₁ 
   >> VAR V₀ 
-  >> CLO 2 App1 
+  >> CLO 2 App1
+  >> UP 
   >> RET )
 impl App = proc 
   (  VAR V₀ 
@@ -181,7 +183,8 @@ impl Com3 = proc
   (  VAR V₂
   >> VAR V₁
   >> VAR V₀ 
-  >> CLO 3 Com2 
+  >> CLO 3 Com2
+  >> UP 
   >> RET )
 impl Com4 = proc 
   (  VAR V₁
@@ -198,5 +201,5 @@ impl LNat = proc
 
 Lib : Library
 Lib = library D impl
--}
+
  

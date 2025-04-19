@@ -82,7 +82,7 @@ module StackExamples where
   test2 : Is D (◆ ∷ U0 ∷ (El 𝟘)) 3 (◆ ∷ 𝟘) (◆ ∷ 𝟘)
   test2 = 
        CLO 0 Iden
-    >> TLIT 𝟙
+    >> VAR V₁
     >> APP
     >> DOWN
     >> SWP
@@ -92,7 +92,7 @@ module StackExamples where
   -- Using Iden0
   test3 : Is D (◆ ∷ U0 ∷ (El 𝟘)) 3 ◆ (◆ ∷ 𝟘)
   test3 =
-       TLIT 𝟙
+       VAR V₁
     >> CLO 1 Iden0
     >> VAR V₀
     >> APP
@@ -102,7 +102,7 @@ module StackExamples where
   test4 : ∀{x y : ℕ} → Is D ◆ 4 ◆ (◆ ∷ nat (x +' y))
   test4 {x} {y} = 
        CLO 0 App
-    >> TLIT (c Nat)
+    >> TLIT Nat
     >> APP
     >> CLO 0 LNat
     >> APP
@@ -118,7 +118,7 @@ module StackExamples where
   -- Adding numbers, via App, using the most-curried version only
   test5 : ∀{x y : ℕ} → Is D ◆ 3 ◆ (◆ ∷ nat (x +' y))
   test5 {x} {y} = 
-       TLIT (c Nat) 
+       TLIT Nat 
     >> CLO 0 LNat 
     >> LIT x 
     >> CLO 1 Add0 
@@ -138,7 +138,7 @@ module StackExamples where
   -- Example included in TYPES2025 abstract
   test-TYPES : Is D ◆ 1 ◆ (◆ ∷ nat 5)
   test-TYPES = 
-       TLIT (c Nat) 
+       TLIT Nat 
     >> CLO 0 LNat 
     >> LIT 2 
     >> CLO 1 Add0 
@@ -146,4 +146,4 @@ module StackExamples where
     >> LIT 3 
     >> APP 
     >> RET
- 
+  

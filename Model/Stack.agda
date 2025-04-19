@@ -169,7 +169,7 @@ mutual
     --
     LIT : (n : b.ℕ) → Instr D sΓ d σ (σ ∷ (nat n))
     --
-    TLIT : (A : Tm Γ (U n)) → Instr D sΓ d σ (σ ∷ A)
+    TLIT : (A : Ty Γ n) → Instr D sΓ d σ (σ ∷ (c A))
     --
     SWP :
         {A : Ty Γ n}{A' : Ty Γ m}
