@@ -56,8 +56,10 @@ mutual
         via pattern matching
 -}
 
-data ~Π {n : ℕ} (A : Set) (B : A → Type n) : Set where
-  ~λ : ((a : A) → ⟦ B a ⟧) → ~Π A B
+record ~Π {n : ℕ} (A : Set) (B : A → Type n) : Set where
+  constructor ~λ
+  field
+    ~fun : ((a : A) → ⟦ B a ⟧)
 
 _~$_ : ∀{n A}{B : A → Type n} → ~Π A B → (a : A) → ⟦ B a ⟧
 (~λ f) ~$ a = f a

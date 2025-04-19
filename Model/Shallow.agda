@@ -73,7 +73,7 @@ t [ σ ] = ~λ (λ γ → t ~$ (σ γ))
 [∘]T = b.refl
 
 [id] : ∀{Γ}{A : Ty Γ n}{t : Tm Γ A} → t [ ✧ ] ≡ t
-[id] {t = ~λ f} = b.refl
+[id] = b.refl
 
 [∘] : ∀{Γ Δ Θ}{σ : Sub Θ Δ}{δ : Sub Γ Θ}{A : Ty Δ n}{t : Tm Δ A} → 
   t [ σ ] [ δ ] ≡ t [ σ ∘ δ ]
@@ -125,7 +125,7 @@ q = ~λ ~snd
 -- q [ σ ▻ t ] = t
 ▻β₂ : ∀{Γ Δ}{σ : Sub Γ Δ}{A : Ty Δ n}{t : Tm Γ (A [ σ ]T)} → 
   q [ (_▻_ {A = A} σ t) ] ≡ t
-▻β₂ {t = ~λ f} = b.refl
+▻β₂ = b.refl
 
 -- p ▻ q = ✧
 ▹η : ∀{Γ}{A : Ty Γ n} → (p ▻ q {A = A}) ≡ ✧
@@ -228,10 +228,10 @@ app : ∀{Γ}{A : Ty Γ n}{B : Ty (Γ ▹ A) n}(t : Tm Γ (Π A B)) → Tm (Γ �
 app t = ~λ (λ γ → (t ~$ (~fst γ)) (~snd γ))
 
 Πβ : ∀{Γ}{A : Ty Γ n}{B : Ty (Γ ▹ A) n}{t : Tm (Γ ▹ A) B} → app (lam t) ≡ t
-Πβ {t = ~λ f} = b.refl
+Πβ = b.refl
 
 Πη : ∀{Γ}{A : Ty Γ n}{B : Ty (Γ ▹ A) n}{t : Tm Γ (Π A B)} → lam (app t) ≡ t
-Πη {t = ~λ f} = b.refl
+Πη = b.refl
 
 Π[] : ∀{Γ Δ}{A : Ty Γ n}{B : Ty (Γ ▹ A) n}{σ : Sub Δ Γ} →
   Π A B [ σ ]T ≡ Π (A [ σ ]T) (B [ σ ^ A ]T)
@@ -268,15 +268,15 @@ snd t = ~λ (λ γ → b.snd (t ~$ γ))
 
 Σβ₁ : ∀{Γ}{A : Ty Γ n}{B : Ty (Γ ▹ A) n}{u : Tm Γ A}{v : Tm Γ (B [ ✧ ▻ u ]T)} →
   fst {B = B} (u , v) ≡ u
-Σβ₁ {u = ~λ f} = b.refl
+Σβ₁ = b.refl
 
 Σβ₂ : ∀{Γ}{A : Ty Γ n}{B : Ty (Γ ▹ A) n}{u : Tm Γ A}{v : Tm Γ (B [ ✧ ▻ u ]T)} →
   snd {B = B} (u , v) ≡ v
-Σβ₂ {v = ~λ g} = b.refl
+Σβ₂ = b.refl
 
 Ση : ∀{Γ}{A : Ty Γ n}{B : Ty (Γ ▹ A) n}{t : Tm Γ (Σ A B)} →
   fst t , snd t ≡ t
-Ση {t = ~λ f} = b.refl
+Ση = b.refl
 
 Σ[] : ∀{Γ Δ}{σ : Sub Γ Δ}{A : Ty Δ n}{B : Ty (Δ ▹ A) n} →
   Σ A B [ σ ]T ≡ Σ (A [ σ ]T) (B [ σ ^ A ]T)
@@ -286,7 +286,7 @@ snd t = ~λ (λ γ → b.snd (t ~$ γ))
   ∀ {Γ Δ}{σ : Sub Γ Δ}{A : Ty Δ n}{B : Ty (Δ ▹ A) n}
     {u : Tm Δ A}{v : Tm Δ (B [ ✧ ▻ u ]T)} →
   (_,_ {B = B} u v) [ σ ] ≡ (u [ σ ]) , (v [ σ ])
-,[] {u = ~λ f} {v = ~λ g} = b.refl
+,[] = b.refl
 
 
 {- Empty and Unit -}
@@ -301,7 +301,7 @@ tt : ∀{Γ} → Tm Γ ⊤
 tt = ~λ (λ γ → b.tt)
 
 ⊤η : ∀{Γ}{t : Tm Γ ⊤} → t ≡ tt
-⊤η {t = ~λ f} = b.refl
+⊤η = b.refl
 
 T[] : ∀{Γ Δ}{σ : Sub Γ Δ} → ⊤ [ σ ]T ≡ ⊤ 
 T[] = b.refl
@@ -325,14 +325,14 @@ Uβ : ∀{Γ}{A : Ty Γ n} → El (c A) ≡ A
 Uβ = b.refl
 
 Uη : ∀{Γ}{a : Tm Γ (U n)} → c (El a) ≡ a
-Uη {a = ~λ f} = b.refl
+Uη = b.refl
 
 U[] : ∀{n Γ Δ}{σ : Sub Γ Δ} → (U n) [ σ ]T ≡ U n
 U[] = b.refl
 
 El[] : ∀{Γ Δ}{σ : Sub Γ Δ}{a : Tm Δ (U n)}
        → El a [ σ ]T ≡ El (a [ σ ])
-El[] {a = ~λ f} = b.refl
+El[] = b.refl
 
 U0 : ∀{Γ} → Ty Γ 1
 U0 = U 0
@@ -370,14 +370,14 @@ Boolβ₁ :
     {c1 : Tm Γ (C [ (✧ ▻ true) ]T)}
     {c2 : Tm Γ (C [ (✧ ▻ false) ]T)} →
     if C c1 c2 true ≡ c1
-Boolβ₁ {c1 = ~λ f1} = b.refl
+Boolβ₁ = b.refl
 
 Boolβ₂ : 
   ∀ {Γ : Con}{C : Ty (Γ ▹ Bool) n} → 
     {c1 : Tm Γ (C [ (✧ ▻ true) ]T)}
     {c2 : Tm Γ (C [ (✧ ▻ false) ]T)} →
     if C c1 c2 false ≡ c2
-Boolβ₂ {c2 = ~λ f2} = b.refl
+Boolβ₂ = b.refl
 
 Bool[] : ∀{Γ Δ}{σ : Sub Γ Δ} → Bool [ σ ]T ≡ Bool
 Bool[] = b.refl
@@ -428,7 +428,7 @@ Idβ :
    {C : Ty (Γ ▹ A ▹ Id (A [ p ]T) (u [ p ]) 𝟘) m}
    {c : Tm Γ (C [ ✧ ▻ u ▻ refl u ]T)} →
    J {u = u} {v = u} C c (refl u) ≡ c
-Idβ {c = ~λ f} = b.refl
+Idβ = b.refl
 
 Id[] : ∀{Γ Δ}{A : Ty Δ n}{σ : Sub Γ Δ}{u v : Tm Δ A} →
   Id A u v [ σ ]T ≡ Id (A [ σ ]T) (u [ σ ]) (v [ σ ])
