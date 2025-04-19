@@ -14,7 +14,7 @@ open import Model.Stack
 open LCon
 
 private variable
-  id n ms ns nv len : b.ℕ
+  id m n ms ns nv len : b.ℕ
   Γ : Con
   sΓ : Ctx Γ len
   D : LCon
@@ -22,13 +22,6 @@ private variable
 -- Representation of runtime values,
 -- which knows what value in the syntax it implements.
 -- (Treat pairs later)
-
--- record ClosedType : Set where
---   -- constructor 
---   field
---     {lv} : b.ℕ
---     {A} : Type (b.suc lv)
---     t : Tm · (λ _ → A)
 
 mutual
   data Val (D : LCon) : {A : Type (b.suc n)} → Tm · (λ _ → A) → Set₁ where
@@ -130,10 +123,6 @@ Lemma2 :
       -- abstract types and terms
       {A : Ty Γ n}{B : Ty (Γ ▹ A) n}
       {f : Tm Γ (Π A B)}
-      -- codes and values
-      -- {T : Type (b.suc n)}
-      -- {t' : Tm · (λ _ → T)}
-      -- {v : Val D T t'}
       -- stacks 
       {σ : Stack Γ ns}
       {st : Env D (b.suc ns)} → 
@@ -141,7 +130,6 @@ Lemma2 :
     wf ⊢ st ⊨ˢ (σ ∷ f) →
     b.Σ b.ℕ (λ nv → Env D nv)
 Lemma2 {σ = σ} {st = st ∷ clo {nv = nv} L σ'} (cons arg k eq) = nv b., σ'
--- Lemma2 {T = `Π tA tB} {v = clo L σ} (cons arg ptt eq) = {!   !}
 
 findˢ : 
   {A : Ty Γ n}{sΓ : Ctx Γ len}{env : Env D len}{δ : Sub · Γ}
@@ -163,14 +151,28 @@ clo⊨ :
 clo⊨ {sΔ = ◆} {◆} {◆} wf wf-st pf = nil
 clo⊨ {sΔ = sΔ ∷ A} {st ∷ v} {σ ∷ t} wf (cons wf-st b.refl b.refl) (cons ⦃ pf ⦄) = cons (clo⊨ wf wf-st pf)
 
-{-
+-- Helper functions and lemmas
 ⊨ˢ-take : 
-  {sΓ : Ctx Γ l}{env : Env D l}{δ : Sub · Γ}
-  {wf : sΓ ⊨ env as δ}{σ : Stack Γ (n b.+ m)}{st : Env D (n b.+ m)} → 
-  wf ⊢ σ ⊨ˢ st → wf ⊢ (take n σ) ⊨ˢ (takeᵉ n st)
-⊨ˢ-take {n = b.zero} pf = nil
-⊨ˢ-take {n = b.suc n} (cons pf eq) rewrite eq = cons (⊨ˢ-take pf) b.refl
--}
+  ∀ {D : LCon}
+    {env : Env D len}
+    {δ : Sub · Γ}
+    {wf-env : env ⊨ sΓ as δ}
+    {st : Env D (m b.+ n)}
+    {σ : Stack Γ (m b.+ n)} → 
+  wf-env ⊢ st ⊨ˢ σ → 
+  wf-env ⊢ takeᵉ m st ⊨ˢ take m σ
+⊨ˢ-take {m = b.zero} pf = nil
+⊨ˢ-take {m = b.suc m} (cons pf ptt eq) = cons (⊨ˢ-take pf) ptt eq
 
-  
+⊨ˢ-drop : 
+  ∀ {D : LCon}
+    {env : Env D len}
+    {δ : Sub · Γ}
+    {wf-env : env ⊨ sΓ as δ}
+    {st : Env D (m b.+ n)}
+    {σ : Stack Γ (m b.+ n)} → 
+  wf-env ⊢ st ⊨ˢ σ → 
+  wf-env ⊢ dropᵉ m st ⊨ˢ drop m σ
+⊨ˢ-drop {m = b.zero} pf = pf
+⊨ˢ-drop {m = b.suc m} (cons pf ptt eq) = ⊨ˢ-drop pf
    
