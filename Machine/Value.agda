@@ -31,29 +31,29 @@ private variable
 --     t : Tm · (λ _ → A)
 
 mutual
-  data Val (D : LCon) : (A : Type (b.suc n)) → Tm · (λ _ → A) → Set₁ where
+  data Val (D : LCon) : {A : Type (b.suc n)} → Tm · (λ _ → A) → Set₁ where
     --
-    lit-b : (b : b.Bool) → Val D `B (bool b)
+    lit-b : (b : b.Bool) → Val D (bool b)
     --
-    lit-n : (n : b.ℕ) → Val D `N (nat n)
+    lit-n : (n : b.ℕ) → Val D (nat n)
     --
-    ty : (A : Ty · n) → Val D `U (c A)
+    ty : (A : Ty · n) → Val D (c A)
     --
     clo : 
       ∀ {A : Ty Γ n}{B : Ty (Γ ▹ A) n}{δ : Sub · Γ}
-        {tA : Type (b.suc n)}
-        {tB : ⟦ tA ⟧ → Type (b.suc n)}
-        {ptt : ((Π A B) [ δ ]T) b.tt b.≡ `Π tA tB}
+        -- {tA : Type (b.suc n)}
+        -- -- -- {tB : ⟦ tA ⟧ → Type (b.suc n)}
+        -- {ptt : ((Π A B) [ δ ]T) b.tt b.≡ `Π tA tB}
         (L : Pi D id sΓ A B)
         (σ : Env D nv) → 
         ⦃ pf : σ ⊨ sΓ as δ ⦄ → 
       -------------------------
-      Val D (`Π tA tB) (Tm-subst (lapp D L δ) ptt)
+      Val D (lapp D L δ)
 
   -- Env, list of values, essentially runtime stacks
   data Env (D : LCon) : (nv : b.ℕ) → Set₁ where
     ◆ : Env D b.zero
-    _∷_ : {A : Type (b.suc n)}{t : Tm · (λ _ → A)} → Env D nv → Val D A t → Env D (b.suc nv)
+    _∷_ : {A : Type (b.suc n)}{t : Tm · (λ _ → A)} → Env D nv → Val D t → Env D (b.suc nv)
 
   -- Env that implements context
   data _⊨_as_ {D : LCon} : Env D nv → Ctx Γ len → Sub · Γ → Set₁ where
@@ -62,7 +62,7 @@ mutual
     cons : 
       {A : Ty Γ n}{sΓ : Ctx Γ len}
       {σ : Env D nv}{δ : Sub · Γ}
-      {t : Tm · (A [ δ ]T)}{v : Val D ((A [ δ ]T) b.tt) t}
+      {t : Tm · (A [ δ ]T)}{v : Val D t}
       (pf : σ ⊨ sΓ as δ) →
       ((σ ∷ v) ⊨ (sΓ ∷ A) as (δ ▻ t))
 
@@ -78,13 +78,12 @@ _[_]V {δ = δ} x pf = ⟦ x ⟧V [ δ ]
 --   (v : Val D t) (pf : A b.≡ A') → Val D (Tm-subst t (b.cong-app pf))
 -- Val-subst v b.refl = v
 
--- findᵉ : 
---   {A : Ty Γ n}{sΓ : Ctx Γ len}{δ : Sub · Γ}
---   (env : Env D len)(x : V sΓ A) → 
---   (pf : env ⊨ sΓ as δ) → Val D (x [ pf ]V)
--- findᵉ (env ∷ v) vz (cons pf) = v
--- findᵉ (env ∷ v) (vs x) (cons pf) = findᵉ env x pf
-
+findᵉ : 
+  {A : Ty Γ n}{sΓ : Ctx Γ len}{δ : Sub · Γ}
+  (env : Env D len)(x : V sΓ A) → 
+  (pf : env ⊨ sΓ as δ) → Val D (x [ pf ]V)
+findᵉ {δ = δ} (env ∷ v) vz (cons pf) = v
+findᵉ (env ∷ v) (vs x) (cons pf) = findᵉ env x pf
 
 takeᵉ : (ns : b.ℕ) → Env D (ns b.+ ms) → Env D ns
 takeᵉ b.zero env = ◆
@@ -93,7 +92,6 @@ takeᵉ (b.suc n) (env ∷ v) = (takeᵉ n env) ∷ v
 dropᵉ : (ns : b.ℕ) → Env D (ns b.+ ms) → Env D ms
 dropᵉ b.zero env = env
 dropᵉ (b.suc n) (env ∷ v) = dropᵉ n env
-
 
 -- Judgement: a runtime stack implements a "virtural" stack
 data _⊢_⊨ˢ_ {D : LCon} {sΓ : Ctx Γ len} {env : Env D len} {δ : Sub · Γ} 
@@ -106,7 +104,7 @@ data _⊢_⊨ˢ_ {D : LCon} {sΓ : Ctx Γ len} {env : Env D len} {δ : Sub · Γ
       {tA : Type (b.suc n)}
       {σ : Stack Γ ns}{t' : Tm · (λ _ → tA)}
       {st : Env D ns}
-      {v : Val D tA t'} → 
+      {v : Val D t'} → 
       (pf : wf ⊢ st ⊨ˢ σ) →
       (ptt : tA b.≡ (A [ δ ]T) b.tt) →  
       (eq : t [ δ ] b.≡ Tm-subst t' ptt) → 
@@ -114,18 +112,12 @@ data _⊢_⊨ˢ_ {D : LCon} {sΓ : Ctx Γ len} {env : Env D len} {δ : Sub · Γ
   -- I have to take the explicit equality here because function label's congruence
   -- under substitution is not refl, since label contexts are given as a signature.
   -- It doesn't hurt the development so far...
-trysome : ∀{Γ}{A : Ty Γ n}{B : Ty (Γ ▹ A) n} →
-  {δ : Sub · Γ} → 
-  {tA : Type (b.suc n)} → 
-  (pf : tA b.≡ ((Π A B) [ δ ]T) b.tt) → 
-  Set
-trysome {tA = `Π tA x} pf = b.⊤
 
 Lemma1 : 
   ∀ {D : LCon}{tA : Type (b.suc n)}
     {tB : ⟦ tA ⟧ → Type (b.suc n)}
     {f : Tm · (λ _ → `Π tA tB)} → 
-    Val D (`Π tA tB) f → 
+    Val D f → 
     Set
 Lemma1 (clo L σ) = b.ℕ
 
@@ -148,7 +140,7 @@ Lemma2 :
       --
     wf ⊢ st ⊨ˢ (σ ∷ f) →
     b.Σ b.ℕ (λ nv → Env D nv)
-Lemma2 {σ = σ} {st = st ∷ clo {nv = nv} L σ'} (cons arg b.refl eq) = nv b., σ'
+Lemma2 {σ = σ} {st = st ∷ clo {nv = nv} L σ'} (cons arg k eq) = nv b., σ'
 -- Lemma2 {T = `Π tA tB} {v = clo L σ} (cons arg ptt eq) = {!   !}
 
 {-
@@ -193,5 +185,5 @@ clo⊨ {sΔ = sΔ ∷ A} {st ∷ v} {σ ∷ t} wf (cons wf-st eq) (cons ⦃ pf �
 ⊨ˢ-take {n = b.suc n} (cons pf eq) rewrite eq = cons (⊨ˢ-take pf) b.refl
 -}
 
- 
+  
    

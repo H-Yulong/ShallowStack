@@ -20,7 +20,7 @@ private variable
 
 -- Helper functions and lemmas
 {-
-dup : {D : LCon}{σ : Stack Γ n} → Env D n → SVar σ A → Env D (lib.suc n)
+dup : {D : LCon}{σ : Stack Γ ns} → Env D n → SVar σ A → Env D (lib.suc n)
 dup (env ∷ t) vz = env ∷ t ∷ t
 dup (env ∷ t) (vs x) = (dup env x) ∷ t
 
@@ -66,25 +66,26 @@ data _⊢_↝_ {D : LCon} (I : Impl D) : Config D → Config D → Set₁ where
     ---------------------------------------- 
     I ⊢ (conf (NOP >> ins) env st sf wf-env wf-st)
       ↝ (conf ins env st sf wf-env wf-st)
-{-  --
+  --
   C-VAR : 
+      {A : Ty Γ n}
       {x : V sΓ A}
-      {σ : Stack Γ m}
-      {σ' : Stack Γ n}
+      {σ : Stack Γ ms}
+      {σ' : Stack Γ ns}
       {ins : Is D sΓ d (σ ∷ ⟦ x ⟧V) σ'}
-      {env : Env D l}
-      {st : Env D (m + s)}
+      {env : Env D len}
+      {st : Env D ms}
       {δ : Sub · Γ}
       {sf : Sf D lf}
       {wf-env : env ⊨ sΓ as δ}
       {wf-st : wf-env ⊢ st ⊨ˢ σ} → 
     ----------------------------
     I ⊢ (conf (VAR x >> ins) env st sf wf-env wf-st) 
-      ↝ (conf ins env (st ∷ findᵉ env x wf-env) sf wf-env (cons wf-st lib.refl))
-  --
+      ↝ (conf ins env (st ∷ findᵉ env x wf-env) sf wf-env (cons wf-st lib.refl lib.refl))
+  {--
   C-ST : 
-      {σ : Stack Γ m}
-      {σ' : Stack Γ n}
+      {σ : Stack Γ ms}
+      {σ' : Stack Γ ns}
       {x : SVar σ A}
       {ins : Is D sΓ d (σ ∷ find σ x) σ'}
       {δ : Sub · Γ}
@@ -99,7 +100,7 @@ data _⊢_↝_ {D : LCon} (I : Impl D) : Config D → Config D → Set₁ where
   --
   C-CLO : 
       {σ : Stack {i = i} Γ (n' + m)}
-      {σ' : Stack Γ n}
+      {σ' : Stack Γ ns}
       {Δ : Con i'}
       {sΔ : Ctx Δ n'}
       {A : Ty Δ j'}
@@ -125,7 +126,7 @@ data _⊢_↝_ {D : LCon} (I : Impl D) : Config D → Config D → Set₁ where
   C-APP : 
     -- stacks
     {σ : Stack {i = i} Γ m}
-    {σ' : Stack Γ n}
+    {σ' : Stack Γ ns}
     -- label setup
     {Δ : Con i'}
     {sΔ : Ctx Δ l'}
