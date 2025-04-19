@@ -1,7 +1,7 @@
 module Machine.Step where
 
-open import Agda.Primitive
 import Lib.Basic as lib
+open import Lib.Order
 
 open import Model.Shallow
 open import Model.Context
@@ -11,19 +11,15 @@ open import Model.Stack
 open import Machine.Value
 open import Machine.Config
 
-open lib using (ℕ; _+_; _≤_)
-open LCon
+open lib using (ℕ; _+_)
 
 private variable
-  i j k i' j' k' : Level
-  Γ : Con i
-  A : Ty Γ j
-  B : Ty (Γ ▹ A) k
-  l m n l' m' n' id s lf d : lib.ℕ
-  sΓ : Ctx Γ l
+  m n len ms ns lf d : ℕ
+  Γ : Con
+  sΓ : Ctx Γ len
 
 -- Helper functions and lemmas
-
+{-
 dup : {D : LCon}{σ : Stack Γ n} → Env D n → SVar σ A → Env D (lib.suc n)
 dup (env ∷ t) vz = env ∷ t ∷ t
 dup (env ∷ t) (vs x) = (dup env x) ∷ t
@@ -38,7 +34,7 @@ clo-lem1 :
   {δ : Sub · Γ}
   {env : Env D l}
   {st : Env D (n + m + s)}
-  {wf-env : sΓ ⊨ env as δ} → 
+  {wf-env : env ⊨ sΓ as δ} → 
   wf-env ⊢ σ ⊨ˢ takeᵉ (n + m) st → wf-env ⊢ take n σ ⊨ˢ takeᵉ n (st-assoc {n = n} st)
 clo-lem1 {n = ℕ.zero} pf = nil
 clo-lem1 {n = ℕ.suc n} {st = st ∷ v} (cons pf eq) rewrite eq = cons (clo-lem1 pf) lib.refl
@@ -49,28 +45,28 @@ clo-lem2 :
   {δ : Sub · Γ}
   {env : Env D l}
   {st : Env D (n + m + s)}
-  {wf-env : sΓ ⊨ env as δ} → 
+  {wf-env : env ⊨ sΓ as δ} → 
   wf-env ⊢ σ ⊨ˢ takeᵉ (n + m) st → wf-env ⊢ drop n σ ⊨ˢ takeᵉ m (dropᵉ n (st-assoc {n = n} st))
 clo-lem2 {n = ℕ.zero} pf = pf
 clo-lem2 {n = ℕ.suc n} {st = st ∷ v} (cons pf eq) = clo-lem2 pf
+-}
 
 -- This intrinsic definition means we have preservation   
-data _⊢_↝_ {D : LCon} (I : Impl D) : Config D → Config D → Setω where
-  --
+data _⊢_↝_ {D : LCon} (I : Impl D) : Config D → Config D → Set₁ where
   C-NOP : 
-      {σ : Stack Γ m}
-      {σ' : Stack Γ n}
+      {σ : Stack Γ ms}
+      {σ' : Stack Γ ns}
       {ins : Is D sΓ d σ σ'}
-      {env : Env D l}
-      {st : Env D (m + s)}
+      {env : Env D len}
+      {st : Env D ms}
       {sf : Sf D lf}
       {δ : Sub · Γ}
-      {wf-env : sΓ ⊨ env as δ}
-      {wf-st : wf-env ⊢ σ ⊨ˢ takeᵉ m st} → 
+      {wf-env : env ⊨ sΓ as δ}
+      {wf-st : wf-env ⊢ st ⊨ˢ σ} → 
     ---------------------------------------- 
     I ⊢ (conf (NOP >> ins) env st sf wf-env wf-st)
       ↝ (conf ins env st sf wf-env wf-st)
-  --
+{-  --
   C-VAR : 
       {x : V sΓ A}
       {σ : Stack Γ m}
@@ -80,8 +76,8 @@ data _⊢_↝_ {D : LCon} (I : Impl D) : Config D → Config D → Setω where
       {st : Env D (m + s)}
       {δ : Sub · Γ}
       {sf : Sf D lf}
-      {wf-env : sΓ ⊨ env as δ}
-      {wf-st : wf-env ⊢ σ ⊨ˢ takeᵉ m st} → 
+      {wf-env : env ⊨ sΓ as δ}
+      {wf-st : wf-env ⊢ st ⊨ˢ σ} → 
     ----------------------------
     I ⊢ (conf (VAR x >> ins) env st sf wf-env wf-st) 
       ↝ (conf ins env (st ∷ findᵉ env x wf-env) sf wf-env (cons wf-st lib.refl))
@@ -95,8 +91,8 @@ data _⊢_↝_ {D : LCon} (I : Impl D) : Config D → Config D → Setω where
       {env : Env D l}
       {st : Env D (m + s)}
       {sf : Sf D lf}
-      {wf-env : sΓ ⊨ env as δ}
-      {wf-st : wf-env ⊢ σ ⊨ˢ takeᵉ m st} →  
+      {wf-env : env ⊨ sΓ as δ}
+      {wf-st : wf-env ⊢ st ⊨ˢ σ} →  
       --------------------------------------
       I ⊢ (conf (ST x >> ins) env st sf wf-env wf-st) 
         ↝ conf ins env (st ∷ findˢ (takeᵉ m st) x wf-st) sf wf-env (cons wf-st lib.refl)
@@ -114,7 +110,7 @@ data _⊢_↝_ {D : LCon} (I : Impl D) : Config D → Config D → Setω where
       {env : Env D l}
       {st : Env D (n' + m + s)}
       {sf : Sf D lf}
-      {wf-env : sΓ ⊨ env as δ} 
+      {wf-env : env ⊨ sΓ as δ} 
       {wf-st : wf-env ⊢ σ ⊨ˢ takeᵉ (n' + m) st} →  
       ⦃ pf : sΓ ⊢ (take n' σ) of sΔ as η ⦄ →
       ⦃ bound : id lib.< d ⦄ → 
@@ -142,7 +138,7 @@ data _⊢_↝_ {D : LCon} (I : Impl D) : Config D → Config D → Setω where
     {env : Env D l}
     {st : Env D (m + s)}
     {sf : Sf D lf}
-    {wf-env : sΓ ⊨ env as δ} 
+    {wf-env : env ⊨ sΓ as δ} 
     {wf-st : wf-env ⊢ σ ⊨ˢ (takeᵉ m st)}
     -- abstract values
     {t : Tm Γ (A [ η ]T)}
@@ -155,3 +151,4 @@ data _⊢_↝_ {D : LCon} (I : Impl D) : Config D → Config D → Setω where
     -----------------
     I ⊢ conf (APP {f = lapp D L η} >> ins) env (st ∷ clo L env' ∷ v) sf wf-env (cons (cons wf-st (lib.sym (lapp[] D))) lib.refl) 
       ↝ conf (Proc.instr (I L)) (env' ∷ v) st (sf ∷ fr ins env (m + s)) (cons pf) nil
+-}

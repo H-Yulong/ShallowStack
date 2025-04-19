@@ -25,8 +25,8 @@ import Examples.ShallowDFC
 
 {- Machine: runtime model and type safety -}
 -- Runtime model and type safety
--- import Machine.Value
--- import Machine.Config
+import Machine.Value
+import Machine.Config
 -- import Machine.Step
 
 -- Examples of the source language,
