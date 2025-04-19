@@ -151,20 +151,19 @@ findˢ :
 findˢ {σ = σ ∷ t} (st ∷ v) vz (cons pf ptt eq) rewrite ptt | eq = v
 findˢ (st ∷ t) (vs x) (cons pf ptt eq) = findˢ st x pf
 
-{-
 -- Given:
 -- 1. env that implements Γ as δ
 -- 2. st that implements σ w.r.t. env
 -- 3. Δ such that Γ ⊢ σ of Δ as η
 -- Have st implementing Δ as (η ∘ δ)
 clo⊨ : 
-  {env : Env D l}{Δ : Con i'}{δ : Sub · Γ}{η : Sub Γ Δ}
-  {sΔ : Ctx Δ n}{st : Env D n}{σ : Stack Γ n} → 
-  (wf : sΓ ⊨ env as δ) → wf ⊢ σ ⊨ˢ st → sΓ ⊢ σ of sΔ as η → sΔ ⊨ st as (η ∘ δ)
+  {env : Env D len}{Δ : Con}{δ : Sub · Γ}{η : Sub Γ Δ}
+  {sΔ : Ctx Δ ns}{st : Env D ns}{σ : Stack Γ ns} → 
+  (wf : env ⊨ sΓ as δ) → wf ⊢ st ⊨ˢ σ → sΓ ⊢ σ of sΔ as η → st ⊨ sΔ as (η ∘ δ)
 clo⊨ {sΔ = ◆} {◆} {◆} wf wf-st pf = nil
-clo⊨ {sΔ = sΔ ∷ A} {st ∷ v} {σ ∷ t} wf (cons wf-st eq) (cons ⦃ pf ⦄) rewrite eq
-  = cons (clo⊨ wf wf-st pf)
+clo⊨ {sΔ = sΔ ∷ A} {st ∷ v} {σ ∷ t} wf (cons wf-st b.refl b.refl) (cons ⦃ pf ⦄) = cons (clo⊨ wf wf-st pf)
 
+{-
 ⊨ˢ-take : 
   {sΓ : Ctx Γ l}{env : Env D l}{δ : Sub · Γ}
   {wf : sΓ ⊨ env as δ}{σ : Stack Γ (n b.+ m)}{st : Env D (n b.+ m)} → 

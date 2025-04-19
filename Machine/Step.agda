@@ -12,13 +12,38 @@ open import Machine.Value
 open import Machine.Config
 
 open lib using (ℕ; _+_)
+open LCon
 
 private variable
-  m n len ms ns lf d : ℕ
+  m n len len' ms ns ms' lf d id : ℕ
   Γ : Con
   sΓ : Ctx Γ len
 
 -- Helper functions and lemmas
+⊨ˢ-take : 
+  ∀ {D : LCon}
+    {env : Env D len}
+    {δ : Sub · Γ}
+    {wf-env : env ⊨ sΓ as δ}
+    {st : Env D (m + n)}
+    {σ : Stack Γ (m + n)} → 
+  wf-env ⊢ st ⊨ˢ σ → 
+  wf-env ⊢ takeᵉ m st ⊨ˢ take m σ
+⊨ˢ-take {m = ℕ.zero} pf = nil
+⊨ˢ-take {m = ℕ.suc m} (cons pf ptt eq) = cons (⊨ˢ-take pf) ptt eq
+
+⊨ˢ-drop : 
+  ∀ {D : LCon}
+    {env : Env D len}
+    {δ : Sub · Γ}
+    {wf-env : env ⊨ sΓ as δ}
+    {st : Env D (m + n)}
+    {σ : Stack Γ (m + n)} → 
+  wf-env ⊢ st ⊨ˢ σ → 
+  wf-env ⊢ dropᵉ m st ⊨ˢ drop m σ
+⊨ˢ-drop {m = ℕ.zero} pf = pf
+⊨ˢ-drop {m = ℕ.suc m} (cons pf ptt eq) = ⊨ˢ-drop pf
+
 {-
 dup : {D : LCon}{σ : Stack Γ ns} → Env D n → SVar σ A → Env D (lib.suc n)
 dup (env ∷ t) vz = env ∷ t ∷ t
@@ -98,32 +123,30 @@ data _⊢_↝_ {D : LCon} (I : Impl D) : Config D → Config D → Set₁ where
       --------------------------------------
       I ⊢ (conf (ST x >> ins) env st sf wf-env wf-st) 
         ↝ conf ins env (st ∷ findˢ st x wf-st) sf wf-env (cons wf-st lib.refl lib.refl)
-  {--
+  --
   C-CLO : 
-      {σ : Stack {i = i} Γ (n' + m)}
+      {σ : Stack Γ (ms' + ms)}
       {σ' : Stack Γ ns}
-      {Δ : Con i'}
-      {sΔ : Ctx Δ n'}
-      {A : Ty Δ j'}
-      {B : Ty (Δ ▹ A) k'}
+      {Δ : Con}
+      {sΔ : Ctx Δ ms'}
+      {A : Ty Δ n}
+      {B : Ty (Δ ▹ A) n}
       {L : Pi D id sΔ A B}
       {δ : Sub · Γ}
       {η : Sub Γ Δ}
-      {env : Env D l}
-      {st : Env D (n' + m + s)}
+      {env : Env D len}
+      {st : Env D (ms' + ms)}
       {sf : Sf D lf}
       {wf-env : env ⊨ sΓ as δ} 
-      {wf-st : wf-env ⊢ σ ⊨ˢ takeᵉ (n' + m) st} →  
-      ⦃ pf : sΓ ⊢ (take n' σ) of sΔ as η ⦄ →
-      ⦃ bound : id lib.< d ⦄ → 
-      {ins : Is D sΓ d (drop n' σ ∷ lapp D L η) σ'} →  
-    ------------------------------
-    let st' = st-assoc {n = n'} st in
-    let val = clo L (takeᵉ n' st') ⦃ clo⊨ wf-env (clo-lem1 wf-st) pf ⦄ in
-    let st'' = dropᵉ n' st' ∷ val in
-    I ⊢ conf (CLO n' L >> ins) env st sf wf-env wf-st
-      ↝ conf ins env st'' sf wf-env (cons (clo-lem2 wf-st) (lib.sym (lapp[] D)))
-  --
+      {wf-st : wf-env ⊢ st ⊨ˢ σ} →  
+      ⦃ pf : sΓ ⊢ (take ms' σ) of sΔ as η ⦄ →
+      ⦃ bound : id < d ⦄ → 
+      {ins : Is D sΓ d (drop ms' σ ∷ lapp D L η) σ'} →  
+    ------------------------------ 
+    let closure = clo L (takeᵉ ms' st) ⦃ clo⊨ wf-env (⊨ˢ-take wf-st) pf ⦄ in
+    I ⊢ conf (CLO ms' L >> ins) env st sf wf-env wf-st 
+      ↝ conf ins env (dropᵉ ms' st ∷ closure) sf wf-env (cons (⊨ˢ-drop wf-st) lib.refl (lapp[] D))
+  {--
   C-APP : 
     -- stacks
     {σ : Stack {i = i} Γ m}
