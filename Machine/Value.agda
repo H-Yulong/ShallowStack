@@ -89,7 +89,7 @@ dropᵉ (b.suc n) (env ∷ v) = dropᵉ n env
 -- Judgement: a runtime stack implements a "virtural" stack
 data _⊢_⊨ˢ_ {D : LCon} {sΓ : Ctx Γ len} {env : Env D len} {δ : Sub · Γ} 
   (wf : env ⊨ sΓ as δ) : Env D n → Stack Γ n → Set₁ where
-----
+  --
   nil : wf ⊢ ◆ ⊨ˢ ◆
   --
   cons : 

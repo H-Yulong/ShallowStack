@@ -1,6 +1,6 @@
 module Machine.Step where
 
-import Lib.Basic as lib
+import Lib.Basic as b
 open import Lib.Order
 
 open import Model.Shallow
@@ -11,7 +11,7 @@ open import Model.Stack
 open import Machine.Value
 open import Machine.Config
 
-open lib using (ℕ; _+_)
+open b using (ℕ; _+_)
 open LCon
 
 private variable
@@ -22,20 +22,26 @@ private variable
 -- This intrinsic definition means we have preservation   
 data _⊢_↝_ {D : LCon} (I : Impl D) : Config D → Config D → Set₁ where
   C-NOP : 
+      {Δ : Con}
+      {δ' : Sub · Δ}
       {σ : Stack Γ ms}
       {σ' : Stack Γ ns}
       {ins : Is D sΓ d σ σ'}
       {env : Env D len}
       {st : Env D ms}
-      {sf : Sf D lf}
+      {sf : Sf D δ' lf}
       {δ : Sub · Γ}
+      {η : Sub Δ Γ}
       {wf-env : env ⊨ sΓ as δ}
-      {wf-st : wf-env ⊢ st ⊨ˢ σ} → 
+      {wf-st : wf-env ⊢ st ⊨ˢ σ}
+      {call-compat : δ b.≡ η ∘ δ'} → 
     ---------------------------------------- 
-    I ⊢ (conf (NOP >> ins) env st sf wf-env wf-st)
-      ↝ (conf ins env st sf wf-env wf-st)
+    I ⊢ (conf (NOP >> ins) env st sf wf-env wf-st η call-compat)
+      ↝ (conf ins env st sf wf-env wf-st η call-compat)
   --
   C-VAR : 
+      {Δ : Con}
+      {δ' : Sub · Δ}
       {A : Ty Γ n}
       {x : V sΓ A}
       {σ : Stack Γ ms}
@@ -44,14 +50,18 @@ data _⊢_↝_ {D : LCon} (I : Impl D) : Config D → Config D → Set₁ where
       {env : Env D len}
       {st : Env D ms}
       {δ : Sub · Γ}
-      {sf : Sf D lf}
+      {sf : Sf D δ' lf}
       {wf-env : env ⊨ sΓ as δ}
-      {wf-st : wf-env ⊢ st ⊨ˢ σ} → 
+      {wf-st : wf-env ⊢ st ⊨ˢ σ}
+      {η : Sub Δ Γ}
+      {call-compat : δ b.≡ η ∘ δ'} → 
     ----------------------------
-    I ⊢ (conf (VAR x >> ins) env st sf wf-env wf-st) 
-      ↝ (conf ins env (st ∷ findᵉ env x wf-env) sf wf-env (cons wf-st lib.refl lib.refl))
+    I ⊢ (conf (VAR x >> ins) env st sf wf-env wf-st η call-compat) 
+      ↝ (conf ins env (st ∷ findᵉ env x wf-env) sf wf-env (cons wf-st b.refl b.refl) η call-compat)
   --
   C-ST : 
+      {Δ : Con}
+      {δ' : Sub · Δ}
       {A : Ty Γ n}
       {σ : Stack Γ ms}
       {σ' : Stack Γ ns}
@@ -60,14 +70,18 @@ data _⊢_↝_ {D : LCon} (I : Impl D) : Config D → Config D → Set₁ where
       {δ : Sub · Γ}
       {env : Env D len}
       {st : Env D ms}
-      {sf : Sf D lf}
+      {sf : Sf D δ' lf}
       {wf-env : env ⊨ sΓ as δ}
-      {wf-st : wf-env ⊢ st ⊨ˢ σ} →  
+      {wf-st : wf-env ⊢ st ⊨ˢ σ}
+      {η : Sub Δ Γ}
+      {call-compat : δ b.≡ η ∘ δ'} →  
       --------------------------------------
-      I ⊢ (conf (ST x >> ins) env st sf wf-env wf-st) 
-        ↝ conf ins env (st ∷ findˢ st x wf-st) sf wf-env (cons wf-st lib.refl lib.refl)
+      I ⊢ conf (ST x >> ins) env st sf wf-env wf-st η call-compat
+        ↝ conf ins env (st ∷ findˢ st x wf-st) sf wf-env (cons wf-st b.refl b.refl) η call-compat
   --
   C-CLO : 
+      {Δ' : Con}
+      {δ' : Sub · Δ'}
       {σ : Stack Γ (ms' + ms)}
       {σ' : Stack Γ ns}
       {Δ : Con}
@@ -79,16 +93,18 @@ data _⊢_↝_ {D : LCon} (I : Impl D) : Config D → Config D → Set₁ where
       {η : Sub Γ Δ}
       {env : Env D len}
       {st : Env D (ms' + ms)}
-      {sf : Sf D lf}
+      {sf : Sf D δ' lf}
       {wf-env : env ⊨ sΓ as δ} 
-      {wf-st : wf-env ⊢ st ⊨ˢ σ} →  
+      {wf-st : wf-env ⊢ st ⊨ˢ σ}
+      {η' : Sub Δ' Γ}
+      {call-compat : δ b.≡ η' ∘ δ'} →  
       ⦃ pf : sΓ ⊢ (take ms' σ) of sΔ as η ⦄ →
       ⦃ bound : id < d ⦄ → 
       {ins : Is D sΓ d (drop ms' σ ∷ lapp D L η) σ'} →  
     ------------------------------ 
     let closure = clo L (takeᵉ ms' st) ⦃ clo⊨ wf-env (⊨ˢ-take wf-st) pf ⦄ in
-    I ⊢ conf (CLO ms' L >> ins) env st sf wf-env wf-st 
-      ↝ conf ins env (dropᵉ ms' st ∷ closure) sf wf-env (cons (⊨ˢ-drop wf-st) lib.refl (lapp[] D))
+    I ⊢ conf (CLO ms' L >> ins) env st sf wf-env wf-st η' call-compat
+      ↝ conf ins env (dropᵉ ms' st ∷ closure) sf wf-env (cons (⊨ˢ-drop wf-st) b.refl (lapp[] D)) η' call-compat
   --
   C-APP : 
     -- stacks
@@ -102,12 +118,16 @@ data _⊢_↝_ {D : LCon} (I : Impl D) : Config D → Config D → Set₁ where
     {L : Pi D id sΔ A B}
     {η : Sub Γ Δ}
     -- config
+    {Δ' : Con}
+    {δ' : Sub · Δ'}
     {δ : Sub · Γ}
     {env : Env D len}
     {st : Env D ms}
-    {sf : Sf D lf}
+    {sf : Sf D δ' lf}
     {wf-env : env ⊨ sΓ as δ} 
     {wf-st : wf-env ⊢ st ⊨ˢ σ}
+    {η' : Sub Δ' Γ}
+    {call-compat : δ b.≡ η' ∘ δ'} 
     -- abstract values
     {t : Tm Γ (A [ η ]T)}
     -- concrete values
@@ -117,42 +137,35 @@ data _⊢_↝_ {D : LCon} (I : Impl D) : Config D → Config D → Set₁ where
     -- instruction
     {ins : Is D sΓ d (σ ∷ (lapp D L η) $ t) σ'} →  
     -----------------
-    let wf-st' = (cons (cons wf-st lib.refl (lapp[] D)) lib.refl lib.refl) in
-    let new-fr = fr ins env st η wf-env wf-st in
-    I ⊢ conf (APP {f = lapp D L η} >> ins) env (st ∷ clo L env' ∷ v) sf wf-env wf-st'
-      ↝ conf (Proc.instr (I L)) (env' ∷ v) ◆ (sf ∷ new-fr) (cons pf) nil
+    let wf-st' = (cons (cons wf-st b.refl (lapp[] D)) b.refl b.refl) in
+    let new-fr = fr ins env st wf-env wf-st η' call-compat  in
+    I ⊢ conf (APP {f = lapp D L η} >> ins) env (st ∷ clo L env' ∷ v) sf wf-env wf-st' η' call-compat
+      ↝ conf (Proc.instr (I L)) (env' ∷ v) ◆ (sf ∷ new-fr) (cons pf) nil (η ▻ t) b.refl
   --
   C-RET : 
-    -- callee frame context
-    {Γ Δ : Con}
-    {sΔ : Ctx Δ len'}
-    {env' : Env D len'}
-    {δ : Sub · Γ}
-    {η : Sub Γ Δ}
-    {wf-env' : env' ⊨ sΔ as (η ∘ δ)}
-    -- callee stack and stack frame
-    {σ'' : Stack Δ ms'}
-    {st' : Env D ms'}
-    {wf-st' : wf-env' ⊢ st' ⊨ˢ σ''}
-    {sf : Sf D lf}
-    -- caller frame context
+    -- callee env
+    {Γ : Con}
     {sΓ : Ctx Γ len}
     {env : Env D len}
+    {δ : Sub · Γ}
     {wf-env : env ⊨ sΓ as δ}
-    -- return frame stack
-    {σ : Stack Γ ms}
-    {σ' : Stack Γ ns}
-    {st : Env D ms}
+    -- callee stack
+    {σ : Stack Γ ns}
+    {st : Env D ns}
     {wf-st : wf-env ⊢ st ⊨ˢ σ}
+    -- previous frames
+    {Ω : Con}
+    {ω : Sub · Ω}
+    {sf : Sf D ω lf}
+    -- top frame
+    {fr : Frame D ω}
+    -- callee compat
+    {η : Sub (Frame.Γ fr) Γ}
+    {call-compat : δ b.≡ η ∘ (Frame.δ fr)}
     -- return value
-    {A : Ty Δ n}
-    {t : Tm Δ A}
-    {v : Val D (t [ η ∘ δ ])}
-    -- return frame instruction
-    {ins : Is D sΓ d (σ ∷ (t [ η ])) σ'} → 
-    -----------------
-    let ret-fr = fr ins env st η wf-env wf-st in
-    I ⊢ conf (RET {d = d'} {σ = σ'' ∷ t}) env' (st' ∷ v) (sf ∷ ret-fr) wf-env' (cons wf-st' lib.refl lib.refl)
-      ↝ conf ins env (st ∷ v) sf wf-env (cons wf-st lib.refl lib.refl)
+    {v : Val D ((Frame.t fr) [ Frame.δ fr ])}
+    → 
+    I ⊢ conf (RET {d = d}) env (st ∷ v) (sf ∷ fr) wf-env (cons wf-st b.refl b.refl) η call-compat
+      ↝ conf (Frame.ins fr) (Frame.env fr) (Frame.st fr ∷ v) sf (Frame.wf-env fr) (cons (Frame.wf-st fr) b.refl b.refl) (Frame.η fr) (Frame.call-compat fr)
 
 
