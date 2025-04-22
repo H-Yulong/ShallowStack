@@ -79,29 +79,33 @@ data Pi : (id : b.ℕ) (sΓ : Ctx Γ len) (A : Ty Γ n) (B : Ty (Γ ▹ A) n) �
   Com : Pi 5 ◆ Com.A (Π Com.B (Π Com.C (↑T (Π Com.Tg (Π Com.Tf (Π Com.Tx Com.Cxfx))))))
   --
   LNat : Pi 0 ◆ (↑T Nat) U0
+  --
+  IdNat : Pi 0 ◆ Nat Nat
 
 mutual
   interp : ∀{A : Ty Γ n}{B : Ty (Γ ▹ A) n} → Pi id sΓ A B → Tm (Γ ▹ A) B
   --
   interp Add0 = iter Nat 𝟘 (suc 𝟘) 𝟙
   interp Add = Add0 ⟦ ✧ ⟧
-  -- --
+  --
   interp Iden0 = 𝟘
   interp Iden = ↑ (Iden0 ⟦ ✧ ⟧)
-  -- -- --
+  --
   interp App0 = 𝟙 $ 𝟘
   interp App1 = App0 ⟦ ✧ ⟧
   interp App2 = ↑ (App1 ⟦ ✧ ⟧)
   interp App = App2 ⟦ ✧ ⟧
-  -- -- --
+  --
   interp Com0 = 𝟚 $ 𝟘 $ (𝟙 $ 𝟘)
   interp Com1 = Com0 ⟦ ✧ ⟧
   interp Com2 = Com1 ⟦ ✧ ⟧
   interp Com3 = ↑ (Com2 ⟦ ✧ ⟧)
   interp Com4 = Com3 ⟦ ✧ ⟧
   interp Com = Com4 ⟦ ✧ ⟧
-  -- -- --
+  --
   interp LNat = c Nat
+  --
+  interp IdNat = 𝟘
 
   _⟦_⟧ : ∀{Δ : Con}{A : Ty Γ n}{B : Ty (Γ ▹ A) n} → 
     ----
@@ -198,8 +202,11 @@ impl Com = proc
 impl LNat = proc 
   (  TLIT Nat
   >> RET )
+impl IdNat = proc
+  (  VAR V₀
+  >> RET)
 
-Lib : Library
-Lib = library D impl
+L : Library
+L = library D impl
 
  

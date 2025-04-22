@@ -42,6 +42,7 @@ mutual
         ⦃ pf : σ ⊨ sΓ as δ ⦄ → 
       -------------------------
       Val D (lapp D L δ)
+    lift : {A : Type (b.suc n)}{t : Tm · (λ _ → A)} → Val D t → Val D (↑ t)
 
   -- Env, list of values, essentially runtime stacks
   data Env (D : LCon) : (nv : b.ℕ) → Set₁ where
@@ -66,11 +67,6 @@ _[_]V :
   (x : V sΓ A) (pf : σ ⊨ sΓ as δ) → Tm · (A [ δ ]T)
 _[_]V {δ = δ} x pf = ⟦ x ⟧V [ δ ]
 
--- Val-subst : 
---   {A A' : Ty · n}{t : Tm · A}
---   (v : Val D t) (pf : A b.≡ A') → Val D (Tm-subst t (b.cong-app pf))
--- Val-subst v b.refl = v
-
 findᵉ : 
   {A : Ty Γ n}{sΓ : Ctx Γ len}{δ : Sub · Γ}
   (env : Env D len)(x : V sΓ A) → 
@@ -88,7 +84,7 @@ dropᵉ (b.suc n) (env ∷ v) = dropᵉ n env
 
 -- Judgement: a runtime stack implements a "virtural" stack
 data _⊢_⊨ˢ_ {D : LCon} {sΓ : Ctx Γ len} {env : Env D len} {δ : Sub · Γ} 
-  (wf : env ⊨ sΓ as δ) : Env D n → Stack Γ n → Set₁ where
+  (wf : env ⊨ sΓ as δ) : Env D ns → Stack Γ ns → Set₁ where
   --
   nil : wf ⊢ ◆ ⊨ˢ ◆
   --
@@ -175,4 +171,4 @@ clo⊨ {sΔ = sΔ ∷ A} {st ∷ v} {σ ∷ t} wf (cons wf-st b.refl b.refl) (co
   wf-env ⊢ dropᵉ m st ⊨ˢ drop m σ
 ⊨ˢ-drop {m = b.zero} pf = pf
 ⊨ˢ-drop {m = b.suc m} (cons pf ptt eq) = ⊨ˢ-drop pf
-   
+    

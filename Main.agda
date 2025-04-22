@@ -146,4 +146,4 @@ module StackExamples where
     >> LIT 3 
     >> APP 
     >> RET
-  
+ 
