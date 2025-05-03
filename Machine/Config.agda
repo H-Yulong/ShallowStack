@@ -3,6 +3,7 @@ module Machine.Config where
 import Lib.Basic as b
 open import Lib.Order
 
+open import Model.Universe
 open import Model.Shallow
 open import Model.Context
 open import Model.Labels
@@ -10,42 +11,45 @@ open import Model.Stack
 
 open import Machine.Value
 
-open b using (ℕ; _+_)
+open b using (ℕ; _+_; _≡_)
 
 -- Machine configuration
 
 -- Call frame 
--- Δ is the context of the previous frame
--- δ is the realizing substitution for Δ
-record Frame (D : LCon) {Δ : Con} (δ : Sub · Δ) : Set₁ where
+record Frame (D : LCon) {n : ℕ} {Γ : Con} {A : Ty Γ n} (s : Tm Γ A) (η : Sub · Γ) : Set₁ where
   constructor fr
   field
-    {len ms ns n d} : ℕ
-    {Γ} : Con
-    {sΓ} : Ctx Γ len
-    {A} : Ty Γ n
-    {t} : Tm Γ A
-    {η} : Sub · Γ
-    {σ} : Stack Γ ms
-    {σ'} : Stack Γ ns
-    ins : Is D sΓ d (σ ∷ t) σ'
-    env : Env D len
-    st  : Env D ms
-    wf-env : env ⊨ sΓ as η
-    wf-st : wf-env ⊢ st ⊨ˢ σ
+    {len ms ns m d} : ℕ
+    {Δ} : Con
+    {sΔ} : Ctx Δ len
+    {σ} : Stack Δ ms
+    {σ'} : Stack Δ ns
+    {B} : Ty Δ m
+    {t} : Tm Δ B
+    {A'} : Ty Δ n
+    {t'} : Tm Δ A'
     ----
-    ρ : Sub Δ Γ
-    call-compat : η b.≡ ρ ∘ δ
+    ins : Is D sΔ d (σ ∷ t) (σ' ∷ t')
+    env : Env D len
+    st : Env D ms
+    ----
+    {δ} : Sub · Δ
+    wf-env : env ⊨ sΔ as δ
+    wf-st : wf-env ⊢ st ⊨ˢ σ
+    eq-A : A' [ δ ]T ≡ A [ η ]T
+    eq-t : s [ η ] ≡ Tm-subst (t' [ δ ]) (b.cong-app eq-A) 
 
 
 -- Stack of frames
-data Sf (D : LCon) : {Γ : Con} → Sub · Γ → ℕ → Set₁ where
-  ◆ : Sf D ε 0
+data Sf (D : LCon) : ∀{n}{Γ : Con}{A : Ty Γ n} → Tm Γ A → Sub · Γ → ℕ → Set₁ where
+  ◆ : ∀{n}{A : Type (b.suc n)}{t : Tm · (λ _ → A)} → (v : Val D t) → Sf D t ε 0
+  ----
   _∷_ : 
-    ∀ {Δ n}{δ : Sub · Δ} → 
-      Sf D δ n → 
-      (frame : Frame D δ) →  
-    Sf D (Frame.η frame) (b.suc n)
+    ∀ {m n}{Γ : Con}{A : Ty Γ n}
+      {s : Tm Γ A}{δ : Sub · Γ} →
+      Sf D s δ m →
+      (frame : Frame D s δ) → 
+      Sf D (Frame.t frame) (Frame.δ frame) (b.suc m)
 
 {- 
   Machine configuration: 
@@ -55,38 +59,40 @@ data Sf (D : LCon) : {Γ : Con} → Sub · Γ → ℕ → Set₁ where
     - [sf]  : Stack of call frames
 
   Parameters:
-    - [Γ, σ, σ' η] : Abstract type parameters, such that
-      - Γ ⊢ ins : σ → σ'             (Instruction well-typed)
+    - [Γ, σ, σ', t, η] : Abstract type parameters, such that
+      - Γ ⊢ ins : σ → σ' ∷ t          (Instruction well-typed)
       - [wf-env] : env ⊨ Γ as η      (Env realizes context, η for env)
       - [wf-st] : wf-env ⊢ st ⊨ˢ σ   (Stack realizes abstract stack)
 
-    - [Δ, δ, ρ, eqc] : Function call parameters, such that
-      - δ : · → Δ         
-      - sf : Sf D δ       (Stack frame's last context is Δ, realized by δ)
-      - ρ : Δ → Γ         (Get current frame via substitution ρ ...)
-      - eqc : η ≡ ρ ∘ δ   (... that is compatible with realizations of current and last contexts)
+    - [??] : Function call parameters, such that
+      - ??
     
     - [len, ms, ns, lf, d] : Lengths and termination marker
 
 -}
+
 record Config (D : LCon) : Set₁ where
   constructor conf
   field
-    {len ms ns lf d} : ℕ
+    {len ms ns m n lf d} : ℕ
     {Γ Δ} : Con
-    {sΓ} : Ctx Γ len
-    {σ} : Stack Γ ms
-    {σ'} : Stack Γ ns
+    {sΔ} : Ctx Δ len
+    {σ} : Stack Δ ms
+    {σ'} : Stack Δ ns
+    {A} : Ty Γ n
+    {s} : Tm Γ A
     {η} : Sub · Γ
-    {δ} : Sub · Δ
-    ins : Is D sΓ d σ σ'
+    {A'} : Ty Δ n
+    {t'} : Tm Δ A'
+    ----
+    ins : Is D sΔ d σ (σ' ∷ t')
     env : Env D len
     st : Env D ms
-    sf : Sf D δ lf
-    --
-    wf-env : env ⊨ sΓ as η
+    ----
+    sf : Sf D s η lf
+    ----
+    {δ} : Sub · Δ
+    wf-env : env ⊨ sΔ as δ
     wf-st : wf-env ⊢ st ⊨ˢ σ
-    --
-    ρ : Sub Δ Γ 
-    call-compat : η b.≡ ρ ∘ δ
-
+    eq-A : A' [ δ ]T ≡ A [ η ]T
+    eq-t : s [ η ] ≡ Tm-subst (t' [ δ ]) (b.cong-app eq-A) 
