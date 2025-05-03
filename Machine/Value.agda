@@ -24,7 +24,7 @@ private variable
 -- (Treat pairs later)
 
 mutual
-  data Val (D : LCon) : {A : Type (b.suc n)} → Tm · (λ _ → A) → Set₁ where
+  data Val (D : LCon) : {A : Type (b.suc n)} → Tm · (λ {b.tt → A}) → Set₁ where
     --
     lit-b : (b : b.Bool) → Val D (bool b)
     --
@@ -56,9 +56,14 @@ mutual
     cons : 
       {A : Ty Γ n}{sΓ : Ctx Γ len}
       {σ : Env D nv}{δ : Sub · Γ}
-      {t : Tm · (A [ δ ]T)}{v : Val D t}
+      {A' : Type (b.suc n)}{t : Tm · (λ _ → A')}{v : Val D t}
       (pf : σ ⊨ sΓ as δ) →
-      ((σ ∷ v) ⊨ (sΓ ∷ A) as (δ ▻ t))
+      (pA : A' b.≡ (A [ δ ]T) b.tt) → 
+      (σ ∷ v) ⊨ (sΓ ∷ A) as (δ ▻ Tm-subst t pA)
+
+-- Val-conv : ∀{D}{A A' : Type (b.suc n)}{t : Tm · (λ _ → A)} → 
+--   Val D {A = A} t → (eq : A b.≡ A') → Val D {A = A'} (Tm-subst t eq)
+-- Val-conv v b.refl = v
 
 
 -- Find the term at position x in an env that implements Γ
@@ -71,8 +76,8 @@ findᵉ :
   {A : Ty Γ n}{sΓ : Ctx Γ len}{δ : Sub · Γ}
   (env : Env D len)(x : V sΓ A) → 
   (pf : env ⊨ sΓ as δ) → Val D (x [ pf ]V)
-findᵉ {δ = δ} (env ∷ v) vz (cons pf) = v
-findᵉ (env ∷ v) (vs x) (cons pf) = findᵉ env x pf
+findᵉ (env ∷ v) vz (cons pf pA) rewrite pA = v
+findᵉ (env ∷ v) (vs x) (cons pf pA) = findᵉ env x pf
 
 takeᵉ : (ns : b.ℕ) → Env D (ns b.+ ms) → Env D ns
 takeᵉ b.zero env = ◆
@@ -145,7 +150,7 @@ clo⊨ :
   {sΔ : Ctx Δ ns}{st : Env D ns}{σ : Stack Γ ns} → 
   (wf : env ⊨ sΓ as δ) → wf ⊢ st ⊨ˢ σ → sΓ ⊢ σ of sΔ as η → st ⊨ sΔ as (η ∘ δ)
 clo⊨ {sΔ = ◆} {◆} {◆} wf wf-st pf = nil
-clo⊨ {sΔ = sΔ ∷ A} {st ∷ v} {σ ∷ t} wf (cons wf-st b.refl b.refl) (cons ⦃ pf ⦄) = cons (clo⊨ wf wf-st pf)
+clo⊨ {sΔ = sΔ ∷ A} {st ∷ v} {σ ∷ t} wf (cons wf-st b.refl b.refl) (cons ⦃ pf ⦄) = cons (clo⊨ wf wf-st pf) b.refl
 
 -- Helper functions and lemmas
 ⊨ˢ-take : 
@@ -171,4 +176,3 @@ clo⊨ {sΔ = sΔ ∷ A} {st ∷ v} {σ ∷ t} wf (cons wf-st b.refl b.refl) (co
   wf-env ⊢ dropᵉ m st ⊨ˢ drop m σ
 ⊨ˢ-drop {m = b.zero} pf = pf
 ⊨ˢ-drop {m = b.suc m} (cons pf ptt eq) = ⊨ˢ-drop pf
-    

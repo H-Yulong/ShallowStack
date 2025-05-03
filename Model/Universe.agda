@@ -64,6 +64,10 @@ record ~Π {n : ℕ} (A : Set) (B : A → Type n) : Set where
 _~$_ : ∀{n A}{B : A → Type n} → ~Π A B → (a : A) → ⟦ B a ⟧
 (~λ f) ~$ a = f a
 
+inj₁ : ∀{U}{A A' : Code U}{B : ⟦ U ~~ A ⟧ → Code U}{B' : ⟦ U ~~ A' ⟧ → Code U} →
+  `Π A B ≡ `Π A' B' → A ≡ A'
+inj₁ refl = refl
+
 record ~Σ {n : ℕ} (A : Set) (B : A → Type n) : Set where
   constructor _~,_
   field

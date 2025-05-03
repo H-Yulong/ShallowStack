@@ -111,69 +111,95 @@ data _⊢_↝_ {D : LCon} (I : Impl D) : Config D → Config D → Set₁ where
     --------------------------------------
     I ⊢ conf (ST x >> ins) env st sf wf-env wf-st eq-A eq-t
       ↝ conf ins env (st ∷ findˢ st x wf-st) sf wf-env (cons wf-st b.refl b.refl) eq-A eq-t
-  {--
+  --
   C-CLO : 
-      {Δ' : Con}
-      {δ' : Sub · Δ'}
-      {σ : Stack Γ (ms' + ms)}
-      {σ' : Stack Γ ns}
-      {Δ : Con}
-      {sΔ : Ctx Δ ms'}
-      {A : Ty Δ n}
-      {B : Ty (Δ ▹ A) n}
-      {L : Pi D id sΔ A B}
-      {η : Sub · Γ}
-      {ρ : Sub Γ Δ}
-      {env : Env D len}
-      {st : Env D (ms' + ms)}
-      {sf : Sf D δ' lf}
-      {wf-env : env ⊨ sΓ as η} 
-      {wf-st : wf-env ⊢ st ⊨ˢ σ}
-      {ρ' : Sub Δ' Γ}
-      {eqc : η b.≡ ρ' ∘ δ'} →  
-      ⦃ pf : sΓ ⊢ (take ms' σ) of sΔ as ρ ⦄ →
-      ⦃ bound : id < d ⦄ → 
-      {ins : Is D sΓ d (drop ms' σ ∷ lapp D L ρ) σ'} →  
+    {Γ Δ : Con}
+    {sΓ : Ctx Γ len}
+    {sΔ : Ctx Δ len'}
+    {A : Ty Γ n}
+    {s : Tm Γ A}
+    {η : Sub · Γ}
+    {σ : Stack Δ (ms' + ms)}
+    {σ' : Stack Δ ns}
+    {A' : Ty Δ n}
+    {t' : Tm Δ A'}
+    ----
+    {Δ' : Con}
+    {sΔ' : Ctx Δ' ms'}
+    {δ' : Sub · Δ'}
+    {A'' : Ty Δ' n}
+    {B'' : Ty (Δ' ▹ A'') n}
+    {L : Pi D id sΔ' A'' B''}
+    {ρ : Sub Δ Δ'}
+    ----
+    {ins : Is D sΔ d (drop ms' σ ∷ lapp D L ρ) (σ' ∷ t')}
+    {env : Env D len'}
+    {st : Env D (ms' + ms)}
+    {sf : Sf D s η lf}
+    ----
+    {δ : Sub · Δ}
+    {wf-env : env ⊨ sΔ as δ}
+    {wf-st : wf-env ⊢ st ⊨ˢ σ}
+    {eq-A : A' [ δ ]T b.≡ A [ η ]T}
+    {eq-t : s [ η ] b.≡ Tm-subst (t' [ δ ]) (b.cong-app eq-A)} → 
+    ----
+    ⦃ pf : sΔ ⊢ (take ms' σ) of sΔ' as ρ ⦄ →
+    ⦃ bound : id < d ⦄ → 
     ------------------------------ 
     let closure = clo L (takeᵉ ms' st) ⦃ clo⊨ wf-env (⊨ˢ-take wf-st) pf ⦄ in
-    I ⊢ conf (CLO ms' L >> ins) env st sf wf-env wf-st ρ' eqc
-      ↝ conf ins env (dropᵉ ms' st ∷ closure) sf wf-env (cons (⊨ˢ-drop wf-st) b.refl (lapp[] D)) ρ' eqc
-  --
+    let wf-st' = cons (⊨ˢ-drop wf-st) b.refl (lapp[] D) in
+    I ⊢ conf (CLO ms' L >> ins) env st sf wf-env wf-st eq-A eq-t 
+      ↝ conf ins env ((dropᵉ ms' st) ∷ closure) sf wf-env wf-st' eq-A eq-t
   C-APP : 
-    -- stacks
-    {σ : Stack Γ ms}
-    {σ' : Stack Γ ns}
-    -- label setup
-    {Δ : Con}
+    {Γ Δ : Con}
+    {sΓ : Ctx Γ len}
     {sΔ : Ctx Δ len'}
-    {A : Ty Δ n}
-    {B : Ty (Δ ▹ A) n}
-    {L : Pi D id sΔ A B}
-    {ρ : Sub Γ Δ}
-    -- config
-    {Δ' : Con}
-    {δ' : Sub · Δ'}
+    {A : Ty Γ n}
+    {s : Tm Γ A}
     {η : Sub · Γ}
-    {env : Env D len}
+    {σ : Stack Δ ms}
+    {σ' : Stack Δ ns}
+    {A' : Ty Δ n}
+    {t' : Tm Δ A'}
+    ----
+    {A'' : Ty Δ m}
+    {B'' : Ty (Δ ▹ A'') m}
+    {f : Tm Δ (Π A'' B'')}
+    {a : Tm Δ A''}
+    ----
+    {ins : Is D sΔ d (σ ∷ (f $ a)) (σ' ∷ t')}
+    {env : Env D len'}
     {st : Env D ms}
-    {sf : Sf D δ' lf}
-    {wf-env : env ⊨ sΓ as η} 
+    {sf : Sf D s η lf}
+    ----
+    {δ : Sub · Δ}
+    {wf-env : env ⊨ sΔ as δ}
     {wf-st : wf-env ⊢ st ⊨ˢ σ}
-    {ρ' : Sub Δ' Γ}
-    {eqc : η b.≡ ρ' ∘ δ'} 
-    -- abstract values
-    {t : Tm Γ (A [ ρ ]T)}
-    -- concrete values
-    {env' : Env D len'}
-    {v : Val D (t [ η ])}
-    {pf : env' ⊨ sΔ as (ρ ∘ η)} → 
-    -- instruction
-    {ins : Is D sΓ d (σ ∷ (lapp D L ρ) $ t) σ'} →  
-    -----------------
-    let wf-st' = (cons (cons wf-st b.refl (lapp[] D)) b.refl b.refl) in
-    let new-fr = fr ins env st wf-env wf-st ρ' eqc in
-    I ⊢ conf (APP {f = lapp D L ρ} >> ins) env (st ∷ clo L env' ⦃ pf ⦄ ∷ v) sf wf-env wf-st' ρ' eqc
-      ↝ conf (Proc.instr (I L)) (env' ∷ v) ◆ (sf ∷ new-fr) (cons pf) nil (ρ ▻ t) b.refl
+    {eq-A : A' [ δ ]T b.≡ A [ η ]T}
+    {eq-t : s [ η ] b.≡ Tm-subst (t' [ δ ]) (b.cong-app eq-A)}
+    ----
+    {Δ' : Con}
+    {sΔ' : Ctx Δ' ms'}
+    {δ' : Sub · Δ'}
+    {A+ : Ty Δ' m}
+    {B+ : Ty (Δ' ▹ A+) m}
+    {L : Pi D id sΔ' A+ B+}
+    {env' : Env D ms'}
+    {wf-env' : env' ⊨ sΔ' as δ'}
+    {ρ : Sub Δ Δ'}
+    {pf : env' ⊨ sΔ' as δ'} 
+    ----
+    {pA :  ((Π A+ B+) [ δ' ]T) b.≡ ((Π A'' B'') [ δ ]T)}
+    {ptf : f [ δ ] b.≡ Tm-subst (lapp D L δ') (b.cong-app pA)}
+    {v : Val D (a [ δ ])}
+    → 
+    ------------------------------
+    let new-fr = fr ins env st wf-env wf-st eq-A eq-t in
+    let eq-A' = inj₁ (b.cong-app (b.sym pA)) in
+    I ⊢ conf (APP {f = f} >> ins) env (st ∷ clo L env' ⦃ pf ⦄ ∷ v) sf wf-env (cons (cons wf-st (b.cong-app pA) ptf) b.refl b.refl) eq-A eq-t 
+      ↝ conf (Proc.instr (I L)) (env' ∷ v) ◆ (sf ∷ new-fr) (cons wf-env' eq-A') nil {!   !} {!   !}
+
+  {--
   --
   C-RET : 
     -- callee env
