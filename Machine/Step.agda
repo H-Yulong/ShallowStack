@@ -17,76 +17,101 @@ open LCon
 
 private variable
   m n len len' ms ms' ns ns' lf d d' id : ℕ
-  Γ : Con
-  sΓ : Ctx Γ len
 
-lem : 
-  ∀ {Δ : Con}{A : Ty Γ n}{t : Tm Γ A}
-    {σ ρ : Sub Δ Γ} →
-    (pf : ρ b.≡ σ) →
-  t [ σ ] b.≡ Tm-subst (t [ ρ ]) (b.cong A (b.cong-app pf))
-lem b.refl = b.refl
+-- lem : 
+--   ∀ {Δ : Con}{A : Ty Γ n}{t : Tm Γ A}
+--     {σ ρ : Sub Δ Γ} →
+--     (pf : ρ b.≡ σ) →
+--   t [ σ ] b.≡ Tm-subst (t [ ρ ]) (b.cong A (b.cong-app pf))
+-- lem b.refl = b.refl
+
+-- TODO: too many implicit variables!
+-- Refactor to hide things under some abstraction!
 
 -- This intrinsic definition means we have preservation   
 data _⊢_↝_ {D : LCon} (I : Impl D) : Config D → Config D → Set₁ where
   C-NOP : 
-      {Δ : Con}
-      {δ : Sub · Δ}
-      {σ : Stack Γ ms}
-      {σ' : Stack Γ ns}
-      {ins : Is D sΓ d σ σ'}
-      {env : Env D len}
-      {st : Env D ms}
-      {sf : Sf D δ lf}
-      {η : Sub · Γ}
-      {ρ : Sub Δ Γ}
-      {wf-env : env ⊨ sΓ as η}
-      {wf-st : wf-env ⊢ st ⊨ˢ σ}
-      {eqc : η b.≡ ρ ∘ δ} → 
+    {Γ Δ : Con}
+    {sΓ : Ctx Γ len}
+    {sΔ : Ctx Δ len'}
+    {A : Ty Γ n}
+    {s : Tm Γ A}
+    {η : Sub · Γ}
+    {σ : Stack Δ ms}
+    {σ' : Stack Δ ns}
+    {A' : Ty Δ n}
+    {t' : Tm Δ A'}
+    ----
+    {ins : Is D sΔ d σ (σ' ∷ t')}
+    {env : Env D len'}
+    {st : Env D ms}
+    {sf : Sf D s η lf}
+    ----
+    {δ : Sub · Δ}
+    {wf-env : env ⊨ sΔ as δ}
+    {wf-st : wf-env ⊢ st ⊨ˢ σ}
+    {eq-A : A' [ δ ]T b.≡ A [ η ]T}
+    {eq-t : s [ η ] b.≡ Tm-subst (t' [ δ ]) (b.cong-app eq-A)} →  
     ---------------------------------------- 
-    I ⊢ (conf (NOP >> ins) env st sf wf-env wf-st ρ eqc)
-      ↝ (conf ins env st sf wf-env wf-st ρ eqc)
+    I ⊢ (conf (NOP >> ins) env st sf wf-env wf-st eq-A eq-t)
+      ↝ (conf ins env st sf wf-env wf-st eq-A eq-t)
   --
-  C-VAR : 
-      {Δ : Con}
-      {δ : Sub · Δ}
-      {A : Ty Γ n}
-      {x : V sΓ A}
-      {σ : Stack Γ ms}
-      {σ' : Stack Γ ns}
-      {ins : Is D sΓ d (σ ∷ ⟦ x ⟧V) σ'}
-      {env : Env D len}
-      {st : Env D ms}
-      {η : Sub · Γ}
-      {sf : Sf D δ lf}
-      {wf-env : env ⊨ sΓ as η}
-      {wf-st : wf-env ⊢ st ⊨ˢ σ}
-      {ρ : Sub Δ Γ}
-      {eqc : η b.≡ ρ ∘ δ} → 
+  C-VAR :     
+    {Γ Δ : Con}
+    {sΓ : Ctx Γ len}
+    {sΔ : Ctx Δ len'}
+    {A : Ty Γ n}
+    {s : Tm Γ A}
+    {η : Sub · Γ}
+    {σ : Stack Δ ms}
+    {σ' : Stack Δ ns}
+    {A' : Ty Δ n}
+    {t' : Tm Δ A'}
+    ----
+    {B : Ty Δ m}
+    {x : V sΔ B}
+    {ins : Is D sΔ d (σ ∷ ⟦ x ⟧V) (σ' ∷ t')}
+    {env : Env D len'}
+    {st : Env D ms}
+    {sf : Sf D s η lf}
+    ----
+    {δ : Sub · Δ}
+    {wf-env : env ⊨ sΔ as δ}
+    {wf-st : wf-env ⊢ st ⊨ˢ σ}
+    {eq-A : A' [ δ ]T b.≡ A [ η ]T}
+    {eq-t : s [ η ] b.≡ Tm-subst (t' [ δ ]) (b.cong-app eq-A)} →  
     ----------------------------
-    I ⊢ (conf (VAR x >> ins) env st sf wf-env wf-st ρ eqc) 
-      ↝ (conf ins env (st ∷ findᵉ env x wf-env) sf wf-env (cons wf-st b.refl b.refl) ρ eqc)
+    I ⊢ (conf (VAR x >> ins) env st sf wf-env wf-st eq-A eq-t) 
+      ↝ (conf ins env (st ∷ findᵉ env x wf-env) sf wf-env (cons wf-st b.refl b.refl) eq-A eq-t)
   --
-  C-ST : 
-      {Δ : Con}
-      {δ : Sub · Δ}
-      {A : Ty Γ n}
-      {σ : Stack Γ ms}
-      {σ' : Stack Γ ns}
-      {x : SVar σ A}
-      {ins : Is D sΓ d (σ ∷ find σ x) σ'}
-      {η : Sub · Γ}
-      {env : Env D len}
-      {st : Env D ms}
-      {sf : Sf D δ lf}
-      {wf-env : env ⊨ sΓ as η}
-      {wf-st : wf-env ⊢ st ⊨ˢ σ}
-      {ρ : Sub Δ Γ}
-      {eqc : η b.≡ ρ ∘ δ} →  
-      --------------------------------------
-      I ⊢ conf (ST x >> ins) env st sf wf-env wf-st ρ eqc
-        ↝ conf ins env (st ∷ findˢ st x wf-st) sf wf-env (cons wf-st b.refl b.refl) ρ eqc
-  --
+  C-ST :
+    {Γ Δ : Con}
+    {sΓ : Ctx Γ len}
+    {sΔ : Ctx Δ len'}
+    {A : Ty Γ n}
+    {s : Tm Γ A}
+    {η : Sub · Γ}
+    {σ : Stack Δ ms}
+    {σ' : Stack Δ ns}
+    {A' : Ty Δ n}
+    {t' : Tm Δ A'}
+    ----
+    {B : Ty Δ m}
+    {x : SVar σ B}
+    {ins : Is D sΔ d (σ ∷ find σ x) (σ' ∷ t')}
+    {env : Env D len'}
+    {st : Env D ms}
+    {sf : Sf D s η lf}
+    ----
+    {δ : Sub · Δ}
+    {wf-env : env ⊨ sΔ as δ}
+    {wf-st : wf-env ⊢ st ⊨ˢ σ}
+    {eq-A : A' [ δ ]T b.≡ A [ η ]T}
+    {eq-t : s [ η ] b.≡ Tm-subst (t' [ δ ]) (b.cong-app eq-A)} →   
+    --------------------------------------
+    I ⊢ conf (ST x >> ins) env st sf wf-env wf-st eq-A eq-t
+      ↝ conf ins env (st ∷ findˢ st x wf-st) sf wf-env (cons wf-st b.refl b.refl) eq-A eq-t
+  {--
   C-CLO : 
       {Δ' : Con}
       {δ' : Sub · Δ'}
@@ -310,4 +335,4 @@ data _⊢_⇓_
     I ⊢ c ↝* conf (RET {d = d} {σ = σ ∷ t}) ◆ (st ∷ v) ◆ nil (cons wf-st b.refl b.refl) ε b.refl → 
     -------------------------------------------------------
     I ⊢ c ⇓ v
-  
+-}

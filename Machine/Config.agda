@@ -74,7 +74,7 @@ data Sf (D : LCon) : ∀{n}{Γ : Con}{A : Ty Γ n} → Tm Γ A → Sub · Γ →
 record Config (D : LCon) : Set₁ where
   constructor conf
   field
-    {len ms ns m n lf d} : ℕ
+    {len ms ns n lf d} : ℕ
     {Γ Δ} : Con
     {sΔ} : Ctx Δ len
     {σ} : Stack Δ ms
