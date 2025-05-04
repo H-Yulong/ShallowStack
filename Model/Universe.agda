@@ -68,6 +68,13 @@ inj₁ : ∀{U}{A A' : Code U}{B : ⟦ U ~~ A ⟧ → Code U}{B' : ⟦ U ~~ A' �
   `Π A B ≡ `Π A' B' → A ≡ A'
 inj₁ refl = refl
 
+inj₂ : ∀{U}{A A' : Code U}{B : ⟦ U ~~ A ⟧ → Code U}{B' : ⟦ U ~~ A' ⟧ → Code U} →
+  (pf : `Π A B ≡ `Π A' B') → 
+  ∀{a : ⟦ U ~~ A ⟧}{a' : ⟦ U ~~ A' ⟧} →
+  subst _ (inj₁ pf) a ≡ a' →
+  B a ≡ B' a'
+inj₂ refl refl = refl
+
 record ~Σ {n : ℕ} (A : Set) (B : A → Type n) : Set where
   constructor _~,_
   field
