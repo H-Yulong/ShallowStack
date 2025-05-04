@@ -118,7 +118,7 @@ mutual
 -- The equational theory is just refl
 
 D : LCon
-D = record { Pi = Pi ; interp = interp; lapp = _⟦_⟧; lapp[] = b.refl } 
+D = record { Pi = Pi ; interp = interp; lapp = _⟦_⟧; lapp[] = b.refl; lapp-β = b.refl } 
 
 impl : ∀{A : Ty Γ n}{B : Ty (Γ ▹ A) n}
   (lab : Pi id sΓ A B) → Proc D (sΓ ∷ A) id (interp lab)
