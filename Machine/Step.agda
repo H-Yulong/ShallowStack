@@ -16,23 +16,39 @@ open b using (ℕ; _+_)
 open LCon
 
 private variable
-  m n len len' ms ms' ns ns' lf d d' id : ℕ
+  m n m' len len' ms ms' ns ns' lf d d' id : ℕ
 
--- lem : 
---   ∀ {Δ : Con}{A : Ty Γ n}{t : Tm Γ A}
---     {σ ρ : Sub Δ Γ} →
---     (pf : ρ b.≡ σ) →
---   t [ σ ] b.≡ Tm-subst (t [ ρ ]) (b.cong A (b.cong-app pf))
--- lem b.refl = b.refl
+lemma : 
+  ∀ {Δ : Con}{A : Ty Δ n}{δ : Sub · Δ}{a : Tm Δ A} → 
+    {A' : Code (uni (Type n) ⟦_⟧)} →
+  (pf : A' b.≡ A (δ b.tt)) → 
+  b.subst (⟦_⟧ {n = b.suc n}) pf (b.subst (⟦_⟧ {n = b.suc n}) (b.sym pf) (a .~fun (δ b.tt))) b.≡ a .~fun (δ b.tt)
+lemma {A = A} {δ} b.refl = b.refl
+
+lemma2 : 
+  ∀ {Δ : Con}{A : Ty Δ n}{B : Ty (Δ ▹ A) n}{δ : Sub · Δ}
+    {f : Tm Δ (Π A B)}{a : Tm Δ A}
+    {A' : Code (uni (Type n) ⟦_⟧)}
+    {B' : ⟦ (uni (Type n) ⟦_⟧) ~~ A' ⟧ → Code (uni (Type n) ⟦_⟧)} →
+    {f' : Tm · (λ _ → `Π A' B')}
+    (pA : `Π A' B' b.≡ `Π (A (δ b.tt)) (λ x → B (δ b.tt ~, x))) →
+    (ptf : f [ δ ] b.≡ Tm-subst f' pA) →     
+    {t : Tm · (λ _ → B' (Tm-subst (a [ δ ]) (b.sym (inj₁ pA)) .~fun b.tt))} → 
+    (eq : (f' $ Tm-subst (a [ δ ]) (b.sym (inj₁ pA))) b.≡ t) → 
+    ((f $ a) [ δ ]) b.≡ 
+      Tm-subst t 
+        (b.cong-app (b.ext-tt (inj₂ pA (lemma {Δ = Δ} {A} {δ} {a} (inj₁ pA)))))
+lemma2 b.refl b.refl b.refl = b.refl
 
 -- TODO: too many implicit variables!
 -- Refactor to hide things under some abstraction!
+
+
 
 -- This intrinsic definition means we have preservation   
 data _⊢_↝_ {D : LCon} (I : Impl D) : Config D → Config D → Set₁ where
   C-NOP : 
     {Γ Δ : Con}
-    {sΓ : Ctx Γ len}
     {sΔ : Ctx Δ len'}
     {A : Ty Γ n}
     {s : Tm Γ A}
@@ -58,7 +74,6 @@ data _⊢_↝_ {D : LCon} (I : Impl D) : Config D → Config D → Set₁ where
   --
   C-VAR :     
     {Γ Δ : Con}
-    {sΓ : Ctx Γ len}
     {sΔ : Ctx Δ len'}
     {A : Ty Γ n}
     {s : Tm Γ A}
@@ -86,7 +101,6 @@ data _⊢_↝_ {D : LCon} (I : Impl D) : Config D → Config D → Set₁ where
   --
   C-ST :
     {Γ Δ : Con}
-    {sΓ : Ctx Γ len}
     {sΔ : Ctx Δ len'}
     {A : Ty Γ n}
     {s : Tm Γ A}
@@ -114,19 +128,17 @@ data _⊢_↝_ {D : LCon} (I : Impl D) : Config D → Config D → Set₁ where
   --
   C-CLO : 
     {Γ Δ : Con}
-    {sΓ : Ctx Γ len}
     {sΔ : Ctx Δ len'}
-    {A : Ty Γ n}
+    {A : Ty Γ m}
     {s : Tm Γ A}
     {η : Sub · Γ}
     {σ : Stack Δ (ms' + ms)}
     {σ' : Stack Δ ns}
-    {A' : Ty Δ n}
+    {A' : Ty Δ m}
     {t' : Tm Δ A'}
     ----
     {Δ' : Con}
     {sΔ' : Ctx Δ' ms'}
-    {δ' : Sub · Δ'}
     {A'' : Ty Δ' n}
     {B'' : Ty (Δ' ▹ A'') n}
     {L : Pi D id sΔ' A'' B''}
@@ -152,7 +164,6 @@ data _⊢_↝_ {D : LCon} (I : Impl D) : Config D → Config D → Set₁ where
       ↝ conf ins env ((dropᵉ ms' st) ∷ closure) sf wf-env wf-st' eq-A eq-t
   C-APP : 
     {Γ Δ : Con}
-    {sΓ : Ctx Γ len}
     {sΔ : Ctx Δ len'}
     {A : Ty Γ n}
     {s : Tm Γ A}
@@ -187,7 +198,6 @@ data _⊢_↝_ {D : LCon} (I : Impl D) : Config D → Config D → Set₁ where
     {env' : Env D ms'}
     {wf-env' : env' ⊨ sΔ' as δ'}
     {ρ : Sub Δ Δ'}
-    {pf : env' ⊨ sΔ' as δ'} 
     ----
     {pA :  ((Π A+ B+) [ δ' ]T) b.≡ ((Π A'' B'') [ δ ]T)}
     {ptf : f [ δ ] b.≡ Tm-subst (lapp D L δ') (b.cong-app pA)}
@@ -195,9 +205,11 @@ data _⊢_↝_ {D : LCon} (I : Impl D) : Config D → Config D → Set₁ where
     → 
     ------------------------------
     let new-fr = fr ins env st wf-env wf-st eq-A eq-t in
-    let eq-A' = inj₁ (b.cong-app (b.sym pA)) in
-    I ⊢ conf (APP {f = f} >> ins) env (st ∷ clo L env' ⦃ pf ⦄ ∷ v) sf wf-env (cons (cons wf-st (b.cong-app pA) ptf) b.refl b.refl) eq-A eq-t 
-      ↝ conf (Proc.instr (I L)) (env' ∷ v) ◆ (sf ∷ new-fr) (cons wf-env' eq-A') nil {!   !} {!   !}
+    let eq-A' = b.sym (inj₁ (b.cong-app pA)) in
+    I ⊢ conf (APP {f = f} >> ins) env (st ∷ clo L env' ⦃ wf-env' ⦄ ∷ v) sf wf-env (cons (cons wf-st (b.cong-app pA) ptf) b.refl b.refl) eq-A eq-t 
+      ↝ conf (Proc.instr (I L)) (env' ∷ v) ◆ (sf ∷ new-fr) (cons wf-env' eq-A') nil 
+        (b.ext-tt (inj₂ (b.cong-app pA) (lemma {A = A''} {δ} {a} (inj₁ (b.cong-app pA))))) 
+        (lemma2 {f = f} {a = a} (b.cong-app pA) ptf (lapp-β D))
 
   {--
   --
@@ -343,7 +355,7 @@ data _⊢_↝_ {D : LCon} (I : Impl D) : Config D → Config D → Set₁ where
     ----------------------------
     I ⊢ (conf (DOWN >> ins) env (st ∷ lift v) sf wf-env (cons wf-st b.refl b.refl) ρ eqc) 
       ↝ (conf ins env (st ∷ v) sf wf-env (cons wf-st b.refl b.refl) ρ eqc)
-
+-}
 
 infixr 20 _⟫_
 data _⊢_↝*_ {D : LCon} (I : Impl D) (c : Config D) : Config D → Set₁ where
@@ -358,7 +370,8 @@ data _⊢_⇓_
     ∀ {σ : Stack · ns} 
       {st : Env D ns} 
       {wf-st : nil ⊢ st ⊨ˢ σ} →
-    I ⊢ c ↝* conf (RET {d = d} {σ = σ ∷ t}) ◆ (st ∷ v) ◆ nil (cons wf-st b.refl b.refl) ε b.refl → 
+    I ⊢ c ↝* conf (RET {d = d} {σ = σ ∷ t}) ◆ (st ∷ v) (◆ v) nil (cons wf-st b.refl b.refl) b.refl b.refl → 
     -------------------------------------------------------
     I ⊢ c ⇓ v
--}
+
+ 

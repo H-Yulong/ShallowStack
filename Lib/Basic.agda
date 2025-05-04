@@ -151,6 +151,9 @@ a +' b = iterN (λ x → ℕ) b (λ x → suc x) a
 ext-⊤ : ∀{i}{A : Set i}{f g : ⊤ → A} → ({t : ⊤} → f t ≡ g t) → f ≡ g
 ext-⊤ pf = cong (λ a _ → a) pf
 
+ext-tt : ∀{i}{A : Set i}{f g : ⊤ → A} → (f tt ≡ g tt) → f ≡ g
+ext-tt pf = cong (λ a _ → a) pf
+
 cong-app : ∀{i j}{A : Set i}{B : A → Set j}{f g : (a : A) → B a} → 
   (f ≡ g) → {a : A} → f a ≡ g a
 cong-app refl = refl
@@ -158,4 +161,3 @@ cong-app refl = refl
 eee : ∀{x y} → x + y ≡ x +' y
 eee {zero} {y} = refl
 eee {suc x} {y} = cong suc (eee {x} {y})
-  

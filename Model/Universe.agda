@@ -60,6 +60,7 @@ record ~Π {n : ℕ} (A : Set) (B : A → Type n) : Set where
   constructor ~λ
   field
     ~fun : ((a : A) → ⟦ B a ⟧)
+open ~Π public
 
 _~$_ : ∀{n A}{B : A → Type n} → ~Π A B → (a : A) → ⟦ B a ⟧
 (~λ f) ~$ a = f a

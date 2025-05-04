@@ -14,6 +14,7 @@ open import Machine.Step
 
 open import Examples.ShallowDFC
 
+{-
 module Iden0 where
   prog : Is D ◆ 3 ◆ (◆ ∷ (nat 3))
   prog =
@@ -24,7 +25,7 @@ module Iden0 where
     >> RET
 
   start : Config D
-  start = conf prog ◆ ◆ ◆ nil nil ε b.refl
+  start = conf prog ◆ ◆ (◆ (lit-n 3)) nil nil b.refl b.refl
 
   trace : impl ⊢ start ⇓ (lit-n 3)
   trace = Halt (
@@ -33,8 +34,9 @@ module Iden0 where
     ⟫ C-LIT
     ⟫ C-APP
     ⟫ C-VAR
-    ⟫ C-RET
+    ⟫ ?
     ⟫ ■)
+-}
 
 module Identity where
 
@@ -55,34 +57,33 @@ module Identity where
   st = ◆ ∷ lit-n 3
 
   start : Config D
-  start = conf prog env st ◆ 
-    (cons (cons nil)) 
-    (cons nil b.refl b.refl) 
-    (ε ▻ (c Nat) ▻ (nat 3)) 
-    b.refl
+  start = conf prog env st (◆ (lit-n 3)) 
+   (cons (cons nil b.refl) b.refl) 
+   (cons nil b.refl b.refl) 
+   b.refl b.refl
 
-  end : Config D
-  end = conf 
-    (RET {sΓ = ◆ ∷ U0 ∷ (El 𝟘)} {d = 3} {σ = ◆ ∷ 𝟘}) 
-    env (◆ ∷ lit-n 3) ◆ 
-    (cons (cons nil))
-    (cons nil b.refl b.refl)
-    (ε ▻ c Nat ▻ nat 3) 
-    b.refl
+  -- end : Config D
+  -- end = conf 
+  --   (RET {sΓ = ◆ ∷ U0 ∷ (El 𝟘)} {d = 3} {σ = ◆ ∷ 𝟘}) 
+  --   env (◆ ∷ lit-n 3) ◆ 
+  --   (cons (cons nil))
+  --   (cons nil b.refl b.refl)
+  --   (ε ▻ c Nat ▻ nat 3) 
+  --   b.refl
 
-  trace : impl ⊢ start ↝* end
+  trace : impl ⊢ start ↝* _
   trace = 
-      C-CLO 
+      C-CLO
     ⟫ C-VAR
     ⟫ C-APP
     ⟫ C-VAR
     ⟫ C-CLO
-    ⟫ C-UP
-    ⟫ C-RET
-    ⟫ C-DOWN
-    ⟫ C-SWP
-    ⟫ C-APP {ρ = ε ▻ 𝟙}
-    ⟫ C-VAR
-    ⟫ C-RET
+  --   ⟫ C-UP
+  --   ⟫ C-RET
+  --   ⟫ C-DOWN
+  --   ⟫ C-SWP
+  --   ⟫ C-APP
+  --   ⟫ C-VAR
+  --   ⟫ C-RET
     ⟫ ■
  
