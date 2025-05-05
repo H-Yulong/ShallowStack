@@ -341,7 +341,7 @@ U0 = U 0
 ↑T A = λ γ → `↑ (A γ)
 
 ↑ : ∀{Γ}{A : Ty Γ n} → Tm Γ A → Tm Γ (↑T A)
-↑ t = ~λ (λ γ → t ~$ γ)
+↑ (~λ f) = ~λ f
 
 
 {- Bool -}
@@ -498,11 +498,14 @@ iter C z s t = ~λ
 ↑! ⦃ incr≤ ⦄ t = ↑ (↑! t)
 
 ↓ : ∀{Γ}{A : Ty Γ n} → Tm Γ (↑T A) → Tm Γ A
-↓ t = ~λ (λ γ → t ~$ γ)
+↓ (~λ f) = ~λ f
 
 ↓! : ∀{m n Γ}{A : Ty Γ n} → ⦃ pf : n ≤ m ⦄ → Tm Γ (↑T! ⦃ pf ⦄ A) → Tm Γ A
 ↓! ⦃ pf = refl≤ ⦄ t = t
 ↓! ⦃ pf = incr≤ ⦄ t = ↓! (↓ t)
+
+↑↓ : ∀{Γ}{A : Ty Γ n}{t : Tm Γ A} → ↓ (↑ t) ≡ t
+↑↓ = b.refl 
 
 -- Smart type constructors
 
@@ -538,4 +541,4 @@ module hasFunext
     []Tt : A [ σ ]T ≡ A [ σ ]
 -}
  
- 
+  

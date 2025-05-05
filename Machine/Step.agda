@@ -40,10 +40,14 @@ lemma2 :
         (b.cong-app (b.ext-tt (inj₂ pA (lemma {Δ = Δ} {A} {δ} {a} (inj₁ pA)))))
 lemma2 b.refl b.refl b.refl = b.refl
 
+lemma3 : 
+  ∀{A : Ty · n}{t t' : Tm · A} → 
+  ↑ t b.≡ ↑ t' → 
+  t b.≡ t' 
+lemma3 b.refl = b.refl
+
 -- TODO: too many implicit variables!
 -- Refactor to hide things under some abstraction!
-
-
 
 -- This intrinsic definition means we have preservation   
 data _⊢_↝_ {D : LCon} (I : Impl D) : Config D → Config D → Set₁ where
@@ -162,6 +166,7 @@ data _⊢_↝_ {D : LCon} (I : Impl D) : Config D → Config D → Set₁ where
     let wf-st' = cons (⊨ˢ-drop wf-st) b.refl (lapp[] D) in
     I ⊢ conf (CLO ms' L >> ins) env st sf wf-env wf-st eq-A eq-t 
       ↝ conf ins env ((dropᵉ ms' st) ∷ closure) sf wf-env wf-st' eq-A eq-t
+  --
   C-APP : 
     {Γ Δ : Con}
     {sΔ : Ctx Δ len'}
@@ -198,16 +203,16 @@ data _⊢_↝_ {D : LCon} (I : Impl D) : Config D → Config D → Set₁ where
     {env' : Env D ms'}
     {wf-env' : env' ⊨ sΔ' as δ'}
     ----
-    {pA :  ((Π A+ B+) [ δ' ]T) b.≡ ((Π A'' B'') [ δ ]T)}
-    {ptf : f [ δ ] b.≡ Tm-subst (lapp D L δ') (b.cong-app pA)}
+    {pA :  ((Π A+ B+) [ δ' ]T) b.tt b.≡ ((Π A'' B'') [ δ ]T) b.tt}
+    {ptf : f [ δ ] b.≡ Tm-subst (lapp D L δ') pA}
     {v : Val D (a [ δ ])} → 
     ------------------------------
     let new-fr = fr ins env st wf-env wf-st eq-A eq-t in
-    let eq-A' = b.sym (inj₁ (b.cong-app pA)) in
-    I ⊢ conf (APP {f = f} >> ins) env (st ∷ clo L env' ⦃ wf-env' ⦄ ∷ v) sf wf-env (cons (cons wf-st (b.cong-app pA) ptf) b.refl b.refl) eq-A eq-t 
+    let eq-A' = b.sym (inj₁ pA) in
+    I ⊢ conf (APP {f = f} >> ins) env (st ∷ clo L env' ⦃ wf-env' ⦄ ∷ v) sf wf-env (cons (cons wf-st pA ptf) b.refl b.refl) eq-A eq-t 
       ↝ conf (Proc.instr (I L)) (env' ∷ v) ◆ (sf ∷ new-fr) (cons wf-env' eq-A') nil 
-        (b.ext-tt (inj₂ (b.cong-app pA) (lemma {A = A''} {δ} {a} (inj₁ (b.cong-app pA))))) 
-        (lemma2 {f = f} {a = a} (b.cong-app pA) ptf (lapp-β D))
+        (b.ext-tt (inj₂ pA (lemma {A = A''} {δ} {a} (inj₁ pA)))) 
+        (lemma2 {f = f} {a = a} pA ptf (lapp-β D))
   --
   C-RET :
       {Δ' Δ : Con}
@@ -377,7 +382,7 @@ data _⊢_↝_ {D : LCon} (I : Impl D) : Config D → Config D → Set₁ where
     {σ : Stack Δ ms}
     {σ' : Stack Δ ns}
     {A' : Ty Δ n}
-    {t' : Tm Δ A'}
+    {t' : Tm Δ A'}  
     ----
     {B : Ty Δ m}
     {t : Tm Δ B}
@@ -387,7 +392,9 @@ data _⊢_↝_ {D : LCon} (I : Impl D) : Config D → Config D → Set₁ where
     {sf : Sf D s η lf}
     ----
     {δ : Sub · Δ}
+    -- {t'' : Tm · (B [ δ ]T)}
     {v : Val D (t [ δ ])}
+    -- {eq-v : (↑ (t [ δ ])) b.≡ ↑ t''}
     {wf-env : env ⊨ sΔ as δ}
     {wf-st : wf-env ⊢ st ⊨ˢ σ}
     {eq-A : A' [ δ ]T b.≡ A [ η ]T}
@@ -413,4 +420,4 @@ data _⊢_⇓_
     -------------------------------------------------------
     I ⊢ c ⇓ v
 
- 
+  

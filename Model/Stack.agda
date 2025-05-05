@@ -157,9 +157,9 @@ mutual
       Instr D sΓ d (σ ∷ f ∷ a) (σ ∷ f $ a)
     --
     CLO : 
-      ∀ {Δ}{sΔ : Ctx Δ len'}
+      ∀ (ns : b.ℕ)
+        {Δ}{sΔ : Ctx Δ ns}
         {A : Ty Δ n}{B : Ty (Δ ▹ A) n}
-      (ns : b.ℕ)
         {σ : Stack Γ (ns + ms)} 
         {δ : Sub Γ Δ}
       (L : Pi D id sΔ A B)
@@ -232,8 +232,8 @@ mutual
     UP : {A : Ty Γ n}{t : Tm Γ A} → 
       Instr D sΓ d (σ ∷ t) (σ ∷ ↑ t)
     --
-    DOWN : {A : Ty Γ n}{t : Tm Γ (↑T A)} → 
-      Instr D sΓ d (σ ∷ t) (σ ∷ ↓ t)
+    DOWN : {A : Ty Γ n}{t : Tm Γ A} → 
+      Instr D sΓ d (σ ∷ ↑ t) (σ ∷ t)
 
 
 {- Procedures -}

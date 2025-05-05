@@ -50,12 +50,12 @@ mutual
     _∷_ : {A : Type (b.suc n)}{t : Tm · (λ _ → A)} → Env D nv → Val D t → Env D (b.suc nv)
 
   -- Env that implements context
-  data _⊨_as_ {D : LCon} : Env D nv → Ctx Γ len → Sub · Γ → Set₁ where
+  data _⊨_as_ {D : LCon} : Env D len → Ctx Γ len → Sub · Γ → Set₁ where
     nil : ◆ ⊨ ◆ as ε
     --
     cons : 
       {A : Ty Γ n}{sΓ : Ctx Γ len}
-      {σ : Env D nv}{δ : Sub · Γ}
+      {σ : Env D len}{δ : Sub · Γ}
       {A' : Type (b.suc n)}{t : Tm · (λ _ → A')}{v : Val D t}
       (pf : σ ⊨ sΓ as δ) →
       (pA : A' b.≡ (A [ δ ]T) b.tt) → 
@@ -131,6 +131,28 @@ Lemma2 :
     wf ⊢ st ⊨ˢ (σ ∷ f) →
     b.Σ b.ℕ (λ nv → Env D nv)
 Lemma2 {σ = σ} {st = st ∷ clo {nv = nv} L σ'} (cons arg k eq) = nv b., σ'
+-- Lemma 2: Can match on 
+
+Lemma3 : 
+  ∀ {D : LCon}{tA : Ty · n}
+    {t : Tm · (↑T tA)} → 
+    Val D t → 
+    Set
+Lemma3 (lift v) = b.ℕ
+
+Lemma4 : 
+  ∀ {D : LCon} 
+      -- env setup
+      {Γ : Con}{sΓ : Ctx Γ len}
+      {env : Env D len}{δ : Sub · Γ}
+      {wf : env ⊨ sΓ as δ}
+      -- abstract types and terms
+      {A : Ty Γ n}{t : Tm Γ A}
+      -- stacks 
+      {σ : Stack Γ ns} 
+      {st : Env D (b.suc ns)} → 
+    wf ⊢ st ⊨ˢ (σ ∷ (↑ t)) → Set
+Lemma4 {δ = δ} {t = t} {σ = σ} {st = st ∷ lift {t = t'} v} (cons arg b.refl eq-t) = b.ℕ
 
 findˢ : 
   {A : Ty Γ n}{sΓ : Ctx Γ len}{env : Env D len}{δ : Sub · Γ}
@@ -176,3 +198,4 @@ clo⊨ {sΔ = sΔ ∷ A} {st ∷ v} {σ ∷ t} wf (cons wf-st b.refl b.refl) (co
   wf-env ⊢ dropᵉ m st ⊨ˢ drop m σ
 ⊨ˢ-drop {m = b.zero} pf = pf
 ⊨ˢ-drop {m = b.suc m} (cons pf ptt eq) = ⊨ˢ-drop pf
+   
