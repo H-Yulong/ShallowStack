@@ -14,7 +14,7 @@ open import Machine.Step
 
 open import Examples.ShallowDFC
 
-{-
+
 module Iden0 where
   prog : Is D ◆ 3 ◆ (◆ ∷ (nat 3))
   prog =
@@ -34,9 +34,9 @@ module Iden0 where
     ⟫ C-LIT
     ⟫ C-APP
     ⟫ C-VAR
-    ⟫ ?
+    ⟫ C-RET
     ⟫ ■)
--}
+
 
 module Identity where
 
@@ -62,30 +62,31 @@ module Identity where
    (cons nil b.refl b.refl) 
    b.refl b.refl
 
-  -- end : Config D
-  -- end = conf 
-  --   (RET {sΓ = ◆ ∷ U0 ∷ (El 𝟘)} {d = 3} {σ = ◆ ∷ 𝟘}) 
-  --   env (◆ ∷ lit-n 3) ◆ 
-  --   (cons (cons nil))
-  --   (cons nil b.refl b.refl)
-  --   (ε ▻ c Nat ▻ nat 3) 
-  --   b.refl
+  end : Config D
+  end = conf 
+    (RET {sΓ = ◆ ∷ U0 ∷ (El 𝟘)} {d = 3} {σ = ◆ ∷ 𝟘}) 
+    env (◆ ∷ lit-n 3) (◆ (lit-n 3)) 
+    (cons (cons nil b.refl) b.refl)
+    (cons nil b.refl b.refl)
+    b.refl
+    b.refl
 
-  trace : impl ⊢ start ↝* _
+  trace : impl ⊢ start ↝* end
   trace = 
       C-CLO
     ⟫ C-VAR
     ⟫ C-APP
     ⟫ C-VAR
     ⟫ C-CLO
-  --   ⟫ C-UP
-  --   ⟫ C-RET
-  --   ⟫ C-DOWN
-  --   ⟫ C-SWP
-  --   ⟫ C-APP
-  --   ⟫ C-VAR
-  --   ⟫ C-RET
+    ⟫ C-UP
+    ⟫ C-RET
+    ⟫ C-DOWN
+    ⟫ C-SWP
+    ⟫ C-APP
+    ⟫ C-VAR
+    ⟫ C-RET
     ⟫ ■
+
 
 module Application where
   
@@ -119,13 +120,6 @@ module Application where
     b.refl
     b.refl
   
-  -- end : Config D
-  -- end = conf (Proc.instr (impl IdNat)) (◆ ∷ lit-n 3) ◆
-  --   (◆ ∷
-  --   fr prog' env ◆ (cons (cons (cons (cons nil)))) nil
-  --   (ε ▻ c Nat ▻ LNat ⟦ ε ⟧ ▻ (IdNat ⟦ ε ⟧) ▻ nat 3) b.refl)
-  --   (cons nil) nil (ε ▻ nat 3) b.refl 
-
   trace : impl ⊢ start ↝* _
   trace = C-APP ⟫ C-VAR ⟫ C-RET ⟫ ■
 

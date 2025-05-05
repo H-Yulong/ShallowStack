@@ -197,7 +197,6 @@ data _⊢_↝_ {D : LCon} (I : Impl D) : Config D → Config D → Set₁ where
     {L : Pi D id sΔ' A+ B+}
     {env' : Env D ms'}
     {wf-env' : env' ⊨ sΔ' as δ'}
-    {ρ : Sub Δ Δ'}
     ----
     {pA :  ((Π A+ B+) [ δ' ]T) b.≡ ((Π A'' B'') [ δ ]T)}
     {ptf : f [ δ ] b.≡ Tm-subst (lapp D L δ') (b.cong-app pA)}
