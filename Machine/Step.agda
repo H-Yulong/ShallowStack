@@ -201,8 +201,7 @@ data _⊢_↝_ {D : LCon} (I : Impl D) : Config D → Config D → Set₁ where
     ----
     {pA :  ((Π A+ B+) [ δ' ]T) b.≡ ((Π A'' B'') [ δ ]T)}
     {ptf : f [ δ ] b.≡ Tm-subst (lapp D L δ') (b.cong-app pA)}
-    {v : Val D (a [ δ ])}
-    → 
+    {v : Val D (a [ δ ])} → 
     ------------------------------
     let new-fr = fr ins env st wf-env wf-st eq-A eq-t in
     let eq-A' = b.sym (inj₁ (b.cong-app pA)) in
@@ -210,152 +209,193 @@ data _⊢_↝_ {D : LCon} (I : Impl D) : Config D → Config D → Set₁ where
       ↝ conf (Proc.instr (I L)) (env' ∷ v) ◆ (sf ∷ new-fr) (cons wf-env' eq-A') nil 
         (b.ext-tt (inj₂ (b.cong-app pA) (lemma {A = A''} {δ} {a} (inj₁ (b.cong-app pA))))) 
         (lemma2 {f = f} {a = a} (b.cong-app pA) ptf (lapp-β D))
-
-  {--
   --
-  C-RET : 
-    -- callee env
-    {Γ : Con}
-    {sΓ : Ctx Γ len}
-    {env : Env D len}
-    {η : Sub · Γ}
-    {wf-env : env ⊨ sΓ as η}
-    -- callee stack
-    {σ'' : Stack Γ ns'}
-    {st : Env D ns'}
-    {wf-st : wf-env ⊢ st ⊨ˢ σ''}
-    -- return value
-    {A : Ty Γ n}
-    {t : Tm Γ A}
-    {v : Val D (t [ η ])}
-    -- previous frames
-    {Ω : Con}
-    {ω : Sub · Ω}
-    {sf : Sf D ω lf}
-    -- top frame
-    {Δ : Con}
-    {sΔ : Ctx Δ len'}
-    {δ : Sub · Δ}    
-    {ρ : Sub Δ Γ}
-    {eqc : η b.≡ ρ ∘ δ}
-    {σ : Stack Δ ms}
-    {σ' : Stack Δ ns}
-    {ins' : Is D sΔ d' (σ ∷ (t [ ρ ])) σ'}
-    {env' : Env D len'}
-    {st'  : Env D ms}
-    {wf-env' : env' ⊨ sΔ as δ}
-    {wf-st' : wf-env' ⊢ st' ⊨ˢ σ}
-    {ρ' : Sub Ω Δ}
-    {eqc' : δ b.≡ ρ' ∘ ω}
-    → 
-    let frame = fr ins' env' st' wf-env' wf-st' ρ' eqc' in
-    I ⊢ conf (RET {d = d} {σ = σ'' ∷ t}) env (st ∷ v) (sf ∷ frame) wf-env (cons {t = t} wf-st b.refl b.refl) ρ eqc
-      ↝ conf ins' env' (st' ∷ v) sf wf-env' (cons wf-st' (b.cong A (b.cong-app eqc)) (lem {t = t} eqc)) ρ' eqc'
+  C-RET :
+      {Δ' Δ : Con}
+      {sΔ : Ctx Δ len}
+      {sΔ' : Ctx Δ' len'}
+      ----
+      {σ : Stack Δ ms}
+      {A' : Ty Δ n}
+      {t' : Tm Δ A'}
+      ----
+      {θ : Stack Δ' ms'}
+      {θ' : Stack Δ' ns'}
+      {B : Ty Δ' n}
+      {B' : Ty Δ' m}
+      {s : Tm Δ' B}
+      {s' : Tm Δ' B'}
+      {ins : Is D sΔ' d' (θ ∷ s) (θ' ∷ s')}
+      {env' : Env D len'}
+      {st' : Env D ms'}
+      ----
+      {δ' : Sub · Δ'}
+      {wf-env' : env' ⊨ sΔ' as δ'}
+      {wf-st' : wf-env' ⊢ st' ⊨ˢ θ}
+      ----
+        {Γ : Con}
+        {A : Ty Γ m}
+        {r : Tm Γ A}
+        {η : Sub · Γ}
+      {eq-A' : B' [ δ' ]T b.≡ A [ η ]T}
+      {eq-t' : r [ η ] b.≡ Tm-subst (s' [ δ' ]) (b.cong-app eq-A')}
+      ----
+      {env : Env D len}
+      {st : Env D ms}
+      {sf : Sf D r η lf}
+      ----
+      {δ : Sub · Δ}
+      {wf-env : env ⊨ sΔ as δ}
+      {wf-st : wf-env ⊢ st ⊨ˢ σ}
+      {eq-A : A' [ δ ]T b.≡ B [ δ' ]T}
+      {eq-t : s [ δ' ] b.≡ Tm-subst (t' [ δ ]) (b.cong-app eq-A)}
+      ----
+      {v : Val D (t' [ δ ])} → 
+    ------------------------------
+    let new-fr = fr ins env' st' wf-env' wf-st' eq-A' eq-t' in
+    I ⊢ conf (RET {d = d} {σ = σ ∷ t'}) env (st ∷ v) (sf ∷ new-fr) wf-env (cons wf-st b.refl b.refl) eq-A eq-t
+      ↝ conf ins env' (st' ∷ v) sf wf-env' (cons wf-st' (b.cong-app eq-A) eq-t) eq-A' eq-t'
   --
   C-TLIT : 
-    {Δ : Con}
-    {δ : Sub · Δ}
+    {Γ Δ : Con}
+    {sΔ : Ctx Δ len'}
     {A : Ty Γ n}
-    {σ : Stack Γ ms}
-    {σ' : Stack Γ ns}
-    {ins : Is D sΓ d (σ ∷ (c A)) σ'}
-    {env : Env D len}
-    {st : Env D ms}
+    {s : Tm Γ A}
     {η : Sub · Γ}
-    {sf : Sf D δ lf}
-    {wf-env : env ⊨ sΓ as η}
+    {σ : Stack Δ ms}
+    {σ' : Stack Δ ns}
+    {A' : Ty Δ n}
+    {t' : Tm Δ A'}
+    ----
+    {B : Ty Δ m}
+    {ins : Is D sΔ d (σ ∷ (c B)) (σ' ∷ t')}
+    {env : Env D len'}
+    {st : Env D ms}
+    {sf : Sf D s η lf}
+    ----
+    {δ : Sub · Δ}
+    {wf-env : env ⊨ sΔ as δ}
     {wf-st : wf-env ⊢ st ⊨ˢ σ}
-    {ρ : Sub Δ Γ}
-    {eqc : η b.≡ ρ ∘ δ} → 
+    {eq-A : A' [ δ ]T b.≡ A [ η ]T}
+    {eq-t : s [ η ] b.≡ Tm-subst (t' [ δ ]) (b.cong-app eq-A)} →  
     ----------------------------
-    I ⊢ (conf (TLIT A >> ins) env st sf wf-env wf-st ρ eqc) 
-    ↝ (conf ins env (st ∷ ty (A [ η ]T)) sf wf-env (cons wf-st b.refl b.refl) ρ eqc)   
+    I ⊢ (conf (TLIT B >> ins) env st sf wf-env wf-st eq-A eq-t) 
+    ↝ (conf ins env (st ∷ ty (B [ δ ]T)) sf wf-env (cons wf-st b.refl b.refl) eq-A eq-t)   
   -- 
   C-LIT : 
-    {Δ : Con}
-    {δ : Sub · Δ}
-    {k : ℕ}
-    {σ : Stack Γ ms}
-    {σ' : Stack Γ ns}
-    {ins : Is D sΓ d (σ ∷ (nat k)) σ'}
-    {env : Env D len}
-    {st : Env D ms}
+    {Γ Δ : Con}
+    {sΔ : Ctx Δ len'}
+    {A : Ty Γ n}
+    {s : Tm Γ A}
     {η : Sub · Γ}
-    {sf : Sf D δ lf}
-    {wf-env : env ⊨ sΓ as η}
+    {σ : Stack Δ ms}
+    {σ' : Stack Δ ns}
+    {A' : Ty Δ n}
+    {t' : Tm Δ A'}
+    ----
+    {k : ℕ}
+    {ins : Is D sΔ d (σ ∷ (nat k)) (σ' ∷ t')}
+    {env : Env D len'}
+    {st : Env D ms}
+    {sf : Sf D s η lf}
+    ----
+    {δ : Sub · Δ}
+    {wf-env : env ⊨ sΔ as δ}
     {wf-st : wf-env ⊢ st ⊨ˢ σ}
-    {ρ : Sub Δ Γ}
-    {eqc : η b.≡ ρ ∘ δ} → 
+    {eq-A : A' [ δ ]T b.≡ A [ η ]T}
+    {eq-t : s [ η ] b.≡ Tm-subst (t' [ δ ]) (b.cong-app eq-A)} →  
     ----------------------------
-    I ⊢ (conf (LIT k >> ins) env st sf wf-env wf-st ρ eqc) 
-      ↝ (conf ins env (st ∷ lit-n k) sf wf-env (cons wf-st b.refl b.refl) ρ eqc)      
+    I ⊢ (conf (LIT k >> ins) env st sf wf-env wf-st eq-A eq-t) 
+      ↝ (conf ins env (st ∷ lit-n k) sf wf-env (cons wf-st b.refl b.refl) eq-A eq-t)      
   --
   C-SWP : 
-    {Δ : Con}
-    {δ : Sub · Δ}
-    {A : Ty Γ n}{t : Tm Γ A}
-    {B : Ty Γ m}{t' : Tm Γ B}
-    {σ : Stack Γ ms}
-    {σ' : Stack Γ ns}
-    {ins : Is D sΓ d (σ ∷ t' ∷ t) σ'}
-    {env : Env D len}
-    {st : Env D ms}
+    {Γ Δ : Con}
+    {sΔ : Ctx Δ len'}
+    {A : Ty Γ n}
+    {s : Tm Γ A}
     {η : Sub · Γ}
-    {sf : Sf D δ lf}
-    {wf-env : env ⊨ sΓ as η}
+    {σ : Stack Δ ms}
+    {σ' : Stack Δ ns}
+    {A' : Ty Δ n}
+    {t' : Tm Δ A'}
+    ----
+    {B1 : Ty Δ m}
+    {t1 : Tm Δ B1}
+    {B2 : Ty Δ m'}
+    {t2 : Tm Δ B2}
+    {ins : Is D sΔ d (σ ∷ t2 ∷ t1) (σ' ∷ t')}
+    {env : Env D len'}
+    {st : Env D ms}
+    {sf : Sf D s η lf}
+    ----
+    {δ : Sub · Δ}
+    {v1 : Val D (t1 [ δ ])}
+    {v2 : Val D (t2 [ δ ])}
+    {wf-env : env ⊨ sΔ as δ}
     {wf-st : wf-env ⊢ st ⊨ˢ σ}
-    {v : Val D (t [ η ])}
-    {v' : Val D (t' [ η ])}
-    {ρ : Sub Δ Γ}
-    {eqc : η b.≡ ρ ∘ δ} → 
+    {eq-A : A' [ δ ]T b.≡ A [ η ]T}
+    {eq-t : s [ η ] b.≡ Tm-subst (t' [ δ ]) (b.cong-app eq-A)} →  
     ----------------------------
     let wf-st1 = cons (cons wf-st b.refl b.refl) b.refl b.refl in
     let wf-st2 = cons (cons wf-st b.refl b.refl) b.refl b.refl in 
-    I ⊢ (conf (SWP >> ins) env (st ∷ v ∷ v') sf wf-env wf-st1 ρ eqc) 
-      ↝ (conf ins env (st ∷ v' ∷ v) sf wf-env wf-st2 ρ eqc)      
+    I ⊢ (conf (SWP >> ins) env (st ∷ v1 ∷ v2) sf wf-env wf-st1 eq-A eq-t) 
+      ↝ (conf ins env (st ∷ v2 ∷ v1) sf wf-env wf-st2 eq-A eq-t)      
   --
   C-UP : 
-    {Δ : Con}
-    {δ : Sub · Δ}
+    {Γ Δ : Con}
+    {sΔ : Ctx Δ len'}
     {A : Ty Γ n}
-    {t : Tm Γ A}
-    {σ : Stack Γ ms}
-    {σ' : Stack Γ ns}
-    {ins : Is D sΓ d (σ ∷ (↑ t)) σ'}
-    {env : Env D len}
-    {st : Env D ms}
+    {s : Tm Γ A}
     {η : Sub · Γ}
-    {sf : Sf D δ lf}
-    {wf-env : env ⊨ sΓ as η}
+    {σ : Stack Δ ms}
+    {σ' : Stack Δ ns}
+    {A' : Ty Δ n}
+    {t' : Tm Δ A'}
+    ----
+    {B : Ty Δ m}
+    {t : Tm Δ B}
+    {ins : Is D sΔ d (σ ∷ ↑ t) (σ' ∷ t')}
+    {env : Env D len'}
+    {st : Env D ms}
+    {sf : Sf D s η lf}
+    ----
+    {δ : Sub · Δ}
+    {v : Val D (t [ δ ])}
+    {wf-env : env ⊨ sΔ as δ}
     {wf-st : wf-env ⊢ st ⊨ˢ σ}
-    {v : Val D (t [ η ])}
-    {ρ : Sub Δ Γ}
-    {eqc : η b.≡ ρ ∘ δ} → 
+    {eq-A : A' [ δ ]T b.≡ A [ η ]T}
+    {eq-t : s [ η ] b.≡ Tm-subst (t' [ δ ]) (b.cong-app eq-A)} →  
     ----------------------------
-    I ⊢ (conf (UP >> ins) env (st ∷ v) sf wf-env (cons wf-st b.refl b.refl) ρ eqc) 
-      ↝ (conf ins env (st ∷ lift v) sf wf-env (cons wf-st b.refl b.refl) ρ eqc)      
+    I ⊢ (conf (UP >> ins) env (st ∷ v) sf wf-env (cons wf-st b.refl b.refl) eq-A eq-t) 
+      ↝ (conf ins env (st ∷ lift v) sf wf-env (cons wf-st b.refl b.refl) eq-A eq-t)      
   --
   C-DOWN : 
-    {Δ : Con}
-    {δ : Sub · Δ}
+    {Γ Δ : Con}
+    {sΔ : Ctx Δ len'}
     {A : Ty Γ n}
-    {t : Tm Γ A}
-    {σ : Stack Γ ms}
-    {σ' : Stack Γ ns}
-    {ins : Is D sΓ d (σ ∷ t) σ'}
-    {env : Env D len}
-    {st : Env D ms}
+    {s : Tm Γ A}
     {η : Sub · Γ}
-    {sf : Sf D δ lf}
-    {wf-env : env ⊨ sΓ as η}
+    {σ : Stack Δ ms}
+    {σ' : Stack Δ ns}
+    {A' : Ty Δ n}
+    {t' : Tm Δ A'}
+    ----
+    {B : Ty Δ m}
+    {t : Tm Δ B}
+    {ins : Is D sΔ d (σ ∷ t) (σ' ∷ t')}
+    {env : Env D len'}
+    {st : Env D ms}
+    {sf : Sf D s η lf}
+    ----
+    {δ : Sub · Δ}
+    {v : Val D (t [ δ ])}
+    {wf-env : env ⊨ sΔ as δ}
     {wf-st : wf-env ⊢ st ⊨ˢ σ}
-    {v : Val D (t [ η ])}
-    {ρ : Sub Δ Γ}
-    {eqc : η b.≡ ρ ∘ δ} → 
+    {eq-A : A' [ δ ]T b.≡ A [ η ]T}
+    {eq-t : s [ η ] b.≡ Tm-subst (t' [ δ ]) (b.cong-app eq-A)} →  
     ----------------------------
-    I ⊢ (conf (DOWN >> ins) env (st ∷ lift v) sf wf-env (cons wf-st b.refl b.refl) ρ eqc) 
-      ↝ (conf ins env (st ∷ v) sf wf-env (cons wf-st b.refl b.refl) ρ eqc)
--}
+    I ⊢ (conf (DOWN >> ins) env (st ∷ lift v) sf wf-env (cons wf-st b.refl b.refl) eq-A eq-t) 
+      ↝ (conf ins env (st ∷ v) sf wf-env (cons wf-st b.refl b.refl) eq-A eq-t)
 
 infixr 20 _⟫_
 data _⊢_↝*_ {D : LCon} (I : Impl D) (c : Config D) : Config D → Set₁ where

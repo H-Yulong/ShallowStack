@@ -86,4 +86,46 @@ module Identity where
   --   ⟫ C-VAR
   --   ⟫ C-RET
     ⟫ ■
- 
+
+module Application where
+  
+  open import Examples.App
+
+  C : Con
+  C = C0 ▹ (El 𝟚)
+  
+  sC : Ctx C 4
+  sC = ◆ ∷ A ∷ B ∷ Tf ∷ (El 𝟚)
+
+  σ : Stack C 2
+  σ = ◆ ∷ 𝟙 ∷ 𝟘
+
+  prog : Is D sC 3 σ (◆ ∷ 𝟙 $ 𝟘)
+  prog = APP >> RET
+
+  prog' : Is D sC 3 (◆ ∷ 𝟙 $ 𝟘) (◆ ∷ 𝟙 $ 𝟘)
+  prog' = RET
+
+  env : Env D 4
+  env = ◆ ∷ ty Nat ∷ clo LNat ◆ ⦃ nil ⦄ ∷ clo IdNat ◆ ⦃ nil ⦄ ∷ lit-n 3 
+
+  st : Env D 2
+  st = ◆ ∷ clo IdNat ◆ ⦃ nil ⦄ ∷ lit-n 3 
+
+  start : Config D
+  start = conf prog env st (◆ (lit-n 3))
+    (cons (cons (cons (cons nil b.refl) b.refl) b.refl) b.refl)
+    (cons (cons nil b.refl b.refl) b.refl b.refl) 
+    b.refl
+    b.refl
+  
+  -- end : Config D
+  -- end = conf (Proc.instr (impl IdNat)) (◆ ∷ lit-n 3) ◆
+  --   (◆ ∷
+  --   fr prog' env ◆ (cons (cons (cons (cons nil)))) nil
+  --   (ε ▻ c Nat ▻ LNat ⟦ ε ⟧ ▻ (IdNat ⟦ ε ⟧) ▻ nat 3) b.refl)
+  --   (cons nil) nil (ε ▻ nat 3) b.refl 
+
+  trace : impl ⊢ start ↝* _
+  trace = C-APP ⟫ C-VAR ⟫ C-RET ⟫ ■
+
