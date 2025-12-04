@@ -68,6 +68,10 @@ open Σ public
 _×_ : ∀{ℓ ℓ'} → Set ℓ → Set ℓ' → Set (ℓ ⊔ ℓ')
 A × B = Σ A λ _ → B
 
+data _+T_ {ℓ ℓ'} (A : Set ℓ) (B : Set ℓ') : Set (ℓ ⊔ ℓ') where
+  inL : A → A +T B
+  inR : B → A +T B
+
 {- Boolean -}
 data Bool : Set where
   true false : Bool

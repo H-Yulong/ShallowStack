@@ -107,13 +107,14 @@ data _⊢_⊨ˢ_ {D : LCon} {sΓ : Ctx Γ len} {env : Env D len} {δ : Sub · Γ
   -- under substitution is not refl, since label contexts are given as a signature.
   -- It doesn't hurt the development so far...
 
-Lemma1 : 
-  ∀ {D : LCon}{tA : Type (b.suc n)}
-    {tB : ⟦ tA ⟧ → Type (b.suc n)}
-    {f : Tm · (λ _ → `Π tA tB)} → 
-    Val D f → 
-    Set
-Lemma1 (clo L σ) = b.ℕ
+-- Lemma1 : 
+--   ∀ {D : LCon}{tA : Type (b.suc n)}
+--     {tB : ⟦ tA ⟧ → Type (b.suc n)}
+--     {f : Tm · (λ _ → `Π tA tB)} → 
+--     Val D f → 
+--     Set
+-- Lemma1 (clo L σ) = b.ℕ
+-- ≡
 
 Lemma2 :
     ∀ {D : LCon} 

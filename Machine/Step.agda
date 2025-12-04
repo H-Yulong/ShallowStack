@@ -345,6 +345,12 @@ data _⊢_↝_ {D : LCon} (I : Impl D) : Config D → Config D → Set₁ where
     I ⊢ (conf (SWP >> ins) env (st ∷ v1 ∷ v2) sf wf-env wf-st1 eq-A eq-t) 
       ↝ (conf ins env (st ∷ v2 ∷ v1) sf wf-env wf-st2 eq-A eq-t)      
   --
+  C-INC :
+    ----
+    {ins : Is D sΔ d (σ
+    I ⊢ conf {!   !} {!   !} {!   !} {!   !} {!   !} {!   !} {!   !} {!   !}
+      ↝ conf {!   !} {!   !} {!   !} {!   !} {!   !} {!   !} {!   !} {!   !}
+  --
   C-UP : 
     {Γ Δ : Con}
     {sΔ : Ctx Δ len'}
@@ -413,11 +419,26 @@ data _⊢_⇓_
   (I : Impl D) (c : Config D) (v : Val D t) : Set₁ where
   --
   Halt : 
-    ∀ {σ : Stack · ns} 
+    ∀ {Δ : Con}
+      {sΔ : Ctx Δ ms}
+      {A' : Ty Δ n}
+      {t' : Tm Δ A'}
+      {σ : Stack Δ ns}
+      {δ : Sub · Δ}
+      {v' : Val D (t' [ δ ])}
+      {env : Env D ms} 
       {st : Env D ns} 
-      {wf-st : nil ⊢ st ⊨ˢ σ} →
-    I ⊢ c ↝* conf (RET {d = d} {σ = σ ∷ t}) ◆ (st ∷ v) (◆ v) nil (cons wf-st b.refl b.refl) b.refl b.refl → 
-    -------------------------------------------------------
+      {wf-env : env ⊨ sΔ as δ}
+      {wf-st : wf-env ⊢ st ⊨ˢ σ}
+      {eq-A : A' [ δ ]T b.≡ (λ _ → A)}
+      {eq-t : t b.≡ Tm-subst (t' [ δ ]) (b.cong-app eq-A)} →
+    I ⊢ c ↝* conf (RET {d = d} {σ = σ ∷ t'}) env (st ∷ v') (◆ v) wf-env (cons wf-st b.refl b.refl) eq-A eq-t → 
+    --------------------------------------------------------
     I ⊢ c ⇓ v
 
-  
+data _⊢_⇓! {D : LCon} (I : Impl D) (c : Config D) : Set₁ where
+  --
+  Halt! : 
+    ∀ {A : Type (b.suc n)} 
+      {t : Tm · (λ _ → A)}
+      (v : Val D t) → I ⊢ c ⇓ v → I ⊢ c ⇓!

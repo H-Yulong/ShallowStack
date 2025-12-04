@@ -38,6 +38,9 @@ module SourceExamples where
   test1 : Tm · (Π U0 (Π (↑T (El 𝟘)) (↑T (El 𝟙))))
   test1 = lam (lam 𝟘)
 
+  -- (A : Set) → A → A
+  -- λ A : Set. λ x : A . x
+
   -- Application
   -- It takes a while to check this
   -- Might take even longer to check full dependent composition
@@ -78,7 +81,7 @@ module StackExamples where
     >> APP
     >> RET
 
-  -- Identity
+  -- Identity  (A : Set0, x : A)
   test2 : Is D (◆ ∷ U0 ∷ (El 𝟘)) 3 (◆ ∷ 𝟘) (◆ ∷ 𝟘)
   test2 = 
        CLO 0 Iden
@@ -135,10 +138,11 @@ module StackExamples where
     >> ITER Nat (LIT y >> RET) (POP >> INC >> RET)
     >> RET
 
+
   -- Example included in TYPES2025 abstract
   test-TYPES : Is D ◆ 1 ◆ (◆ ∷ nat 5)
   test-TYPES = 
-       TLIT Nat 
+       TLIT Nat
     >> CLO 0 LNat 
     >> LIT 2 
     >> CLO 1 Add0 
@@ -146,4 +150,4 @@ module StackExamples where
     >> LIT 3 
     >> APP 
     >> RET
- 
+  

@@ -134,27 +134,27 @@ private variable
 
 mutual
 
-  data Is (D : LCon)(sΓ : Ctx Γ len)(d : b.ℕ) : Stack Γ ms → Stack Γ ns → Set₁ where
+  data Is (D : LCon)(sΓ : Ctx Γ len) : Stack Γ ms → Stack Γ ns → Set₁ where
     --
-    RET : Is D sΓ d σ σ
+    RET : Is D sΓ σ σ
     --
     _>>_ : 
       {σ' : Stack Γ ms}{σ'' : Stack Γ ns} → 
-      Instr D sΓ d σ σ' → Is D sΓ d σ' σ'' → Is D sΓ d σ σ''
+      Instr D sΓ σ σ' → Is D sΓ σ' σ'' → Is D sΓ σ σ''
 
-  data Instr (D : LCon)(sΓ : Ctx Γ len)(d : b.ℕ) : Stack Γ ms → Stack Γ ns → Set₁ where
-    NOP : Instr D sΓ d σ σ
+  data Instr (D : LCon)(sΓ : Ctx Γ len) : Stack Γ ms → Stack Γ ns → Set₁ where
+    NOP : Instr D sΓ σ σ
     --
-    VAR : {A : Ty Γ n}(x : V sΓ A) → Instr D sΓ d σ (σ ∷ ⟦ x ⟧V)
+    VAR : {A : Ty Γ n}(x : V sΓ A) → Instr D sΓ σ (σ ∷ ⟦ x ⟧V)
     --
-    POP : {A : Ty Γ n}{t : Tm Γ A} → Instr D sΓ d (σ ∷ t) σ
+    -- POP : {A : Ty Γ n}{t : Tm Γ A} → Instr D sΓ (σ ∷ t) σ
     --
-    TPOP : ∀{A : Tm Γ (U n)} → Instr D sΓ d (σ ∷ A) σ
+    -- TPOP : ∀{A : Tm Γ (U n)} → Instr D sΓ (σ ∷ A) σ
     --
     APP : 
         {A : Ty Γ n}{B : Ty (Γ ▹ A) n}
         {f : Tm Γ (Π A B)} {a : Tm Γ A} → 
-      Instr D sΓ d (σ ∷ f ∷ a) (σ ∷ f $ a)
+      Instr D sΓ (σ ∷ f ∷ a) (σ ∷ f $ a)
     --
     CLO : 
       ∀ (ns : b.ℕ)
@@ -164,85 +164,84 @@ mutual
         {δ : Sub Γ Δ}
       (L : Pi D id sΔ A B)
         ⦃ pf : sΓ ⊢ (take ns σ) of sΔ as δ ⦄ →
-        ⦃ bound : id < d ⦄ →  
-      Instr D sΓ d σ (drop ns σ ∷ lapp D L δ)
+      Instr D sΓ σ (drop ns σ ∷ lapp D L δ)
     --
-    LIT : (n : b.ℕ) → Instr D sΓ d σ (σ ∷ (nat n))
+    LIT : (n : b.ℕ) → Instr D sΓ σ (σ ∷ (nat n))
     --
-    TLIT : (A : Ty Γ n) → Instr D sΓ d σ (σ ∷ (c A))
+    TLIT : (A : Ty Γ n) → Instr D sΓ σ (σ ∷ (c A))
     --
     SWP :
         {A : Ty Γ n}{A' : Ty Γ m}
         {t : Tm Γ A}{t' : Tm Γ A'} → 
-      Instr D sΓ d (σ ∷ t ∷ t') (σ ∷ t' ∷ t)
+      Instr D sΓ (σ ∷ t ∷ t') (σ ∷ t' ∷ t)
     --
-    ST : {A : Ty Γ n}(x : SVar σ A) → Instr D sΓ d σ (σ ∷ find σ x)
+    ST : {A : Ty Γ n}(x : SVar σ A) → Instr D sΓ σ (σ ∷ find σ x)
     --
-    INC : {x : Tm Γ Nat} → Instr D sΓ d (σ ∷ x) (σ ∷ suc x)
+    INC : {x : Tm Γ Nat} → Instr D sΓ (σ ∷ x) (σ ∷ suc x)
     --
-    ITER : 
-      (P : Ty (Γ ▹ Nat) n)
-        {z : Tm Γ (P [ ✧ ▻ zero ]T)}
-      (Z : Is D sΓ d σ (σ ∷ z))
-        {s : Tm (Γ ▹ Nat ▹ P) (P [ p² ▻ (suc 𝟙) ]T)}
-      (S : Is D (sΓ ∷ Nat ∷ P) d (σ [ p² ]st ∷ 𝟘 ∷ 𝟙) (σ [ p² ]st ∷ s))
-        {x : Tm Γ Nat} → 
-      Instr D sΓ d (σ ∷ x) (σ ∷ iter P z s x)
+    -- ITER : 
+    --   (P : Ty (Γ ▹ Nat) n)
+    --     {z : Tm Γ (P [ ✧ ▻ zero ]T)}
+    --   (Z : Is D sΓ σ (σ ∷ z))
+    --     {s : Tm (Γ ▹ Nat ▹ P) (P [ p² ▻ (suc 𝟙) ]T)}
+    --   (S : Is D (sΓ ∷ Nat ∷ P) d (σ [ p² ]st ∷ 𝟘 ∷ 𝟙) (σ [ p² ]st ∷ s))
+    --     {x : Tm Γ Nat} → 
+    --   Instr D sΓ (σ ∷ x) (σ ∷ iter P z s x)
     --
-    IF : 
-      (P : Ty (Γ ▹ Bool) n)
-        {t : Tm Γ (P [ ✧ ▻ true ]T)}
-      (T : Is D sΓ d σ (σ ∷ t))
-        {f : Tm Γ (P [ ✧ ▻ false ]T)}
-      (F : Is D sΓ d σ (σ ∷ f))
-        {b : Tm Γ Bool} → 
-      Instr D sΓ d (σ ∷ b) (σ ∷ if P t f b) 
+    -- IF : 
+    --   (P : Ty (Γ ▹ Bool) n)
+    --     {t : Tm Γ (P [ ✧ ▻ true ]T)}
+    --   (T : Is D sΓ σ (σ ∷ t))
+    --     {f : Tm Γ (P [ ✧ ▻ false ]T)}
+    --   (F : Is D sΓ σ (σ ∷ f))
+    --     {b : Tm Γ Bool} → 
+    --   Instr D sΓ (σ ∷ b) (σ ∷ if P t f b) 
     --
-    TRUE : Instr D sΓ d σ (σ ∷ true)
-    --
-    FALSE : Instr D sΓ d σ (σ ∷ false)
-    --
-    UNIT : Instr D sΓ d σ (σ ∷ tt)
-    --
-    PAIR : 
-        {A : Ty Γ n}{B : Ty (Γ ▹ A) n}
-        {a : Tm Γ A}{b : Tm Γ (B [ ✧ ▻ a ]T)} → 
-      Instr D sΓ d (σ ∷ a ∷ b) (σ ∷ (_,_ {B = B} a b))
-    --
-    FST : {A : Ty Γ n}{B : Ty (Γ ▹ A) n}{p : Tm Γ (Σ A B)} → 
-      Instr D sΓ d (σ ∷ p) (σ ∷ fst p) 
-    --
-    SND : {A : Ty Γ n}{B : Ty (Γ ▹ A) n}{p : Tm Γ (Σ A B)} → 
-      Instr D sΓ d (σ ∷ p) (σ ∷ snd p) 
-    ----
-    REFL : {A : Ty Γ n}(u : Tm Γ A) → Instr D sΓ d σ (σ ∷ refl u) 
-    -- Proofs are erasable at runtime, so we can 
-    -- freely create refl as we want
-    --
-    JRULE : 
-        {A : Ty Γ n}{u v : Tm Γ A}
-      (C : Ty (Γ ▹ A ▹ Id (A [ p ]T) (u [ p ]) 𝟘) n)
-      (pf : Tm Γ (Id A u v))
-        {w : Tm Γ (C [ ✧ ▻ u ▻ refl u ]T)}
-      (W : Is D sΓ d σ (σ ∷ w)) → 
-      Instr D sΓ d (σ ∷ pf) (σ ∷ J {u = u} {v} C w pf) 
-    -- Note that we don't allow "extensional equality", like
-    -- ∀{σ A u v} → (pf : Id A u v) → Instr D sΓ (σ ∷ u) (σ ∷ v)
+    -- TRUE : Instr D sΓ σ (σ ∷ true)
+    -- --
+    -- FALSE : Instr D sΓ σ (σ ∷ false)
+    -- --
+    -- UNIT : Instr D sΓ σ (σ ∷ tt)
+    -- --
+    -- PAIR : 
+    --     {A : Ty Γ n}{B : Ty (Γ ▹ A) n}
+    --     {a : Tm Γ A}{b : Tm Γ (B [ ✧ ▻ a ]T)} → 
+    --   Instr D sΓ (σ ∷ a ∷ b) (σ ∷ (_,_ {B = B} a b))
+    -- --
+    -- FST : {A : Ty Γ n}{B : Ty (Γ ▹ A) n}{p : Tm Γ (Σ A B)} → 
+    --   Instr D sΓ (σ ∷ p) (σ ∷ fst p) 
+    -- --
+    -- SND : {A : Ty Γ n}{B : Ty (Γ ▹ A) n}{p : Tm Γ (Σ A B)} → 
+    --   Instr D sΓ (σ ∷ p) (σ ∷ snd p) 
+    -- ----
+    -- REFL : {A : Ty Γ n}(u : Tm Γ A) → Instr D sΓ σ (σ ∷ refl u) 
+    -- -- Proofs are erasable at runtime, so we can 
+    -- -- freely create refl as we want
+    -- --
+    -- JRULE : 
+    --     {A : Ty Γ n}{u v : Tm Γ A}
+    --   (C : Ty (Γ ▹ A ▹ Id (A [ p ]T) (u [ p ]) 𝟘) n)
+    --   (pf : Tm Γ (Id A u v))
+    --     {w : Tm Γ (C [ ✧ ▻ u ▻ refl u ]T)}
+    --   (W : Is D sΓ σ (σ ∷ w)) → 
+    --   Instr D sΓ (σ ∷ pf) (σ ∷ J {u = u} {v} C w pf) 
+    -- -- Note that we don't allow "extensional equality", like
+    -- -- ∀{σ A u v} → (pf : Id A u v) → Instr D sΓ (σ ∷ u) (σ ∷ v)
     --
     UP : {A : Ty Γ n}{t : Tm Γ A} → 
-      Instr D sΓ d (σ ∷ t) (σ ∷ ↑ t)
+      Instr D sΓ (σ ∷ t) (σ ∷ ↑ t)
     --
     DOWN : {A : Ty Γ n}{t : Tm Γ A} → 
-      Instr D sΓ d (σ ∷ ↑ t) (σ ∷ t)
+      Instr D sΓ (σ ∷ ↑ t) (σ ∷ t)
 
 
 {- Procedures -}
-record Proc (D : LCon) (sΓ : Ctx Γ len) (d : b.ℕ) {A : Ty Γ n} (t : Tm Γ A) : Set₁ where
+record Proc (D : LCon) (sΓ : Ctx Γ len) {A : Ty Γ n} (id : ℕ) (t : Tm Γ A): Set₁ where
   constructor proc
   field
     {nr} : b.ℕ
     {σ'} : Stack Γ nr
-    instr : Is D sΓ d ◆ (σ' ∷ t)
+    instr : Is D sΓ ◆ (σ' ∷ t)
 
 Impl : (D : LCon) → Set₁
 Impl D = 
