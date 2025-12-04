@@ -19,7 +19,7 @@ open b using (ℕ; _+_; _≡_)
 record Frame (D : LCon) {n : ℕ} {Γ : Con} {A : Ty Γ n} (s : Tm Γ A) (η : Sub · Γ) : Set₁ where
   constructor fr
   field
-    {len ms ns m d} : ℕ
+    {len ms ns m} : ℕ
     {Δ} : Con
     {sΔ} : Ctx Δ len
     {σ} : Stack Δ ms
@@ -29,7 +29,7 @@ record Frame (D : LCon) {n : ℕ} {Γ : Con} {A : Ty Γ n} (s : Tm Γ A) (η : S
     {A'} : Ty Δ n
     {t'} : Tm Δ A'
     ----
-    ins : Is D sΔ d (σ ∷ t) (σ' ∷ t')
+    ins : Is D sΔ (σ ∷ t) (σ' ∷ t')
     env : Env D len
     st : Env D ms
     ----
@@ -74,7 +74,7 @@ data Sf (D : LCon) : ∀{n}{Γ : Con}{A : Ty Γ n} → Tm Γ A → Sub · Γ →
 record Config (D : LCon) : Set₁ where
   constructor conf
   field
-    {len ms ns n lf d} : ℕ
+    {len ms ns n lf} : ℕ
     {Γ Δ} : Con
     {sΔ} : Ctx Δ len
     {σ} : Stack Δ ms
@@ -85,7 +85,7 @@ record Config (D : LCon) : Set₁ where
     {A'} : Ty Δ n
     {t'} : Tm Δ A'
     ----
-    ins : Is D sΔ d σ (σ' ∷ t')
+    ins : Is D sΔ σ (σ' ∷ t')
     env : Env D len
     st : Env D ms
     ----

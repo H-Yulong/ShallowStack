@@ -16,7 +16,7 @@ open b using (ℕ; _+_)
 open LCon
 
 private variable
-  m n m' len len' ms ms' ns ns' lf d d' id : ℕ
+  m n m' len len' ms ms' ns ns' lf id : ℕ
 
 lemma : 
   ∀ {Δ : Con}{A : Ty Δ n}{δ : Sub · Δ}{a : Tm Δ A} → 
@@ -62,7 +62,7 @@ data _⊢_↝_ {D : LCon} (I : Impl D) : Config D → Config D → Set₁ where
     {A' : Ty Δ n}
     {t' : Tm Δ A'}
     ----
-    {ins : Is D sΔ d σ (σ' ∷ t')}
+    {ins : Is D sΔ σ (σ' ∷ t')}
     {env : Env D len'}
     {st : Env D ms}
     {sf : Sf D s η lf}
@@ -89,7 +89,7 @@ data _⊢_↝_ {D : LCon} (I : Impl D) : Config D → Config D → Set₁ where
     ----
     {B : Ty Δ m}
     {x : V sΔ B}
-    {ins : Is D sΔ d (σ ∷ ⟦ x ⟧V) (σ' ∷ t')}
+    {ins : Is D sΔ (σ ∷ ⟦ x ⟧V) (σ' ∷ t')}
     {env : Env D len'}
     {st : Env D ms}
     {sf : Sf D s η lf}
@@ -116,7 +116,7 @@ data _⊢_↝_ {D : LCon} (I : Impl D) : Config D → Config D → Set₁ where
     ----
     {B : Ty Δ m}
     {x : SVar σ B}
-    {ins : Is D sΔ d (σ ∷ find σ x) (σ' ∷ t')}
+    {ins : Is D sΔ (σ ∷ find σ x) (σ' ∷ t')}
     {env : Env D len'}
     {st : Env D ms}
     {sf : Sf D s η lf}
@@ -148,7 +148,7 @@ data _⊢_↝_ {D : LCon} (I : Impl D) : Config D → Config D → Set₁ where
     {L : Pi D id sΔ' A'' B''}
     {ρ : Sub Δ Δ'}
     ----
-    {ins : Is D sΔ d (drop ms' σ ∷ lapp D L ρ) (σ' ∷ t')}
+    {ins : Is D sΔ (drop ms' σ ∷ lapp D L ρ) (σ' ∷ t')}
     {env : Env D len'}
     {st : Env D (ms' + ms)}
     {sf : Sf D s η lf}
@@ -160,7 +160,6 @@ data _⊢_↝_ {D : LCon} (I : Impl D) : Config D → Config D → Set₁ where
     {eq-t : s [ η ] b.≡ Tm-subst (t' [ δ ]) (b.cong-app eq-A)} → 
     ----
     ⦃ pf : sΔ ⊢ (take ms' σ) of sΔ' as ρ ⦄ →
-    ⦃ bound : id < d ⦄ → 
     ------------------------------ 
     let closure = clo L (takeᵉ ms' st) ⦃ clo⊨ wf-env (⊨ˢ-take wf-st) pf ⦄ in
     let wf-st' = cons (⊨ˢ-drop wf-st) b.refl (lapp[] D) in
@@ -183,7 +182,7 @@ data _⊢_↝_ {D : LCon} (I : Impl D) : Config D → Config D → Set₁ where
     {f : Tm Δ (Π A'' B'')}
     {a : Tm Δ A''}
     ----
-    {ins : Is D sΔ d (σ ∷ (f $ a)) (σ' ∷ t')}
+    {ins : Is D sΔ (σ ∷ (f $ a)) (σ' ∷ t')}
     {env : Env D len'}
     {st : Env D ms}
     {sf : Sf D s η lf}
@@ -229,7 +228,7 @@ data _⊢_↝_ {D : LCon} (I : Impl D) : Config D → Config D → Set₁ where
       {B' : Ty Δ' m}
       {s : Tm Δ' B}
       {s' : Tm Δ' B'}
-      {ins : Is D sΔ' d' (θ ∷ s) (θ' ∷ s')}
+      {ins : Is D sΔ' (θ ∷ s) (θ' ∷ s')}
       {env' : Env D len'}
       {st' : Env D ms'}
       ----
@@ -257,7 +256,7 @@ data _⊢_↝_ {D : LCon} (I : Impl D) : Config D → Config D → Set₁ where
       {v : Val D (t' [ δ ])} → 
     ------------------------------
     let new-fr = fr ins env' st' wf-env' wf-st' eq-A' eq-t' in
-    I ⊢ conf (RET {d = d} {σ = σ ∷ t'}) env (st ∷ v) (sf ∷ new-fr) wf-env (cons wf-st b.refl b.refl) eq-A eq-t
+    I ⊢ conf (RET {σ = σ ∷ t'}) env (st ∷ v) (sf ∷ new-fr) wf-env (cons wf-st b.refl b.refl) eq-A eq-t
       ↝ conf ins env' (st' ∷ v) sf wf-env' (cons wf-st' (b.cong-app eq-A) eq-t) eq-A' eq-t'
   --
   C-TLIT : 
@@ -272,7 +271,7 @@ data _⊢_↝_ {D : LCon} (I : Impl D) : Config D → Config D → Set₁ where
     {t' : Tm Δ A'}
     ----
     {B : Ty Δ m}
-    {ins : Is D sΔ d (σ ∷ (c B)) (σ' ∷ t')}
+    {ins : Is D sΔ (σ ∷ (c B)) (σ' ∷ t')}
     {env : Env D len'}
     {st : Env D ms}
     {sf : Sf D s η lf}
@@ -298,7 +297,7 @@ data _⊢_↝_ {D : LCon} (I : Impl D) : Config D → Config D → Set₁ where
     {t' : Tm Δ A'}
     ----
     {k : ℕ}
-    {ins : Is D sΔ d (σ ∷ (nat k)) (σ' ∷ t')}
+    {ins : Is D sΔ (σ ∷ (nat k)) (σ' ∷ t')}
     {env : Env D len'}
     {st : Env D ms}
     {sf : Sf D s η lf}
@@ -327,7 +326,7 @@ data _⊢_↝_ {D : LCon} (I : Impl D) : Config D → Config D → Set₁ where
     {t1 : Tm Δ B1}
     {B2 : Ty Δ m'}
     {t2 : Tm Δ B2}
-    {ins : Is D sΔ d (σ ∷ t2 ∷ t1) (σ' ∷ t')}
+    {ins : Is D sΔ (σ ∷ t2 ∷ t1) (σ' ∷ t')}
     {env : Env D len'}
     {st : Env D ms}
     {sf : Sf D s η lf}
@@ -346,10 +345,32 @@ data _⊢_↝_ {D : LCon} (I : Impl D) : Config D → Config D → Set₁ where
       ↝ (conf ins env (st ∷ v2 ∷ v1) sf wf-env wf-st2 eq-A eq-t)      
   --
   C-INC :
+    {Γ Δ : Con}
+    {sΔ : Ctx Δ len'}
+    {A : Ty Γ n}
+    {s : Tm Γ A}
+    {η : Sub · Γ}
+    {σ : Stack Δ ms}
+    {σ' : Stack Δ ns}
+    {A' : Ty Δ n}
+    {t' : Tm Δ A'}
+    {x : Tm Δ Nat}
     ----
-    {ins : Is D sΔ d (σ
-    I ⊢ conf {!   !} {!   !} {!   !} {!   !} {!   !} {!   !} {!   !} {!   !}
-      ↝ conf {!   !} {!   !} {!   !} {!   !} {!   !} {!   !} {!   !} {!   !}
+    {ins : Is D sΔ (σ ∷ (suc x)) (σ' ∷ t')}
+    {env : Env D len'}
+    {st : Env D ms}
+    {sf : Sf D s η lf}
+    {n : ℕ}
+    ----
+    {δ : Sub · Δ}
+    {wf-env : env ⊨ sΔ as δ}
+    {wf-st : wf-env ⊢ st ⊨ˢ σ}
+    {eq-x : x [ δ ] b.≡ nat n}
+    {eq-A : A' [ δ ]T b.≡ A [ η ]T}
+    {eq-t : s [ η ] b.≡ Tm-subst (t' [ δ ]) (b.cong-app eq-A)} →  
+    ----------------------------
+    I ⊢ conf (INC >> ins) env (st ∷ lit-n n) sf wf-env (cons wf-st b.refl eq-x) eq-A eq-t
+      ↝ conf ins env (st ∷ lit-n (b.suc n)) sf wf-env (cons wf-st b.refl (b.cong suc eq-x)) eq-A eq-t
   --
   C-UP : 
     {Γ Δ : Con}
@@ -364,7 +385,7 @@ data _⊢_↝_ {D : LCon} (I : Impl D) : Config D → Config D → Set₁ where
     ----
     {B : Ty Δ m}
     {t : Tm Δ B}
-    {ins : Is D sΔ d (σ ∷ ↑ t) (σ' ∷ t')}
+    {ins : Is D sΔ (σ ∷ ↑ t) (σ' ∷ t')}
     {env : Env D len'}
     {st : Env D ms}
     {sf : Sf D s η lf}
@@ -392,7 +413,7 @@ data _⊢_↝_ {D : LCon} (I : Impl D) : Config D → Config D → Set₁ where
     ----
     {B : Ty Δ m}
     {t : Tm Δ B}
-    {ins : Is D sΔ d (σ ∷ t) (σ' ∷ t')}
+    {ins : Is D sΔ (σ ∷ t) (σ' ∷ t')}
     {env : Env D len'}
     {st : Env D ms}
     {sf : Sf D s η lf}
@@ -432,7 +453,7 @@ data _⊢_⇓_
       {wf-st : wf-env ⊢ st ⊨ˢ σ}
       {eq-A : A' [ δ ]T b.≡ (λ _ → A)}
       {eq-t : t b.≡ Tm-subst (t' [ δ ]) (b.cong-app eq-A)} →
-    I ⊢ c ↝* conf (RET {d = d} {σ = σ ∷ t'}) env (st ∷ v') (◆ v) wf-env (cons wf-st b.refl b.refl) eq-A eq-t → 
+    I ⊢ c ↝* conf (RET {σ = σ ∷ t'}) env (st ∷ v') (◆ v) wf-env (cons wf-st b.refl b.refl) eq-A eq-t → 
     --------------------------------------------------------
     I ⊢ c ⇓ v
 
