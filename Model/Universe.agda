@@ -76,6 +76,23 @@ inj₂ : ∀{U}{A A' : Code U}{B : ⟦ U ~~ A ⟧ → Code U}{B' : ⟦ U ~~ A' �
   B a ≡ B' a'
 inj₂ refl refl = refl
 
+Σ-inj₁ : ∀{U}{A A' : Code U}{B : ⟦ U ~~ A ⟧ → Code U}{B' : ⟦ U ~~ A' ⟧ → Code U} →
+  `Σ A B ≡ `Σ A' B' → A ≡ A'
+Σ-inj₁ refl = refl
+
+Σ-inj₂ : ∀{U}{A A' : Code U}{B : ⟦ U ~~ A ⟧ → Code U}{B' : ⟦ U ~~ A' ⟧ → Code U} →
+  (pf : `Σ A B ≡ `Σ A' B') → 
+  ∀{a : ⟦ U ~~ A ⟧}{a' : ⟦ U ~~ A' ⟧} →
+  subst _ (Σ-inj₁ pf) a ≡ a' →
+  B a ≡ B' a'
+Σ-inj₂ refl refl = refl
+
+~λ-inj :
+  ∀ {n}{B : ⊤ → Type n}{f g : ⊤ → ⟦ B tt ⟧} →
+  ~λ {B = B} f ≡ ~λ g →
+  f ≡ g
+~λ-inj refl = refl
+
 record ~Σ {n : ℕ} (A : Set) (B : A → Type n) : Set where
   constructor _~,_
   field

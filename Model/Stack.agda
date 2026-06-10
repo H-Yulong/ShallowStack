@@ -17,7 +17,7 @@ infixl 5 _∷_
 infixr 20 _>>_
 
 private variable
-  m n ms ns len len' id : ℕ  
+  m n ms ns len len' id id' : ℕ  
   Γ : Con
 
 -- Now, we express a dependendly typed assembly-like stack-machine language,
@@ -147,7 +147,7 @@ mutual
     --
     VAR : {A : Ty Γ n}(x : V sΓ A) → Instr D sΓ σ (σ ∷ ⟦ x ⟧V)
     --
-    -- POP : {A : Ty Γ n}{t : Tm Γ A} → Instr D sΓ (σ ∷ t) σ
+    POP : {A : Ty Γ n}{t : Tm Γ A} → Instr D sΓ (σ ∷ t) σ
     --
     -- TPOP : ∀{A : Tm Γ (U n)} → Instr D sΓ (σ ∷ A) σ
     --
@@ -179,14 +179,12 @@ mutual
     --
     INC : {x : Tm Γ Nat} → Instr D sΓ (σ ∷ x) (σ ∷ suc x)
     --
-    -- ITER : 
-    --   (P : Ty (Γ ▹ Nat) n)
-    --     {z : Tm Γ (P [ ✧ ▻ zero ]T)}
-    --   (Z : Is D sΓ σ (σ ∷ z))
-    --     {s : Tm (Γ ▹ Nat ▹ P) (P [ p² ▻ (suc 𝟙) ]T)}
-    --   (S : Is D (sΓ ∷ Nat ∷ P) d (σ [ p² ]st ∷ 𝟘 ∷ 𝟙) (σ [ p² ]st ∷ s))
-    --     {x : Tm Γ Nat} → 
-    --   Instr D sΓ (σ ∷ x) (σ ∷ iter P z s x)
+    ITER : 
+      (P : Ty (Γ ▹ Nat) n)
+      (Z : Pi D id sΓ (⊤n n) (P [ p ▻ zero ]T))
+      (S : Pi D id' (sΓ ∷ Nat) P (P [ p² ▻ (suc 𝟙) ]T)) 
+          {x : Tm Γ Nat} → 
+      Instr D sΓ (σ ∷ x) (σ ∷ iter P ((interp D Z) [ ✧ ▻ ttn ]) (interp D S) x)
     --
     -- IF : 
     --   (P : Ty (Γ ▹ Bool) n)
@@ -203,16 +201,16 @@ mutual
     -- --
     -- UNIT : Instr D sΓ σ (σ ∷ tt)
     -- --
-    -- PAIR : 
-    --     {A : Ty Γ n}{B : Ty (Γ ▹ A) n}
-    --     {a : Tm Γ A}{b : Tm Γ (B [ ✧ ▻ a ]T)} → 
-    --   Instr D sΓ (σ ∷ a ∷ b) (σ ∷ (_,_ {B = B} a b))
-    -- --
-    -- FST : {A : Ty Γ n}{B : Ty (Γ ▹ A) n}{p : Tm Γ (Σ A B)} → 
-    --   Instr D sΓ (σ ∷ p) (σ ∷ fst p) 
-    -- --
-    -- SND : {A : Ty Γ n}{B : Ty (Γ ▹ A) n}{p : Tm Γ (Σ A B)} → 
-    --   Instr D sΓ (σ ∷ p) (σ ∷ snd p) 
+    PAIR : 
+        {A : Ty Γ n}{B : Ty (Γ ▹ A) n}
+        {a : Tm Γ A}{b : Tm Γ (B [ ✧ ▻ a ]T)} → 
+      Instr D sΓ (σ ∷ a ∷ b) (σ ∷ (_,_ {B = B} a b))
+    --
+    FST : {A : Ty Γ n}{B : Ty (Γ ▹ A) n}{p : Tm Γ (Σ A B)} → 
+      Instr D sΓ (σ ∷ p) (σ ∷ fst p) 
+    --
+    SND : {A : Ty Γ n}{B : Ty (Γ ▹ A) n}{p : Tm Γ (Σ A B)} → 
+      Instr D sΓ (σ ∷ p) (σ ∷ snd p) 
     -- ----
     -- REFL : {A : Ty Γ n}(u : Tm Γ A) → Instr D sΓ σ (σ ∷ refl u) 
     -- -- Proofs are erasable at runtime, so we can 

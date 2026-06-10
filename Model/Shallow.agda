@@ -289,16 +289,32 @@ snd t = ~λ (λ γ → b.snd (t ~$ γ))
 ,[] = b.refl
 
 
+fst[] : 
+  ∀{Γ Δ}{σ : Sub Γ Δ}{A : Ty Δ n}{B : Ty (Δ ▹ A) n}{t : Tm Δ (Σ A B)} → 
+  (fst t) [ σ ] ≡ fst (t [ σ ])
+fst[] = b.refl
+
+snd[] : 
+  ∀{Γ Δ}{σ : Sub Γ Δ}{A : Ty Δ n}{B : Ty (Δ ▹ A) n}{t : Tm Δ (Σ A B)} → 
+  (snd t) [ σ ] ≡ snd (t [ σ ])
+snd[] = b.refl
+
 {- Empty and Unit -}
 
 ⊥ : ∀{Γ} → Ty Γ 0
 ⊥ = λ _ → `⊥
 
+⊤n : ∀{Γ} → (n : ℕ) → Ty Γ n
+⊤n n = λ _ → `⊤
+
 ⊤ : ∀{Γ} → Ty Γ 0
-⊤ = λ _ → `⊤
+⊤ = ⊤n 0
 
 tt : ∀{Γ} → Tm Γ ⊤
 tt = ~λ (λ γ → b.tt)
+
+ttn : ∀{Γ n} → Tm Γ (⊤n n)
+ttn = ~λ (λ γ → b.tt)
 
 ⊤η : ∀{Γ}{t : Tm Γ ⊤} → t ≡ tt
 ⊤η = b.refl
@@ -469,7 +485,7 @@ suc : ∀{Γ}  → Tm Γ Nat → Tm Γ Nat
 suc t = ~λ (λ γ → b.suc (t ~$ γ))
 
 iter : 
-  ∀   {Γ} → 
+  ∀ {Γ} → 
     (C : Ty (Γ ▹ Nat) n) → 
     (z : Tm Γ (C [ ✧ ▻ zero ]T)) → 
     (s : Tm (Γ ▹ Nat ▹ C) (C [ p² ▻ (suc 𝟙) ]T)) → 
@@ -484,6 +500,14 @@ iter C z s t = ~λ
     (t ~$ γ)
   )
 
+-- iter-S : 
+--   ∀ {Γ} → 
+--     {C : Ty (Γ ▹ Nat) n} → 
+--     {z : Tm Γ (C [ ✧ ▻ zero ]T)} → 
+--     {s : Tm (Γ ▹ Nat ▹ C) (C [ p² ▻ (suc 𝟙) ]T)} → 
+--     {t : Tm Γ Nat}{t' : Tm Γ Nat} →  
+--   (eq : t ≡ suc t') → iter C z s t ≡ b.subst (λ z → Tm Γ (C [ ✧ ▻ z ]T)) (b.sym eq) (s [ ✧ ▻ t' ▻ iter C z s t' ])
+-- iter-S b.refl = b.refl
 
 {- Utility -}
 

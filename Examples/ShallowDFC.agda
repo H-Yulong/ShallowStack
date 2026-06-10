@@ -38,7 +38,8 @@ private variable
 --    using some encoding of types as indices, in this case the shallow
 --    embedding.
 -- 2. Universe levels, i.e. there're always free variables larger than
---    the universe of Pi A B. Solved by using Setω.
+--    the universe of Pi A B. Solved by using Setω. (In this case,
+--    the whole code universe is encoded in Set, so Pi is in Set₁).
 -- 3. Termination, i.e. interp Add1 involves interp Add0, but nothing is
 --    decreasing. Solved by adding index (n : ℕ), such that a label of
 --    (Pi n) can only refer to labels of (Pi m) where m ≤ n, which is a 
@@ -60,8 +61,11 @@ private variable
 -- With everything resolved, this file type-checks fast enough.
 data Pi : (id : b.ℕ) (sΓ : Ctx Γ len) (A : Ty Γ n) (B : Ty (Γ ▹ A) n) → Set₁ where
   --
-  Add0 : Pi 0 (◆ ∷ Nat) Nat Nat
-  Add : Pi 1 ◆ Nat (Π Nat Nat)
+  Add0-base : ∀{sΓ : Ctx Γ len} → Pi 0 (sΓ ∷ Nat ∷ Nat) ⊤ Nat
+  Add0-rec : ∀{sΓ : Ctx Γ len} → Pi 0 (sΓ ∷ Nat ∷ Nat ∷ Nat) Nat Nat
+  --
+  Add0 : ∀{sΓ : Ctx Γ len} → Pi 0 (sΓ ∷ Nat) Nat Nat
+  Add : ∀{sΓ : Ctx Γ len} → Pi 1 sΓ Nat (Π Nat Nat)
   --
   Iden0 : Pi 0 (◆ ∷ U0) (El 𝟘) (El 𝟙)
   Iden : Pi 1 ◆ U0 (↑T (Π (El 𝟘) (El 𝟙)))
@@ -84,9 +88,11 @@ data Pi : (id : b.ℕ) (sΓ : Ctx Γ len) (A : Ty Γ n) (B : Ty (Γ ▹ A) n) �
 
 mutual
   interp : ∀{A : Ty Γ n}{B : Ty (Γ ▹ A) n} → Pi id sΓ A B → Tm (Γ ▹ A) B
+  interp Add0-base = 𝟙
+  interp Add0-rec = suc 𝟘
   --
   interp Add0 = iter Nat 𝟘 (suc 𝟘) 𝟙
-  interp Add = Add0 ⟦ ✧ ⟧
+  interp (Add {sΓ = sΓ}) = Add0 {sΓ = sΓ} ⟦ ✧ ⟧
   --
   interp Iden0 = 𝟘
   interp Iden = ↑ (Iden0 ⟦ ✧ ⟧)
@@ -120,11 +126,19 @@ mutual
 D : LCon
 D = record { Pi = Pi ; interp = interp; lapp = _⟦_⟧; lapp[] = b.refl; lapp-β = b.refl } 
 
+
 impl : ∀{A : Ty Γ n}{B : Ty (Γ ▹ A) n}
   (lab : Pi id sΓ A B) → Proc D (sΓ ∷ A) id (interp lab)
+impl Add0-base = proc 
+  (  VAR V₁
+  >> RET)
+impl Add0-rec = proc
+  (  VAR V₀
+  >> INC 
+  >> RET)
 impl Add0 = proc 
   (  VAR V₁ 
-  >> ITER Nat (VAR V₀ >> RET) (POP >> INC >> RET) 
+  >> ITER Nat Add0-base Add0-rec 
   >> RET )
 impl Add = proc 
   (  VAR V₀ 

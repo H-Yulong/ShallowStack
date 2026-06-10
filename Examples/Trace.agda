@@ -16,7 +16,7 @@ open import Examples.ShallowDFC
 
 
 module Iden0 where
-  prog : Is D ◆ 3 ◆ (◆ ∷ (nat 3))
+  prog : Is D ◆ ◆ (◆ ∷ (nat 3))
   prog =
       TLIT Nat
     >> CLO 1 Iden0
@@ -40,7 +40,7 @@ module Iden0 where
 
 module Identity where
 
-  prog : Is D (◆ ∷ U0 ∷ (El 𝟘)) 3 (◆ ∷ 𝟘) (◆ ∷ 𝟘)
+  prog : Is D (◆ ∷ U0 ∷ (El 𝟘)) (◆ ∷ 𝟘) (◆ ∷ 𝟘)
   prog = 
        CLO 0 Iden
     >> VAR V₁
@@ -101,10 +101,10 @@ module Application where
   σ : Stack C 2
   σ = ◆ ∷ 𝟙 ∷ 𝟘
 
-  prog : Is D sC 3 σ (◆ ∷ 𝟙 $ 𝟘)
+  prog : Is D sC σ (◆ ∷ 𝟙 $ 𝟘)
   prog = APP >> RET
 
-  prog' : Is D sC 3 (◆ ∷ 𝟙 $ 𝟘) (◆ ∷ 𝟙 $ 𝟘)
+  prog' : Is D sC (◆ ∷ 𝟙 $ 𝟘) (◆ ∷ 𝟙 $ 𝟘)
   prog' = RET
 
   env : Env D 4

@@ -27,7 +27,8 @@ import Examples.ShallowDFC
 -- Runtime model and type safety
 import Machine.Value
 import Machine.Config
--- import Machine.Step
+import Machine.Step
+import Machine.Theory
 
 -- Examples of the source language,
 -- shallow-embedded Martin-Löf type theory
@@ -69,10 +70,13 @@ module SourceExamples where
 module StackExamples where
 
   open b using (ℕ; _+'_)
+  open Machine.Value
+  open Machine.Config
+  open Machine.Theory
   open Examples.ShallowDFC
   
   -- Adding numbers
-  test1 : Is D ◆ 3 ◆ (◆ ∷ (nat 5))
+  test1 : Is D ◆ ◆ (◆ ∷ (nat 5))
   test1 = 
        CLO 0 Add
     >> LIT 2 
@@ -82,7 +86,7 @@ module StackExamples where
     >> RET
 
   -- Identity  (A : Set0, x : A)
-  test2 : Is D (◆ ∷ U0 ∷ (El 𝟘)) 3 (◆ ∷ 𝟘) (◆ ∷ 𝟘)
+  test2 : Is D (◆ ∷ U0 ∷ (El 𝟘)) (◆ ∷ 𝟘) (◆ ∷ 𝟘)
   test2 = 
        CLO 0 Iden
     >> VAR V₁
@@ -93,7 +97,7 @@ module StackExamples where
     >> RET
 
   -- Using Iden0
-  test3 : Is D (◆ ∷ U0 ∷ (El 𝟘)) 3 ◆ (◆ ∷ 𝟘)
+  test3 : Is D (◆ ∷ U0 ∷ (El 𝟘)) ◆ (◆ ∷ 𝟘)
   test3 =
        VAR V₁
     >> CLO 1 Iden0
@@ -102,7 +106,7 @@ module StackExamples where
     >> RET
 
   -- Adding numbers via App
-  test4 : ∀{x y : ℕ} → Is D ◆ 4 ◆ (◆ ∷ nat (x +' y))
+  test4 : ∀{x y : ℕ} → Is D ◆ ◆ (◆ ∷ nat (x +' y))
   test4 {x} {y} = 
        CLO 0 App
     >> TLIT Nat
@@ -119,7 +123,7 @@ module StackExamples where
     >> RET
 
   -- Adding numbers, via App, using the most-curried version only
-  test5 : ∀{x y : ℕ} → Is D ◆ 3 ◆ (◆ ∷ nat (x +' y))
+  test5 : ∀{x y : ℕ} → Is D ◆ ◆ (◆ ∷ nat (x +' y))
   test5 {x} {y} = 
        TLIT Nat 
     >> CLO 0 LNat 
@@ -129,18 +133,9 @@ module StackExamples where
     >> LIT y 
     >> APP
     >> RET
-
-  -- Adding via iterator
-  test6 : ∀{x y : ℕ} → Is D ◆ 3 ◆ (◆ ∷ nat (x +' y))
-  --(◆ ∷ nat (x +' y))
-  test6 {x} {y} = 
-       LIT x 
-    >> ITER Nat (LIT y >> RET) (POP >> INC >> RET)
-    >> RET
-
-
+    
   -- Example included in TYPES2025 abstract
-  test-TYPES : Is D ◆ 1 ◆ (◆ ∷ nat 5)
+  test-TYPES : Is D ◆ ◆ (◆ ∷ nat 5)
   test-TYPES = 
        TLIT Nat
     >> CLO 0 LNat 
@@ -151,3 +146,9 @@ module StackExamples where
     >> APP 
     >> RET
   
+  run = Exec 100 impl test-TYPES (lit-n 5) 
+
+open Machine.Config
+open Machine.Step
+open Machine.Value
+

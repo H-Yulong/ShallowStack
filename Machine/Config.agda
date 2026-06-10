@@ -42,7 +42,7 @@ record Frame (D : LCon) {n : ℕ} {Γ : Con} {A : Ty Γ n} (s : Tm Γ A) (η : S
 
 -- Stack of frames
 data Sf (D : LCon) : ∀{n}{Γ : Con}{A : Ty Γ n} → Tm Γ A → Sub · Γ → ℕ → Set₁ where
-  ◆ : ∀{n}{A : Type (b.suc n)}{t : Tm · (λ _ → A)} → (v : Val D t) → Sf D t ε 0
+  ◆ : ∀{n}{A : Type (b.suc n)}{t : Tm · (λ _ → A)} → Sf D t ε 0
   ----
   _∷_ : 
     ∀ {m n}{Γ : Con}{A : Ty Γ n}

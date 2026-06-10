@@ -26,6 +26,8 @@ private variable
 mutual
   data Val (D : LCon) : {A : Type (b.suc n)} → Tm · (λ {b.tt → A}) → Set₁ where
     --
+    lit-ttn : ∀{n} → Val D (ttn {n = n})
+    --
     lit-b : (b : b.Bool) → Val D (bool b)
     --
     lit-n : (n : b.ℕ) → Val D (nat n)
@@ -34,15 +36,18 @@ mutual
     --
     clo : 
       ∀ {A : Ty Γ n}{B : Ty (Γ ▹ A) n}{δ : Sub · Γ}
-        -- {tA : Type (b.suc n)}
-        -- -- -- {tB : ⟦ tA ⟧ → Type (b.suc n)}
-        -- {ptt : ((Π A B) [ δ ]T) b.tt b.≡ `Π tA tB}
         (L : Pi D id sΓ A B)
         (σ : Env D nv) → 
         ⦃ pf : σ ⊨ sΓ as δ ⦄ → 
       -------------------------
       Val D (lapp D L δ)
     lift : {A : Type (b.suc n)}{t : Tm · (λ _ → A)} → Val D t → Val D (↑ t)
+    --
+    pair : 
+      ∀ {A : Ty · n}{B : Ty (· ▹ A) n}
+        {t : Tm · A}{t' : Tm · (B [ ✧ ▻ t ]T)} → 
+      Val D t → Val D t' → 
+      Val D (_,_ {B = B} t t')
 
   -- Env, list of values, essentially runtime stacks
   data Env (D : LCon) : (nv : b.ℕ) → Set₁ where
