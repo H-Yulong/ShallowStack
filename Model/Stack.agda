@@ -186,21 +186,8 @@ mutual
           {x : Tm Γ Nat} → 
       Instr D sΓ (σ ∷ x) (σ ∷ iter P ((interp D Z) [ ✧ ▻ ttn ]) (interp D S) x)
     --
-    -- IF : 
-    --   (P : Ty (Γ ▹ Bool) n)
-    --     {t : Tm Γ (P [ ✧ ▻ true ]T)}
-    --   (T : Is D sΓ σ (σ ∷ t))
-    --     {f : Tm Γ (P [ ✧ ▻ false ]T)}
-    --   (F : Is D sΓ σ (σ ∷ f))
-    --     {b : Tm Γ Bool} → 
-    --   Instr D sΓ (σ ∷ b) (σ ∷ if P t f b) 
+    UNIT : Instr D sΓ σ (σ ∷ tt)
     --
-    -- TRUE : Instr D sΓ σ (σ ∷ true)
-    -- --
-    -- FALSE : Instr D sΓ σ (σ ∷ false)
-    -- --
-    -- UNIT : Instr D sΓ σ (σ ∷ tt)
-    -- --
     PAIR : 
         {A : Ty Γ n}{B : Ty (Γ ▹ A) n}
         {a : Tm Γ A}{b : Tm Γ (B [ ✧ ▻ a ]T)} → 

@@ -3,7 +3,6 @@ module Examples.Defun.Code where
 open import Agda.Primitive
 
 import Lib.Basic as b
-open import Lib.Order
 
 open import Model.Universe hiding (⟦_⟧)
 open import Model.Shallow

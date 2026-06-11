@@ -657,6 +657,31 @@ data _⊢_↝_ {D : LCon} (I : Impl D) : Config D → Config D → Set₁ where
     I ⊢ conf (SND >> ins) env (st ∷ pair v₁ v₂) sf wf-env (cons {t = t} wf-st pA ptf) eq-A eq-t 
       ↝ conf ins env (st ∷ v₂) sf wf-env (cons wf-st (Σ-inj₂ pA (lemma5 t δ (t₁ , t₂) pA ptf)) (lemma5B t δ (t₁ , t₂) pA ptf)) eq-A eq-t
   --
+  C-UNIT : 
+    {Γ Δ : Con}
+    {sΔ : Ctx Δ len'}
+    {A : Ty Γ n}
+    {s : Tm Γ A}
+    {η : Sub · Γ}
+    {σ : Stack Δ ms}
+    {σ' : Stack Δ ns}
+    {A' : Ty Δ n}
+    {t' : Tm Δ A'}
+    ----
+    {ins : Is D sΔ (σ ∷ tt) (σ' ∷ t')}
+    {env : Env D len'}
+    {st : Env D ms}
+    {sf : Sf D s η lf}
+    ----
+    {δ : Sub · Δ}
+    {wf-env : env ⊨ sΔ as δ}
+    {wf-st : wf-env ⊢ st ⊨ˢ σ} 
+    {eq-A : A' [ δ ]T b.≡ A [ η ]T}
+    {eq-t : s [ η ] b.≡ Tm-subst (t' [ δ ]) (b.cong-app eq-A)} →   
+    ----------------------------
+    I ⊢ conf (UNIT >> ins) env st sf wf-env wf-st eq-A eq-t 
+      ↝ conf ins env (st ∷ lit-ttn) sf wf-env (cons wf-st b.refl b.refl) eq-A eq-t
+  --
   C-ITER-Z : 
     {Γ Δ : Con}
     {sΔ : Ctx Δ len'}

@@ -87,7 +87,7 @@ Progress I {ins = ITER P Z S >> ins} {st = st ∷ lit-n (ℕ.suc n)} {wf-st = co
 -- Progress I {ins = IF P T F >> ins} = {!   !}
 -- Progress I {ins = TRUE >> ins} = {!   !}
 -- Progress I {ins = FALSE >> ins} = {!   !}
--- Progress I {ins = UNIT >> ins} = {!   !}
+Progress I {ins = UNIT >> ins} = inR (_ b., C-UNIT)
 Progress I {ins = PAIR >> ins} {st = st ∷ v₁ ∷ v₂} {wf-st = cons (cons wf-st b.refl b.refl) b.refl b.refl} = inR (_ b., C-PAIR)
 Progress I {ins = FST >> ins} {st = st ∷ pair v₁ v₂} {wf-st = cons wf-st ptt eq} = inR (_ b., C-FST)
 Progress I {ins = SND >> ins} {st = st ∷ pair v₁ v₂} {wf-st = cons wf-st ptt eq} = inR (_ b., C-SND)
