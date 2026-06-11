@@ -1,4 +1,4 @@
-module Examples.ShallowDFC where
+module Examples.Defun.Code where
 
 open import Agda.Primitive
 
@@ -8,8 +8,8 @@ open import Lib.Order
 open import Model.Universe hiding (⟦_⟧)
 open import Model.Shallow
 
-import Examples.Compose as Com
-import Examples.App as App
+import Examples.Defun.Compose as Com
+import Examples.Defun.App as App
 
 open import Model.Labels
 open import Model.Context
@@ -19,14 +19,6 @@ private variable
   Γ : Con
   len i j k l m n id : b.ℕ
   sΓ : Ctx Γ len
-
--- private variable
-  -- i j k i' j' k' : Level
-  -- Γ : Con i
-  -- A : Ty Γ j
-  -- B : Ty (Γ ▹ A) k
-  -- l m n l' m' n' id : lib.ℕ
-  -- sΓ : Ctx Γ l
 
 -- open import Theory
 
@@ -125,7 +117,6 @@ mutual
 
 D : LCon
 D = record { Pi = Pi ; interp = interp; lapp = _⟦_⟧; lapp[] = b.refl; lapp-β = b.refl } 
-
 
 impl : ∀{A : Ty Γ n}{B : Ty (Γ ▹ A) n}
   (lab : Pi id sΓ A B) → Proc D (sΓ ∷ A) id (interp lab)

@@ -1,4 +1,4 @@
-module Examples.Compose where
+module Examples.Defun.Compose where
 
 open import Lib.Order
 open import Model.Shallow

@@ -1,4 +1,4 @@
-module Machine.Theory where
+module Machine.Progress where
 
 open import Agda.Primitive
 import Lib.Basic as b

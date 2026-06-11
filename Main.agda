@@ -14,24 +14,32 @@ open import Model.Context
 -- Defunctionalized label contexts
 open import Model.Labels
 
--- Stack machine 
+-- Stack machine type-checking 
 open import Model.Stack
 
-{- Examples -}
-import Examples.App
-import Examples.Compose
-import Examples.Performance
-import Examples.ShallowDFC
+{- Machine: operational semantics -}
 
-{- Machine: runtime model and type safety -}
--- Runtime model and type safety
+-- Machine configuration
 open import Machine.Value
 open import Machine.Config
-open import Machine.Step
-open import Machine.Theory
 
--- Examples of the source language,
--- shallow-embedded Martin-Löf type theory
+-- Well-formed operational semantics, has preservation by definition
+open import Machine.Step
+
+-- Progress theorem, fuelled execution
+open import Machine.Progress
+
+{- Examples -}
+
+-- Defunctionalization basics
+import Examples.Defun.App
+import Examples.Defun.Compose
+import Examples.Defun.Code
+
+-- Vector as iterated products
+import Examples.Vector.Code
+
+{- Source Language -} 
 
 module SourceExamples where
   
@@ -66,11 +74,12 @@ module SourceExamples where
   test5 : ∀{n}{A : Type (b.suc n)} → Tm · (λ _ → `Π A (λ _ → A))
   test5 = lam 𝟘
 
+{- Stack Machine -}
 
 module StackExamples where
 
   open b using (ℕ; _+'_)
-  open Examples.ShallowDFC
+  open Examples.Defun.Code
   
   -- Adding numbers
   test1 : Is D ◆ ◆ (◆ ∷ (nat 5))

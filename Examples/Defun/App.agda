@@ -1,4 +1,4 @@
-module Examples.App where
+module Examples.Defun.App where
 
 open import Lib.Order
 open import Model.Shallow
