@@ -25,10 +25,10 @@ import Examples.ShallowDFC
 
 {- Machine: runtime model and type safety -}
 -- Runtime model and type safety
-import Machine.Value
-import Machine.Config
-import Machine.Step
-import Machine.Theory
+open import Machine.Value
+open import Machine.Config
+open import Machine.Step
+open import Machine.Theory
 
 -- Examples of the source language,
 -- shallow-embedded Martin-Löf type theory
@@ -70,9 +70,6 @@ module SourceExamples where
 module StackExamples where
 
   open b using (ℕ; _+'_)
-  open Machine.Value
-  open Machine.Config
-  open Machine.Theory
   open Examples.ShallowDFC
   
   -- Adding numbers
@@ -146,9 +143,5 @@ module StackExamples where
     >> APP 
     >> RET
   
-  run = Exec 100 impl test-TYPES (lit-n 5) 
-
-open Machine.Config
-open Machine.Step
-open Machine.Value
+  run = Exec 100 impl test-TYPES
 

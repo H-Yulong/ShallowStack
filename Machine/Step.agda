@@ -737,26 +737,27 @@ data _⊢_↝*_ {D : LCon} (I : Impl D) (c : Config D) : Config D → Set₁ whe
   _⟫_ : ∀{c' c'' : Config D} → I ⊢ c ↝ c' → I ⊢ c' ↝* c'' → I ⊢ c ↝* c''
 
 data _⊢_⇓_ 
-  {D : LCon} {A : Type (b.suc n)} {t : Tm · (λ _ → A)}
-  (I : Impl D) (c : Config D) (v : Val D t) : Set₁ where
-  --
-  Halt : 
-    ∀ {Δ : Con}
-      {sΔ : Ctx Δ ms}
-      {A' : Ty Δ n}
-      {t' : Tm Δ A'}
-      {σ : Stack Δ ns}
-      {δ : Sub · Δ}
-      {v' : Val D (t' [ δ ])}
-      {env : Env D ms} 
-      {st : Env D ns} 
-      {wf-env : env ⊨ sΔ as δ}
-      {wf-st : wf-env ⊢ st ⊨ˢ σ}
-      {eq-A : A' [ δ ]T b.≡ (λ _ → A)}
-      {eq-t : t b.≡ Tm-subst (t' [ δ ]) (b.cong-app eq-A)} →
-    I ⊢ c ↝* conf (RET {σ = σ ∷ t'}) env (st ∷ v') (◆ v) wf-env (cons wf-st b.refl b.refl) eq-A eq-t → 
-    --------------------------------------------------------
-    I ⊢ c ⇓ v
+  {D : LCon} (I : Impl D) (c : Config D) : 
+  {A : Type (b.suc n)} {t : Tm · (λ _ → A)} (v : Val D t) → Set₁ where
+    Halt : 
+      ∀ {Δ : Con}
+        {sΔ : Ctx Δ ms}
+        {A : Type (b.suc n)}
+        {t : Tm · (λ _ → A)}
+        {A' : Ty Δ n}
+        {t' : Tm Δ A'}
+        {σ : Stack Δ ns}
+        {δ : Sub · Δ}
+        {env : Env D ms} 
+        {st : Env D ns} 
+        {v : Val D (t' [ δ ])}
+        {wf-env : env ⊨ sΔ as δ}
+        {wf-st : wf-env ⊢ st ⊨ˢ σ} → 
+        {eq-A : A' [ δ ]T b.≡ (λ _ → A)}
+        {eq-t : t b.≡ Tm-subst (t' [ δ ]) (b.cong-app eq-A)} →
+      I ⊢ c ↝* conf (RET {σ = σ ∷ t'}) env (st ∷ v) (◆ t) wf-env (cons wf-st b.refl b.refl) eq-A eq-t → 
+      --------------------------------------------------------
+      I ⊢ c ⇓ v
 
 data _⊢_⇓! {D : LCon} (I : Impl D) (c : Config D) : Set₁ where
   --
