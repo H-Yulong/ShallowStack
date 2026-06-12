@@ -166,6 +166,11 @@ mutual
         ⦃ pf : sΓ ⊢ (take ns σ) of sΔ as δ ⦄ →
       Instr D sΓ σ (drop ns σ ∷ lapp D L δ)
     --
+    CLOENV : 
+      ∀ {A : Ty Γ n}{B : Ty (Γ ▹ A) n} 
+      (L : Pi D id sΓ A B) → 
+      Instr D sΓ σ (σ ∷ lapp D L ✧)
+    --
     LIT : (n : b.ℕ) → Instr D sΓ σ (σ ∷ (nat n))
     --
     TLIT : (A : Ty Γ n) → Instr D sΓ σ (σ ∷ (c A))

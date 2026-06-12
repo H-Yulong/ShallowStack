@@ -260,6 +260,35 @@ data _⊢_↝_ {D : LCon} (I : Impl D) : Config D → Config D → Set₁ where
     I ⊢ conf (CLO ms' L >> ins) env st sf wf-env wf-st eq-A eq-t 
       ↝ conf ins env ((dropᵉ ms' st) ∷ closure) sf wf-env wf-st' eq-A eq-t
   --
+  C-CLOENV : 
+    {Γ Δ : Con}
+    {sΔ : Ctx Δ len'}
+    {A : Ty Γ m}
+    {s : Tm Γ A}
+    {η : Sub · Γ}
+    {σ : Stack Δ ms}
+    {σ' : Stack Δ ns}
+    {A' : Ty Δ m}
+    {t' : Tm Δ A'}
+    ----
+    {A'' : Ty Δ n}
+    {B'' : Ty (Δ ▹ A'') n}
+    {L : Pi D id sΔ A'' B''}
+    ----
+    {ins : Is D sΔ (σ ∷ lapp D L ✧) (σ' ∷ t')}
+    {env : Env D len'}
+    {st : Env D ms}
+    {sf : Sf D s η lf}
+    ----
+    {δ : Sub · Δ}
+    {wf-env : env ⊨ sΔ as δ}
+    {wf-st : wf-env ⊢ st ⊨ˢ σ}
+    {eq-A : A' [ δ ]T b.≡ A [ η ]T}
+    {eq-t : s [ η ] b.≡ Tm-subst (t' [ δ ]) (b.cong-app eq-A)} → 
+    ------------------------------ 
+    I ⊢ conf (CLOENV L >> ins) env st sf wf-env wf-st eq-A eq-t 
+      ↝ conf ins env (st ∷ clo L env ⦃ wf-env ⦄) sf wf-env (cons wf-st b.refl (lapp[] D)) eq-A eq-t
+  --
   C-APP : 
     {Γ Δ : Con}
     {sΔ : Ctx Δ len'}

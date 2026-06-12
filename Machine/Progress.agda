@@ -77,6 +77,7 @@ Progress I {ins = POP >> ins} {st = st ∷ v} {wf-st = cons wf-st b.refl b.refl}
 Progress I {ins = APP >> ins} {st = st ∷ clo L env' ⦃ wf-env' ⦄ ∷ v2} {wf-st = cons (cons wf-st ptt₁ eq₁) b.refl b.refl} = 
   inR (_ b., C-APP)
 Progress I {ins = CLO ms' L ⦃ pf ⦄ >> ins} {st = st} = inR (_ b., C-CLO)
+Progress I {ins = CLOENV L >> ins} = inR (_ b., C-CLOENV)
 Progress I {ins = LIT n >> ins} = inR (_ b., C-LIT)
 Progress I {ins = TLIT A >> ins} = inR (_ b., C-TLIT)
 Progress I {ins = SWP >> ins} {st = st ∷ v ∷ v'} {wf-st = cons (cons wf-st b.refl b.refl) b.refl b.refl}= inR (_ b., C-SWP)
@@ -84,9 +85,6 @@ Progress I {ins = ST x >> ins} = inR (_ b., C-ST)
 Progress I {ins = INC >> ins} {st = st ∷ lit-n n} {wf-st = cons wf-st b.refl eq-x} = inR (_ b., C-INC)
 Progress I {ins = ITER P Z S >> ins} {st = st ∷ lit-n ℕ.zero} {wf-st = cons wf-st b.refl eq-x} = inR (_ b., C-ITER-Z)
 Progress I {ins = ITER P Z S >> ins} {st = st ∷ lit-n (ℕ.suc n)} {wf-st = cons wf-st b.refl eq-x} = inR (_ b., C-ITER-S)
--- Progress I {ins = IF P T F >> ins} = {!   !}
--- Progress I {ins = TRUE >> ins} = {!   !}
--- Progress I {ins = FALSE >> ins} = {!   !}
 Progress I {ins = UNIT >> ins} = inR (_ b., C-UNIT)
 Progress I {ins = PAIR >> ins} {st = st ∷ v₁ ∷ v₂} {wf-st = cons (cons wf-st b.refl b.refl) b.refl b.refl} = inR (_ b., C-PAIR)
 Progress I {ins = FST >> ins} {st = st ∷ pair v₁ v₂} {wf-st = cons wf-st ptt eq} = inR (_ b., C-FST)
