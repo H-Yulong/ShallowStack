@@ -1,4 +1,4 @@
-module Machine.Value where
+module DAM.Value where
 
 open import Agda.Primitive
 
@@ -8,10 +8,10 @@ open import Lib.Order
 open import Model.Universe
 open import Model.Shallow
 open import Model.Context
-open import Model.Labels
 open import Model.Stack
 
-open LCon
+open import DAM.Labels
+open import DAM.Syntax
 
 private variable
   id m n ms ns nv len : b.ℕ
@@ -19,16 +19,10 @@ private variable
   sΓ : Ctx Γ len
   D : LCon
 
--- Representation of runtime values,
--- which knows what value in the syntax it implements.
--- (Treat pairs later)
-
 mutual
   data Val (D : LCon) : {A : Type (b.suc n)} → Tm · (λ {b.tt → A}) → Set₁ where
     --
-    lit-ttn : ∀{n} → Val D (ttn {n = n})
-    --
-    lit-b : (b : b.Bool) → Val D (bool b)
+    lit-⊤ : ∀{n} → Val D (ttn {n = n})
     --
     lit-n : (n : b.ℕ) → Val D (nat n)
     --
@@ -65,11 +59,6 @@ mutual
       (pf : σ ⊨ sΓ as δ) →
       (pA : A' b.≡ (A [ δ ]T) b.tt) → 
       (σ ∷ v) ⊨ (sΓ ∷ A) as (δ ▻ Tm-subst t pA)
-
--- Val-conv : ∀{D}{A A' : Type (b.suc n)}{t : Tm · (λ _ → A)} → 
---   Val D {A = A} t → (eq : A b.≡ A') → Val D {A = A'} (Tm-subst t eq)
--- Val-conv v b.refl = v
-
 
 -- Find the term at position x in an env that implements Γ
 _[_]V : 
@@ -108,57 +97,6 @@ data _⊢_⊨ˢ_ {D : LCon} {sΓ : Ctx Γ len} {env : Env D len} {δ : Sub · Γ
       (ptt : tA b.≡ (A [ δ ]T) b.tt) →  
       (eq : t [ δ ] b.≡ Tm-subst t' ptt) → 
     wf ⊢ (st ∷ v) ⊨ˢ (σ ∷ t)  
-  -- I have to take the explicit equality here because function label's congruence
-  -- under substitution is not refl, since label contexts are given as a signature.
-  -- It doesn't hurt the development so far...
-
--- Lemma1 : 
---   ∀ {D : LCon}{tA : Type (b.suc n)}
---     {tB : ⟦ tA ⟧ → Type (b.suc n)}
---     {f : Tm · (λ _ → `Π tA tB)} → 
---     Val D f → 
---     Set
--- Lemma1 (clo L σ) = b.ℕ
--- ≡
-
-Lemma2 :
-    ∀ {D : LCon} 
-      -- env setup
-      {Γ : Con}{sΓ : Ctx Γ len}
-      {env : Env D len}{δ : Sub · Γ}
-      {wf : env ⊨ sΓ as δ}
-      -- abstract types and terms
-      {A : Ty Γ n}{B : Ty (Γ ▹ A) n}
-      {f : Tm Γ (Π A B)}
-      -- stacks 
-      {σ : Stack Γ ns}
-      {st : Env D (b.suc ns)} → 
-      --
-    wf ⊢ st ⊨ˢ (σ ∷ f) →
-    b.Σ b.ℕ (λ nv → Env D nv)
-Lemma2 {σ = σ} {st = st ∷ clo {nv = nv} L σ'} (cons arg k eq) = nv b., σ'
--- Lemma 2: Can match on 
-
-Lemma3 : 
-  ∀ {D : LCon}{tA : Ty · n}
-    {t : Tm · (↑T tA)} → 
-    Val D t → 
-    Set
-Lemma3 (lift v) = b.ℕ
-
-Lemma4 : 
-  ∀ {D : LCon} 
-      -- env setup
-      {Γ : Con}{sΓ : Ctx Γ len}
-      {env : Env D len}{δ : Sub · Γ}
-      {wf : env ⊨ sΓ as δ}
-      -- abstract types and terms
-      {A : Ty Γ n}{t : Tm Γ A}
-      -- stacks 
-      {σ : Stack Γ ns} 
-      {st : Env D (b.suc ns)} → 
-    wf ⊢ st ⊨ˢ (σ ∷ (↑ t)) → Set
-Lemma4 {δ = δ} {t = t} {σ = σ} {st = st ∷ lift {t = t'} v} (cons arg b.refl eq-t) = b.ℕ
 
 findˢ : 
   {A : Ty Γ n}{sΓ : Ctx Γ len}{env : Env D len}{δ : Sub · Γ}

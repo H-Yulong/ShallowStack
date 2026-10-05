@@ -1,4 +1,4 @@
-module Machine.Config where
+module DAM.Config where
 
 import Lib.Basic as b
 open import Lib.Order
@@ -6,10 +6,11 @@ open import Lib.Order
 open import Model.Universe
 open import Model.Shallow
 open import Model.Context
-open import Model.Labels
 open import Model.Stack
 
-open import Machine.Value
+open import DAM.Labels
+open import DAM.Syntax
+open import DAM.Value
 
 open b using (ℕ; _+_; _≡_)
 

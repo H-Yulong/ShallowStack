@@ -1,9 +1,9 @@
-module Examples.Vector.Zip.Source where
+module DAM.Examples.Vector.Zip.Source where
 
 open import Lib.Order
 open import Model.Context
 open import Model.Shallow
-open import Examples.Vector.Vec
+open import DAM.Examples.Vector.Vec
 
 Δ : Con
 Δ = · ▹ U0 ▹ U0 ▹ Nat ▹ Vec 𝟚 𝟘

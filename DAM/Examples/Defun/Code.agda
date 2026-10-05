@@ -1,62 +1,33 @@
-module Examples.Defun.Code where
+module DAM.Examples.Defun.Code where
 
 open import Agda.Primitive
 
 import Lib.Basic as b
+open import Lib.Order
 
 open import Model.Universe hiding (⟦_⟧)
 open import Model.Shallow
 
-import Examples.Defun.Compose as Com
-import Examples.Defun.App as App
+import DAM.Examples.Defun.Compose as Com
+import DAM.Examples.Defun.App as App
 
-open import Model.Labels
+open import DAM.Labels hiding (Pi; interp)
 open import Model.Context
 open import Model.Stack
+open import DAM.Syntax
 
 private variable
   Γ : Con
   len i j k l m n id : b.ℕ
   sΓ : Ctx Γ len
 
--- open import Theory
-
--- This definition resolves the three problems with defunctionalization,
--- which are outlined in "Defunctionalization with dependent types":
---
--- 1. Positivity, i.e. the problem of having (Pi A B → Pi A B) → Pi A B,
---    and Pi (Pi A B) C. Solved in the same way as simply-typed DFC, by
---    using some encoding of types as indices, in this case the shallow
---    embedding.
--- 2. Universe levels, i.e. there're always free variables larger than
---    the universe of Pi A B. Solved by using Setω. (In this case,
---    the whole code universe is encoded in Set, so Pi is in Set₁).
--- 3. Termination, i.e. interp Add1 involves interp Add0, but nothing is
---    decreasing. Solved by adding index (n : ℕ), such that a label of
---    (Pi n) can only refer to labels of (Pi m) where m ≤ n, which is a 
---    syntactic constraint in DCC.
-
--- That said, being theoretically capable of expressing DFC is not enough ─
--- the code should be type-checked in reasonable amount of time.
--- If written naively, Agda's type checker spends exponential time on elaboration,
--- and type-checking definitions like composition just cannot terminate soon.
--- The solution, as shown in Compose.agda, is to build many intermediate values
--- to be re-used by Agda during type-checking.
-
--- Finally, a trivial point:
--- The label order should be 0,1,2,3... if we're strictly following the DCC scheme:
--- each label gets to refer to all previous labels.
--- Here, the range of labels from disjoint sets,
--- so I can assign individual orders to them.
-
--- With everything resolved, this file type-checks fast enough.
 data Pi : (id : b.ℕ) (sΓ : Ctx Γ len) (A : Ty Γ n) (B : Ty (Γ ▹ A) n) → Set₁ where
   --
   Add0-base : ∀{sΓ : Ctx Γ len} → Pi 0 (sΓ ∷ Nat ∷ Nat) ⊤ Nat
   Add0-rec : ∀{sΓ : Ctx Γ len} → Pi 0 (sΓ ∷ Nat ∷ Nat ∷ Nat) Nat Nat
   --
-  Add0 : ∀{sΓ : Ctx Γ len} → Pi 0 (sΓ ∷ Nat) Nat Nat
-  Add : ∀{sΓ : Ctx Γ len} → Pi 1 sΓ Nat (Π Nat Nat)
+  Add0 : ∀{sΓ : Ctx Γ len} → Pi 1 (sΓ ∷ Nat) Nat Nat
+  Add : ∀{sΓ : Ctx Γ len} → Pi 2 sΓ Nat (Π Nat Nat)
   --
   Iden0 : Pi 0 (◆ ∷ U0) (El 𝟘) (El 𝟙)
   Iden : Pi 1 ◆ U0 (↑T (Π (El 𝟘) (El 𝟙)))
@@ -73,7 +44,7 @@ data Pi : (id : b.ℕ) (sΓ : Ctx Γ len) (A : Ty Γ n) (B : Ty (Γ ▹ A) n) �
   Com4 : Pi 4 (◆ ∷ Com.A) Com.B (Π Com.C (↑T (Π Com.Tg (Π Com.Tf (Π Com.Tx Com.Cxfx)))))
   Com : Pi 5 ◆ Com.A (Π Com.B (Π Com.C (↑T (Π Com.Tg (Π Com.Tf (Π Com.Tx Com.Cxfx))))))
   --
-  LNat : Pi 0 ◆ (↑T Nat) U0
+  ConstNat : Pi 0 ◆ (↑T Nat) U0
   --
   IdNat : Pi 0 ◆ Nat Nat
 
@@ -100,7 +71,7 @@ mutual
   interp Com4 = Com3 ⟦ ✧ ⟧
   interp Com = Com4 ⟦ ✧ ⟧
   --
-  interp LNat = c Nat
+  interp ConstNat = c Nat
   --
   interp IdNat = 𝟘
 
@@ -115,10 +86,11 @@ mutual
 -- The equational theory is just refl
 
 D : LCon
-D = record { Pi = Pi ; interp = interp; lapp = _⟦_⟧; lapp[] = b.refl; lapp-β = b.refl } 
+D = record { Pi = Pi ; interp = interp} 
 
-impl : ∀{A : Ty Γ n}{B : Ty (Γ ▹ A) n}
-  (lab : Pi id sΓ A B) → Proc D (sΓ ∷ A) id (interp lab)
+impl : 
+  ∀ {A : Ty Γ n}{B : Ty (Γ ▹ A) n}
+    (lab : Pi id sΓ A B) → Proc D id (sΓ ∷ A) (interp lab)
 impl Add0-base = proc 
   (  VAR V₁
   >> RET)
@@ -203,14 +175,9 @@ impl Com = proc
   (  VAR V₀ 
   >> CLO 1 Com4 
   >> RET )
-impl LNat = proc 
-  (  TLIT Nat
+impl ConstNat = proc 
+  (  TY Nat
   >> RET )
 impl IdNat = proc
   (  VAR V₀
   >> RET)
-
-L : Library
-L = library D impl
-
- 

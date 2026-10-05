@@ -11,10 +11,6 @@ private variable
   Γ : Con
   len i j k l m n : ℕ
 
-
--- Deeper shallow embedded context,
--- useful for accessing runtime environments
-
 data Ctx : Con → ℕ → Set₁ where
   ◆ : Ctx · 0
   _∷_ : Ctx Γ len → (A : Ty Γ n) → Ctx (Γ ▹ A) (suc len)
