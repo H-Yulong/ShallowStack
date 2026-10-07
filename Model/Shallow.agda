@@ -2,6 +2,7 @@ module Model.Shallow where
 
 {- Shallow embedding for CwF, using inductive-recursive universe hierarchy -}
 
+open import Agda.Primitive
 import Lib.Basic as b
 open b using (ℕ; _≡_)
 
@@ -19,8 +20,7 @@ infixl 8 _[_]
 infixl 5 _^_
 infixr 6 _⇒_
 infixl 7 _$_
--- infixl 6 _,_
-
+infixl 6 _,_
 
 {- Sorts -}
 
@@ -36,6 +36,10 @@ Tm Γ A = ~Π Γ A
 
 Sub : Con → Con → Set
 Sub Γ Δ = Γ → Δ
+
+-- Extensionality transport
+Tm-subst : ∀{Γ}{A A' : Ty Γ n}(t : Tm Γ A)(eq : {γ : Γ} → A γ b.≡ A' γ) → Tm Γ A'
+Tm-subst t pf = ~λ (λ γ → b.subst ⟦_⟧ pf (t ~$ γ))
 
 
 {- Substitutions -}
@@ -83,7 +87,6 @@ t [ σ ] = ~λ (λ γ → t ~$ (σ γ))
 {- Contexts -}
 
 -- Empty context
-
 · : Con
 · = b.⊤
 
@@ -97,7 +100,6 @@ t [ σ ] = ~λ (λ γ → t ~$ (σ γ))
 ·η = b.refl
 
 -- Context extension
-
 _▹_ : (Γ : Con) → Ty Γ n → Con
 Γ ▹ A = ~Σ Γ A
 
@@ -131,13 +133,12 @@ q = ~λ ~snd
 ▹η : ∀{Γ}{A : Ty Γ n} → (p ▻ q {A = A}) ≡ ✧
 ▹η = b.refl
 
---   (σ ▻ t) ∘ δ ≡ (σ ∘ δ) ▻ (t [ δ ])
+-- (σ ▻ t) ∘ δ ≡ (σ ∘ δ) ▻ (t [ δ ])
 ,∘ : ∀{Γ Δ Θ}{σ : Sub Γ Δ}{A : Ty Δ n}{t : Tm Γ (A [ σ ]T)}{δ : Sub Θ Γ} →
   (_▻_ {A = A} σ t) ∘ δ ≡ (σ ∘ δ) ▻ (t [ δ ])
 ,∘ = b.refl
 
 -- Abbreviations
-
 p² :
   ∀ {m n Γ}
     {A : Ty Γ n}
@@ -190,7 +191,6 @@ _^_ : ∀{Γ Δ} → (σ : Sub Γ Δ) → (A : Ty Δ n) → Sub (Γ ▹ A [ σ ]
 σ ^ A = σ ∘ p ▻ 𝟘
 
 -- Abbreviations
-
 𝟙 :
   ∀ {m n Γ}
     {A : Ty Γ n}
@@ -206,7 +206,6 @@ _^_ : ∀{Γ Δ} → (σ : Sub Γ Δ) → (A : Ty Δ n) → Sub (Γ ▹ A [ σ ]
   Tm (Γ ▹ A ▹ B ▹ C) (A [ p³ ]T)
 𝟚 = 𝟘 [ p² ]
 
-
 𝟛 :
   ∀ {k l m n Γ}
     {A : Ty Γ n}
@@ -215,6 +214,7 @@ _^_ : ∀{Γ Δ} → (σ : Sub Γ Δ) → (A : Ty Δ n) → Sub (Γ ▹ A [ σ ]
     {D : Ty (Γ ▹ A ▹ B ▹ C) k} →
   Tm (Γ ▹ A ▹ B ▹ C ▹ D) (A [ p⁴ ]T)
 𝟛 = 𝟘 [ p³ ]
+
 
 {- Π type -}
 
@@ -242,7 +242,6 @@ lam[] : ∀{Γ Δ}{A : Ty Δ n}{B : Ty (Δ ▹ A) n}{t : Tm (Δ ▹ A) B}{σ : S
 lam[] = b.refl
 
 -- Abbreviations
-
 _⇒_ : ∀{Γ} → (A : Ty Γ n) → (B : Ty Γ n) → Ty Γ n
 A ⇒ B = Π A (B [ p ]T)
 
@@ -255,7 +254,6 @@ t $ u = app t [ ✧ ▻ u ]
 
 Σ : ∀{Γ} → (A : Ty Γ n) → (B : Ty (Γ ▹ A) n) → Ty Γ n
 Σ A B = λ γ → `Σ (A γ) (λ a → B (γ ~, a))
-
 
 _,_ : ∀{Γ}{A : Ty Γ n}{B : Ty (Γ ▹ A) n} → (u : Tm Γ A) → Tm Γ (B [ ✧ ▻ u ]T) → Tm Γ (Σ A B)
 u , v = ~λ (λ γ → (u ~$ γ) b., (v ~$ γ))
@@ -288,7 +286,6 @@ snd t = ~λ (λ γ → b.snd (t ~$ γ))
   (_,_ {B = B} u v) [ σ ] ≡ (u [ σ ]) , (v [ σ ])
 ,[] = b.refl
 
-
 fst[] : 
   ∀{Γ Δ}{σ : Sub Γ Δ}{A : Ty Δ n}{B : Ty (Δ ▹ A) n}{t : Tm Δ (Σ A B)} → 
   (fst t) [ σ ] ≡ fst (t [ σ ])
@@ -298,6 +295,7 @@ snd[] :
   ∀{Γ Δ}{σ : Sub Γ Δ}{A : Ty Δ n}{B : Ty (Δ ▹ A) n}{t : Tm Δ (Σ A B)} → 
   (snd t) [ σ ] ≡ snd (t [ σ ])
 snd[] = b.refl
+
 
 {- Empty and Unit -}
 
@@ -414,6 +412,9 @@ if[] :
   (if C c1 c2 t) [ σ ] ≡ if (C [ σ ^ Bool ]T) (c1 [ σ ]) (c2 [ σ ]) (t [ σ ])
 if[] = b.refl
 
+bool : ∀{Γ} → b.Bool → Tm Γ Bool
+bool b = ~λ (λ γ → b)
+
 
 {- Identity -}
 
@@ -455,10 +456,10 @@ refl[] : ∀{Γ Δ}{A : Ty Δ n}{σ : Sub Γ Δ}{u : Tm Δ A} →
 refl[] = b.refl
 
 J[] :
-  ∀   {Γ Δ}{A : Ty Δ n}{σ : Sub Γ Δ}{A : Ty Δ n}{u v : Tm Δ A}
-   {C : Ty (Δ ▹ A ▹ Id (A [ p ]T) (u [ p ]) 𝟘) m}
-   {c : Tm Δ (C [ ✧ ▻ u ▻ refl u ]T)}
-   {t : Tm Δ (Id A u v)} →
+  ∀ {Γ Δ}{A : Ty Δ n}{σ : Sub Γ Δ}{A : Ty Δ n}{u v : Tm Δ A}
+    {C : Ty (Δ ▹ A ▹ Id (A [ p ]T) (u [ p ]) 𝟘) m}
+    {c : Tm Δ (C [ ✧ ▻ u ▻ refl u ]T)}
+    {t : Tm Δ (Id A u v)} →
   -----------------------------------------------------------------
     J {u = u} {v} C c t [ σ ] 
   ≡ J {u = u [ σ ]} {v = v [ σ ]} (C [ σ ^ A ^ Id (A [ p ]T) (u [ p ]) 𝟘 ]T) (c [ σ ]) (t [ σ ])
@@ -466,10 +467,10 @@ J[] = b.refl
 
 -- transport
 subst :
-  ∀   {Γ}{A : Ty Γ n}{u v : Tm Γ A}
-   (C : Ty (Γ ▹ A) m)
-   (t : Tm Γ (Id A u v))
-   (w : Tm Γ (C [ ✧ ▻ u ]T)) → Tm Γ (C [ ✧ ▻ v ]T)
+  ∀ {Γ}{A : Ty Γ n}{u v : Tm Γ A}
+    (C : Ty (Γ ▹ A) m)
+    (t : Tm Γ (Id A u v))
+    (w : Tm Γ (C [ ✧ ▻ u ]T)) → Tm Γ (C [ ✧ ▻ v ]T)
 subst {u = u} {v} C t w = J {u = u} {v} (C [ p ]T) w t
 
 
@@ -478,10 +479,10 @@ subst {u = u} {v} C t w = J {u = u} {v} (C [ p ]T) w t
 Nat : ∀{Γ} → Ty Γ 0
 Nat = λ _ → `N
 
-zero : ∀{Γ}  → Tm Γ Nat
+zero : ∀{Γ} → Tm Γ Nat
 zero = ~λ (λ _ → 0)
 
-suc : ∀{Γ}  → Tm Γ Nat → Tm Γ Nat
+suc : ∀{Γ} → Tm Γ Nat → Tm Γ Nat
 suc t = ~λ (λ γ → b.suc (t ~$ γ))
 
 iter : 
@@ -500,19 +501,40 @@ iter C z s t = ~λ
     (t ~$ γ)
   )
 
--- iter-S : 
---   ∀ {Γ} → 
---     {C : Ty (Γ ▹ Nat) n} → 
---     {z : Tm Γ (C [ ✧ ▻ zero ]T)} → 
---     {s : Tm (Γ ▹ Nat ▹ C) (C [ p² ▻ (suc 𝟙) ]T)} → 
---     {t : Tm Γ Nat}{t' : Tm Γ Nat} →  
---   (eq : t ≡ suc t') → iter C z s t ≡ b.subst (λ z → Tm Γ (C [ ✧ ▻ z ]T)) (b.sym eq) (s [ ✧ ▻ t' ▻ iter C z s t' ])
--- iter-S b.refl = b.refl
+iter-Z : 
+    ∀ {Γ} → 
+    (P : Ty (Γ ▹ Nat) n) → 
+    (z : Tm Γ (P [ ✧ ▻ zero ]T)) → 
+    (s : Tm (Γ ▹ Nat ▹ P) (P [ p² ▻ (suc 𝟙) ]T)) → 
+    (t : Tm Γ Nat) →  
+  (eq : t b.≡ zero) → 
+  iter P z s t b.≡ Tm-subst z (b.cong-app (b.cong (λ z → P [ ✧ ▻ z ]T) (b.sym eq))) 
+iter-Z P z s t b.refl = b.refl
+
+iter-S : 
+  ∀ {Γ} → 
+    (P : Ty (Γ ▹ Nat) n) → 
+    (z : Tm Γ (P [ ✧ ▻ zero ]T)) → 
+    (s : Tm (Γ ▹ Nat ▹ P) (P [ p² ▻ (suc 𝟙) ]T)) → 
+    (t t' : Tm Γ Nat) →   
+  (eq : t b.≡ suc t') → 
+  iter P z s t b.≡ Tm-subst (s [ ✧ ▻ t' ▻ iter P z s t' ]) (b.cong-app (b.cong (λ z → P [ ✧ ▻ z ]T) (b.sym eq)))
+iter-S P z s t t' b.refl = b.refl
+ 
+-- Abbreviations
+
+nat : ∀{Γ} → ℕ → Tm Γ Nat
+nat n = ~λ (λ _ → n)
+
+add : ∀{Γ} → (t t' : Tm Γ Nat) → Tm Γ Nat
+add t t' = iter Nat t' (suc 𝟘) t
+
+mult : ∀{Γ} → (t t' : Tm Γ Nat) → Tm Γ Nat
+mult t t' = iter Nat zero (add (t' [ p² ]) 𝟘) t
 
 {- Utility -}
 
 -- Smart lifting!
-
 ↑T! : ∀{m n Γ} → ⦃ n ≤ m ⦄ → Ty Γ n → Ty Γ m
 ↑T! ⦃ refl≤ ⦄ A = A
 ↑T! ⦃ incr≤ ⦄ A = ↑T (↑T! A)
@@ -531,38 +553,75 @@ iter C z s t = ~λ
 ↑↓ : ∀{Γ}{A : Ty Γ n}{t : Tm Γ A} → ↓ (↑ t) ≡ t
 ↑↓ = b.refl 
 
--- Smart type constructors
+{- Assorted lemmas -}
 
--- later!
+module Lemmas where
 
--- Π! : ∀{m n Γ} → (A : Tm Γ (U m)) → Tm (Γ ▹ El A) (U n) → Ty Γ (m ⊔n n)
--- Π! {m} {n} A B with ⊔n-dicho {m} {n}
--- ... | inl p rewrite p = Π (El A) (↑T! ⦃ b.subst (λ x → n ≤ x) p ≤⊔n-R ⦄ (El B))
--- ... | inr p rewrite p = Π (↑T! ⦃ b.subst (λ x → m ≤ x) p ≤⊔n-L ⦄ (El A)) {!   !}
+-- For the APP case in opsem
+lemma-App1 : 
+  ∀ {Δ : Con}{A : Ty Δ n}{δ : Sub · Δ}{a : Tm Δ A} → 
+    {A' : Code (uni (Type n) ⟦_⟧)} →
+  (pf : A' b.≡ A (δ b.tt)) → 
+  b.subst (⟦_⟧ {n = b.suc n}) pf (b.subst (⟦_⟧ {n = b.suc n}) (b.sym pf) (a .~fun (δ b.tt))) b.≡ a .~fun (δ b.tt)
+lemma-App1 {A = A} {δ} b.refl = b.refl
 
--- Π! {m} {n} A B = Π (↑T! ⦃ ≤⊔n-L ⦄ (El A)) (↑T! ⦃ ≤⊔n-R ⦄ ((El B) [ σ {A = A} ]T))
---   where
---     σ : ∀{m n Γ}{A : Tm Γ (U m)} → Sub (Γ ▹ ↑T! {m ⊔n n} {m} ⦃ ≤⊔n-L ⦄ (El A)) (Γ ▹ El A)
---     σ (γ ~, a) = γ ~, {!  a !}
+lemma-App2 : 
+  ∀ {Δ : Con}{A : Ty Δ n}{B : Ty (Δ ▹ A) n}{δ : Sub · Δ}
+    {f : Tm Δ (Π A B)}{a : Tm Δ A}
+    {A' : Code (uni (Type n) ⟦_⟧)}
+    {B' : ⟦ (uni (Type n) ⟦_⟧) ~~ A' ⟧ → Code (uni (Type n) ⟦_⟧)} →
+    {f' : Tm · (λ _ → `Π A' B')}
+    (pA : `Π A' B' b.≡ `Π (A (δ b.tt)) (λ x → B (δ b.tt ~, x))) →
+    (ptf : f [ δ ] b.≡ Tm-subst f' pA) →     
+    {t : Tm · (λ _ → B' (Tm-subst (a [ δ ]) (b.sym (inj₁ pA)) .~fun b.tt))} → 
+    (eq : (f' $ Tm-subst (a [ δ ]) (b.sym (inj₁ pA))) b.≡ t) → 
+    ((f $ a) [ δ ]) b.≡ 
+      Tm-subst t 
+        (b.cong-app {i = lzero} (b.ext-tt (inj₂ pA (lemma-App1 {Δ = Δ} {A} {δ} {a} (inj₁ pA)))))
+lemma-App2 b.refl b.refl b.refl = b.refl
 
-{- Bonus -} 
+-- For the FST case in opsem
+lemma-FST : 
+  ∀ {Δ : Con}
+    {A : Ty Δ m}
+    {B : Ty (Δ ▹ A) m}
+    {A+ : Code (uni (Type m) ⟦_⟧)}
+    {B+ :  ⟦ (uni (Type m) ⟦_⟧) ~~ A+ ⟧ → Code (uni (Type m) ⟦_⟧)}
+    (t : Tm Δ (Σ A B)) 
+    (δ : Sub · Δ)
+    (t' : Tm · (Σ (λ _ → A+) (λ γ → B+ (γ .~snd))))
+    (pA :  `Σ A+ B+ b.≡ `Σ (A (δ b.tt)) (λ x → B (δ b.tt ~, x)))
+    (ptf : t [ δ ] b.≡ Tm-subst t' pA) → 
+  fst t [ δ ] b.≡ Tm-subst (fst t') (Σ-inj₁ pA)
+lemma-FST t δ t' b.refl b.refl = b.refl
 
--- Supports functional extentionality if available
-module hasFunext 
-  (funext  : ∀{i j}{A : Set i}{B : A → Set j}{f g : (x : A) → B x}
-           → ((x : A) → f x ≡ g x) → f ≡ g)
-  where
+-- For the SND case in opsem
+lemma-SND1 :   
+  ∀ {Δ : Con}
+    {A : Ty Δ m}
+    {B : Ty (Δ ▹ A) m}
+    {A+ : Code (uni (Type m) ⟦_⟧)}
+    {B+ :  ⟦ (uni (Type m) ⟦_⟧) ~~ A+ ⟧ → Code (uni (Type m) ⟦_⟧)}
+    (t : Tm Δ (Σ A B)) 
+    (δ : Sub · Δ)
+    (t' : Tm · (Σ (λ _ → A+) (λ γ → B+ (γ .~snd))))
+    (pA :  `Σ A+ B+ b.≡ `Σ (A (δ b.tt)) (λ x → B (δ b.tt ~, x)))
+    (ptf : t [ δ ] b.≡ Tm-subst t' pA) → 
+  b.subst (⟦_~~_⟧ (uni (Type m) ⟦_⟧)) (Σ-inj₁ pA) (b.fst (t' .~fun b.tt))
+  b.≡ b.fst (t .~fun (δ b.tt))
+lemma-SND1 t δ t' b.refl b.refl = b.refl
 
-  Reflect : ∀{Γ}{A : Ty Γ n}(t u : Tm Γ A) → Tm Γ (Id A t u)
-            → t ≡ u
-  Reflect {Γ}{A} (~λ f) (~λ g) (~λ pf) rewrite funext pf = b.refl
-
-{- 
-  The extra equalities that hold for the Set model don't hold any more.
-  
-  Below not hold:
-    Russell : Tm Γ (U n) ≡ Ty Γ n
-    []Tt : A [ σ ]T ≡ A [ σ ]
--}
- 
+lemma-SND2 : 
+  ∀ {Δ : Con}
+    {A : Ty Δ m}
+    {B : Ty (Δ ▹ A) m}
+    {A+ : Code (uni (Type m) ⟦_⟧)}
+    {B+ :  ⟦ (uni (Type m) ⟦_⟧) ~~ A+ ⟧ → Code (uni (Type m) ⟦_⟧)}
+    (t : Tm Δ (Σ A B)) 
+    (δ : Sub · Δ)
+    (t' : Tm · (Σ (λ _ → A+) (λ γ → B+ (γ .~snd))))
+    (pA :  `Σ A+ B+ b.≡ `Σ (A (δ b.tt)) (λ x → B (δ b.tt ~, x)))
+    (ptf : t [ δ ] b.≡ Tm-subst t' pA) → 
+  snd t [ δ ] b.≡ Tm-subst (snd t') (Σ-inj₂ pA (lemma-SND1 t δ t' pA ptf))
+lemma-SND2 t δ t' b.refl b.refl = b.refl
   

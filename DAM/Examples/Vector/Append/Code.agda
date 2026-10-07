@@ -1,18 +1,20 @@
-module Examples.Vector.Append.Code where
+module DAM.Examples.Vector.Append.Code where
 
 open import Agda.Primitive
 
 import Lib.Basic as b
+open import Lib.Order
 
 open import Model.Universe hiding (⟦_⟧)
 open import Model.Shallow
-
-open import Model.Labels
 open import Model.Context
 open import Model.Stack
 
-open import Examples.Vector.Vec
-import Examples.Vector.Append.Source as 𝓢
+open import DAM.Labels hiding (Pi; interp)
+open import DAM.Syntax
+
+open import DAM.Examples.Vector.Vec
+import DAM.Examples.Vector.Append.Source as 𝓢
 
 
 private variable
@@ -57,10 +59,10 @@ interp Append-S = Append-S0 ⟦ ✧ ⟧
 L ⟦ σ ⟧ = ~λ (λ γ α → (interp L) ~$ (σ γ ~, α))
 
 D : LCon
-D = record { Pi = Pi ; interp = interp; lapp = _⟦_⟧; lapp[] = b.refl; lapp-β = b.refl } 
+D = record { Pi = Pi ; interp = interp} 
 
 impl : ∀{A : Ty Γ n}{B : Ty (Γ ▹ A) n}
-  (lab : Pi id sΓ A B) → Proc D (sΓ ∷ A) id (interp lab)
+  (lab : Pi id sΓ A B) → Proc D id (sΓ ∷ A) (interp lab)
 impl Nil0 = proc 
   (  UNIT
   >> UP
@@ -102,6 +104,3 @@ impl Append0 = proc
   >> VAR V₁ 
   >> APP
   >> RET )
-
-L : Library
-L = library D impl

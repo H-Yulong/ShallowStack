@@ -44,7 +44,7 @@ J P pr refl = pr
 ----------------------------------------------
 
 {- True and false -}
-record ⊤ : Set where
+record ⊤ {i} : Set i where
   constructor tt
 
 data ⊥ : Set where
@@ -152,10 +152,10 @@ f $ x = f x
 _+'_ : ℕ → ℕ → ℕ
 a +' b = iterN (λ x → ℕ) b (λ x → suc x) a
 
-ext-⊤ : ∀{i}{A : Set i}{f g : ⊤ → A} → ({t : ⊤} → f t ≡ g t) → f ≡ g
+ext-⊤ : ∀{i j}{A : Set i}{f g : ⊤ {j} → A} → ({t : ⊤} → f t ≡ g t) → f ≡ g
 ext-⊤ pf = cong (λ a _ → a) pf
 
-ext-tt : ∀{i}{A : Set i}{f g : ⊤ → A} → (f tt ≡ g tt) → f ≡ g
+ext-tt : ∀{i j}{A : Set i}{f g : ⊤ {j} → A} → (f tt ≡ g tt) → f ≡ g
 ext-tt pf = cong (λ a _ → a) pf
 
 cong-app : ∀{i j}{A : Set i}{B : A → Set j}{f g : (a : A) → B a} → 

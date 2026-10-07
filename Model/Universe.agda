@@ -100,8 +100,8 @@ record ~Σ {n : ℕ} (A : Set) (B : A → Type n) : Set where
     ~snd : ⟦ B ~fst ⟧
 open ~Σ public
 
--- ~Ση : ∀{n A}{B : A → Type n} → (p : ~Σ A B) → ~fst p ~, ~snd p ≡ p
--- ~Ση (x ~, y) = refl
+~Ση : ∀{n A}{B : A → Type n} → (p : ~Σ A B) → ~fst p ~, ~snd p ≡ p
+~Ση (x ~, y) = refl
 
 {- 
 

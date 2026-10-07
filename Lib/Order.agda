@@ -59,5 +59,37 @@ toFin : ∀{m n} → m < n → Fin n
 toFin refl< = zero
 toFin (incr< ⦃ pf ⦄) = suc (toFin pf)
 
-try : (⦃ 0 ≤ 1 ⦄ → Set) → Set
-try A = A
+{- Arithmetic -}
+
+n<suc : ∀ {n} → n < suc n
+n<suc {zero} = refl<
+n<suc {suc n} = incr< ⦃ n<suc ⦄
+
+0<from : ∀ {n k} → n < k → 0 < k
+0<from refl< = refl<
+0<from (incr< ⦃ _ ⦄) = refl<
+
+mutual
+  <-pred : ∀ {m n k} → m < n → n < suc k → m < k
+  <-pred refl< (incr< ⦃ q ⦄) = 0<from q
+  <-pred (incr< ⦃ p ⦄) (incr< ⦃ q ⦄) = suc<from p q
+
+  suc<from : ∀ {m n k} → m < n → n < k → suc m < k
+  suc<from () refl<
+  suc<from p (incr< ⦃ q ⦄) = incr< ⦃ <-pred p (incr< ⦃ q ⦄) ⦄
+
+<⊔n-L : ∀{x y z} → x < y → x < (y ⊔n z)
+<⊔n-L {x} {suc y} {zero} pf = pf
+<⊔n-L {zero} {suc y} {suc z} refl< = refl<
+<⊔n-L {suc x} {suc y} {suc z} (incr< ⦃ pf ⦄) = incr< ⦃ <⊔n-L pf ⦄
+
+<⊔n-R : ∀{x y z} → x < y → x < (z ⊔n y)
+<⊔n-R {x} {suc y} {zero} pf = pf
+<⊔n-R {zero} {suc y} {suc z} refl< = refl<
+<⊔n-R {suc x} {suc y} {suc z} (incr< ⦃ pf ⦄) = incr< ⦃ <⊔n-R pf ⦄
+
+<⊔n-suc-L : ∀{x y} → x < (suc x ⊔n y)
+<⊔n-suc-L {x} {y} = <⊔n-L {x} {suc x} {y} n<suc
+
+<⊔n-suc-R : ∀{x y} → x < (y ⊔n suc x)
+<⊔n-suc-R {x} {y} = <⊔n-R {y = suc x} n<suc
