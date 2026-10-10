@@ -102,12 +102,12 @@ H↑ HA (lift v) = HA v
 -- The halting relation, by recursion on the code of the closed type.
 -- Base types, universes and identity types: every well-typed value halts.
 H : ∀ {n} {A : Type (b.suc n)} {t : Tm · (λ _ → A)} → Val t → Set₁
-H {A = `N} v = ⊤₁
-H {A = `B} v = ⊤₁
-H {A = `⊤} v = ⊤₁
-H {A = `⊥} v = ⊤₁
-H {A = `U} v = ⊤₁
-H {A = `Id A x y} v = ⊤₁
+H {A = `N} v = b.⊤
+H {A = `B} v = b.⊤
+H {A = `⊤} v = b.⊤
+H {A = `⊥} v = b.⊤
+H {A = `U} v = b.⊤
+H {A = `Id A x y} v = b.⊤
 H {A = `Π A B} v = HΠ (H {A = A}) (λ x → H {A = B x}) v
 H {A = `Σ A B} v = HΣ (H {A = A}) (λ x → H {A = B x}) v
 H {n = b.zero} {A = `↑ ()} v
@@ -132,13 +132,13 @@ Halts c = HaltsWith c H
 
 Hᵉ : ∀ {Γ : Con}{sΓ : Ctx Γ len}{env : Env len}{δ : Sub · Γ} →
   env ⊨ sΓ as δ → Set₁
-Hᵉ nil = ⊤₁
+Hᵉ nil = b.⊤
 Hᵉ (cons {v = v} pf pA) = Hᵉ pf × H v
 
 Hˢ : ∀ {Γ : Con}{sΓ : Ctx Γ len}{env : Env len}{δ : Sub · Γ}
   {wf : env ⊨ sΓ as δ}{st : Env ns}{σ : Stack Γ ns} →
   wf ⊢ st ⊨ˢ σ → Set₁
-Hˢ nil = ⊤₁
+Hˢ nil = b.⊤
 Hˢ (cons {v = v} pf ptt eq) = Hˢ pf × H v
 
 {- Access lemmas -}
@@ -161,7 +161,7 @@ Hˢ-take :
   ∀ {Γ : Con}{sΓ : Ctx Γ len}{env : Env len}{δ : Sub · Γ}
     {wf : env ⊨ sΓ as δ}{st : Env (m b.+ n)}{σ : Stack Γ (m b.+ n)} →
   (wf-st : wf ⊢ st ⊨ˢ σ) → Hˢ wf-st → Hˢ (⊨ˢ-take {m = m} wf-st)
-Hˢ-take {m = b.zero} wf-st h = tt₁
+Hˢ-take {m = b.zero} wf-st h = b.tt
 Hˢ-take {m = b.suc m} (cons pf ptt eq) (h b., hv) = Hˢ-take pf h b., hv
 
 Hˢ-drop :
@@ -177,6 +177,6 @@ Hᵉ-clo⊨ :
     {sΔ : Ctx Δ ns}{st : Env ns}{σ : Stack Γ ns} →
   (wf : env ⊨ sΓ as δ) → (wf-st : wf ⊢ st ⊨ˢ σ) → Hˢ wf-st →
   (pf : sΓ ⊢ σ of sΔ as η) → Hᵉ (clo⊨ wf wf-st pf)
-Hᵉ-clo⊨ {sΔ = ◆} {◆} {◆} wf nil h nil = tt₁
+Hᵉ-clo⊨ {sΔ = ◆} {◆} {◆} wf nil h nil = b.tt
 Hᵉ-clo⊨ {sΔ = sΔ ∷ A} {st ∷ v} {σ ∷ t} wf (cons wf-st b.refl b.refl) (h b., hv) (cons ⦃ pf ⦄) =
   Hᵉ-clo⊨ wf wf-st h pf b., hv

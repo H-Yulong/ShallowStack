@@ -20,6 +20,17 @@ open import DAM.Theorem.Halting
 open import DAM.Theorem.Fundamental
 open import DAM.Theorem.Termination
 
+import DAM.Examples.Defun.App
+import DAM.Examples.Defun.Compose
+import DAM.Examples.Defun.Code
+
+import DAM.Examples.Vector.Vec
+import DAM.Examples.Vector.Append.Source
+import DAM.Examples.Vector.Append.Code
+import DAM.Examples.Vector.Zip.Source
+-- Commented out because it takes forever to type-check
+-- import DAM.Examples.Vector.Zip.Code
+
 private variable
   m ns : ℕ
 

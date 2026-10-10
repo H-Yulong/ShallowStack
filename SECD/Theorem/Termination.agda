@@ -26,22 +26,22 @@ private variable
 
 mutual
   all-H : ∀ {A : Type (b.suc n)}{t : Tm · (λ _ → A)} (v : Val t) → H v
-  all-H lit-ttn = tt₁
-  all-H (lit-n k) = tt₁
-  all-H (ty A) = tt₁
+  all-H lit-ttn = b.tt
+  all-H (lit-n k) = b.tt
+  all-H (ty A) = b.tt
   all-H (clo env ins ⦃ pf ⦄) = H-clo ins pf (all-Hᵉ pf)
   all-H (lift v) = all-H v
   all-H (pair v₁ v₂) = all-H v₁ b., all-H v₂
 
   all-Hᵉ : ∀ {Γ : Con}{sΓ : Ctx Γ len}{env : Env len}{δ : Sub · Γ}
     (wf : env ⊨ sΓ as δ) → Hᵉ wf
-  all-Hᵉ nil = tt₁
+  all-Hᵉ nil = b.tt
   all-Hᵉ (cons {v = v} pf pA) = all-Hᵉ pf b., all-H v
 
 all-Hˢ : ∀ {Γ : Con}{sΓ : Ctx Γ len}{env : Env len}{δ : Sub · Γ}
   {wf : env ⊨ sΓ as δ}{st : Env ns}{σ : Stack Γ ns} →
   (wf-st : wf ⊢ st ⊨ˢ σ) → Hˢ wf-st
-all-Hˢ nil = tt₁
+all-Hˢ nil = b.tt
 all-Hˢ (cons {v = v} pf ptt eq) = all-Hˢ pf b., all-H v
 
 {- Termination at the current frame -}

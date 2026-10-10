@@ -186,9 +186,9 @@ mutual
       (Fund ins wf-env hᵉ (cons {v = clo env ins' ⦃ wf-env ⦄} wf-st b.refl b.refl)
         (hˢ b., H-clo ins' wf-env hᵉ) eq-A eq-t)
   Fund (LIT k >> ins) wf-env hᵉ wf-st hˢ eq-A eq-t =
-    step-halts C-LIT (Fund ins wf-env hᵉ (cons wf-st b.refl b.refl) (hˢ b., tt₁) eq-A eq-t)
+    step-halts C-LIT (Fund ins wf-env hᵉ (cons wf-st b.refl b.refl) (hˢ b., b.tt) eq-A eq-t)
   Fund (TY B >> ins) wf-env hᵉ wf-st hˢ eq-A eq-t =
-    step-halts C-TY (Fund ins wf-env hᵉ (cons wf-st b.refl b.refl) (hˢ b., tt₁) eq-A eq-t)
+    step-halts C-TY (Fund ins wf-env hᵉ (cons wf-st b.refl b.refl) (hˢ b., b.tt) eq-A eq-t)
   Fund (SWP >> ins) wf-env hᵉ
     (cons (cons wf-st b.refl b.refl) b.refl b.refl) ((hˢ b., h₁) b., h₂) eq-A eq-t =
     step-halts C-SWP
@@ -198,15 +198,15 @@ mutual
       (Fund ins wf-env hᵉ (cons wf-st b.refl b.refl) (hˢ b., Hˢ-find wf-st hˢ x) eq-A eq-t)
   Fund (INC >> ins) wf-env hᵉ (cons {v = lit-n k} wf-st b.refl eq-x) (hˢ b., _) eq-A eq-t =
     step-halts C-INC
-      (Fund ins wf-env hᵉ (cons wf-st b.refl (b.cong suc eq-x)) (hˢ b., tt₁) eq-A eq-t)
+      (Fund ins wf-env hᵉ (cons wf-st b.refl (b.cong suc eq-x)) (hˢ b., b.tt) eq-A eq-t)
   Fund (ITER P Z S >> ins) wf-env hᵉ
     (cons {v = lit-n y} wf-st b.refl eq-x) (hˢ b., _) eq-A eq-t =
     ITER-halts y ins wf-env hᵉ wf-st eq-x eq-A eq-t
-      (λ sf₀ eq-A₀ eq-t₀ → Fund Z wf-env hᵉ nil tt₁ eq-A₀ eq-t₀)
-      (λ y' → H-clo S (cons wf-env b.refl) (hᵉ b., tt₁))
+      (λ sf₀ eq-A₀ eq-t₀ → Fund Z wf-env hᵉ nil b.tt eq-A₀ eq-t₀)
+      (λ y' → H-clo S (cons wf-env b.refl) (hᵉ b., b.tt))
       (λ v ptt eq hv → Fund ins wf-env hᵉ (cons wf-st ptt eq) (hˢ b., hv) eq-A eq-t)
   Fund (UNIT >> ins) wf-env hᵉ wf-st hˢ eq-A eq-t =
-    step-halts C-UNIT (Fund ins wf-env hᵉ (cons wf-st b.refl b.refl) (hˢ b., tt₁) eq-A eq-t)
+    step-halts C-UNIT (Fund ins wf-env hᵉ (cons wf-st b.refl b.refl) (hˢ b., b.tt) eq-A eq-t)
   Fund (PAIR >> ins) wf-env hᵉ
     (cons (cons wf-st b.refl b.refl) b.refl b.refl) ((hˢ b., h₁) b., h₂) eq-A eq-t =
     step-halts C-PAIR
@@ -240,4 +240,4 @@ mutual
       (wf-env : env ⊨ sΓ as δ) → Hᵉ wf-env →
     H (clo env ins ⦃ wf-env ⦄)
   H-clo ins wf-env hᵉ v pA hv sf eq-A eq-t =
-    Fund ins (cons wf-env pA) (hᵉ b., H-unsubst pA hv) nil tt₁ eq-A eq-t
+    Fund ins (cons wf-env pA) (hᵉ b., H-unsubst pA hv) nil b.tt eq-A eq-t

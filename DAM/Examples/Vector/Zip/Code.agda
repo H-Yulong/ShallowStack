@@ -68,7 +68,7 @@ impl Zip-Z1 = proc
 impl Zip-Z = proc
   (  CLOENV Zip-Z1
   >> RET)
-  -- ((fst 𝟙) , (fst 𝟘)) , (𝟚 $ (snd 𝟙) $ (snd 𝟘))
+--   -- ((fst 𝟙) , (fst 𝟘)) , (𝟚 $ (snd 𝟙) $ (snd 𝟘))
 impl Zip-S0 =  proc   
   (  VAR V₁
   >> FST
