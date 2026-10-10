@@ -31,14 +31,14 @@ The following table lists all the claims in the paper supported by the artifact.
 | §2.6    | Definition 2.15     | `SECD.Theorem.Halting`         | `H`                                  |
 | §2.6    | Definition 2.17     | `SECD.Theorem.Halting`         | `Hᵉ`                                 |
 | §2.6    | Definition 2.18     | `SECD.Theorem.Halting`         | `Hˢ`                                 |
-| §2.6    | Definition 2.19     | `SECD.Theorem.Fundamental`     | `Fund`                               |
-| §2.6    | Definition 2.20     | `SECD.Theorem.Termination`     | `all-H`                              |
-| §2.6    | Definition 2.21     | `SECD.Theorem.Termination`     | `halts-frame`                        |
-| §2.6    | Definition 2.22     | `SECD.Theorem.Termination`     | `Termination`                        |
-| §2.6    | Definition 2.23     | `SECD.Theorem.Termination`     | `TotalCorrectness`                   |
-| §2.6    | Definition 2.24     | `SECD.Theorem.Termination`     | `TotalCorrectness-program`           |
+| §2.6    | Lemma 2.19          | `SECD.Theorem.Fundamental`     | `Fund`                               |
+| §2.6    | Lemma 2.20          | `SECD.Theorem.Termination`     | `all-H`                              |
+| §2.6    | Lemma 2.21          | `SECD.Theorem.Termination`     | `halts-frame`                        |
+| §2.6    | Theorem 2.22        | `SECD.Theorem.Termination`     | `Termination`                        |
+| §2.6    | Corollary 2.23      | `SECD.Theorem.Termination`     | `TotalCorrectness`                   |
+| §2.6    | Corollary 2.24      | `SECD.Theorem.Termination`     | `TotalCorrectness-program`           |
 | §3.4    | Definition 3.2      | `DAM.Config`                   | `Config`                             |
-| §3.4    | Definition 3.4      | `DAM.Theorem.Progress`         | `Progress`                           |
+| §3.4    | Theorem 3.4         | `DAM.Theorem.Progress`         | `Progress`                           |
 
 Additionally, you can view the example DAM code contained in `DAM.Main` and see the trace of machine execution. Load the file with Emacs or VS code Agda mode , then press `C-c C-n`, the system will ask for a term and evaluates its normal form. Enter `Add23.run` or `Add23.run-trace` to see the result or the result with trace.
 
