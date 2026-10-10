@@ -58,10 +58,10 @@ The repository is structured as follows:
 │   └── Universe.agda
 ├── SECD
 │   ├── Theorem
-│   |     ├── Fundamental.agda
-│   |     ├── Halting.agda
-│   |     ├── Progress.agda
-│   |     └── Termination.agda
+│   │     ├── Fundamental.agda
+│   │     ├── Halting.agda
+│   │     ├── Progress.agda
+│   │     └── Termination.agda
 │   ├── Config.agda
 │   ├── Main.agda
 │   ├── Opsem.agda
@@ -69,10 +69,10 @@ The repository is structured as follows:
 │   └── Value.agda
 ├── DAM
 │   ├── Theorem
-│   |     ├── Fundamental.agda
-│   |     ├── Halting.agda
-│   |     ├── Progress.agda
-│   |     └── Termination.agda
+│   │     ├── Fundamental.agda
+│   │     ├── Halting.agda
+│   │     ├── Progress.agda
+│   │     └── Termination.agda
 │   ├── Examples
 │   ├── Config.agda
 │   ├── Labels.agda 
